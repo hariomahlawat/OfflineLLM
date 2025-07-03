@@ -1,0 +1,5 @@
+# Ensure text files use LF in repo and native newline in working tree
+*.md      text eol=lf
+*.py      text eol=lf
+*.in      text eol=lf
+*.lock    text eol=lf
