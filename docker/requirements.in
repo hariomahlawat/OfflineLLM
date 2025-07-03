@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+langchain-community
+chromadb==0.5.23
+sentence-transformers
+pydantic
+pymupdf
+pypdf
