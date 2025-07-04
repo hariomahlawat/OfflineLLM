@@ -1,4 +1,7 @@
 # app/api.py
+
+import app.boot            # <-- this triggers the indexing side-effect
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
