@@ -1,0 +1,9 @@
+# docker/Ollamafile
+FROM ollama/ollama:0.3.4
+
+# Start the daemon in the background, wait a few seconds, pull models, shut it down
+RUN bash -c "ollama serve & \
+             sleep 5 && \
+             ollama pull llama3:8b && \
+             ollama pull nomic-embed-text && \
+             pkill ollama || true"

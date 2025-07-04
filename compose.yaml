@@ -1,0 +1,36 @@
+
+
+services:
+  ollama:
+    image: ollama-offline:latest        # built earlier with pre-pulled models
+    container_name: ollama
+    volumes:
+      - ollama_models:/root/.ollama
+    networks: [rag-net]
+
+  rag-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: rag-app
+    depends_on: [ollama]
+    volumes:
+      - chroma_data:/data/chroma        # persists vector DB
+    ports:
+      - "8000:8000"
+    networks: [rag-net]
+    
+        # 👇 add this block
+    environment:
+      # used by your LangChain classes
+      - OLLAMA_BASE_URL=http://ollama:11434
+      # used by the python-ollama helper
+      - OLLAMA_HOST=http://ollama:11434
+      - LANGCHAIN_ENDPOINT=disabled        # optional
+
+volumes:
+  chroma_data:
+  ollama_models:
+
+networks:
+  rag-net:

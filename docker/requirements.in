@@ -6,3 +6,5 @@ sentence-transformers
 pydantic
 pymupdf
 pypdf
+ollama==0.3.3
+sentence-transformers[onnx]

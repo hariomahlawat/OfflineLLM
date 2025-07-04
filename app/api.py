@@ -6,6 +6,20 @@ from typing import List
 from app.vector_store import similarity_search
 from app.rerank import rerank
 
+from uuid import uuid4
+from langchain.schema import HumanMessage
+from app.chat import chat as chat_fn, new_session_id, MODEL_NAME
+
+from typing import Dict
+from uuid import uuid4
+
+from langchain.memory import ConversationBufferMemory
+from langchain_community.chat_models import ChatOllama
+
+import ollama
+
+#MODEL_NAME = "llama3:8b-instruct-q3_K_L"         
+
 app = FastAPI(title="OfflineLLM API", version="0.1.0")
 
 
@@ -46,10 +60,10 @@ async def doc_qa(req: QARequest):
 
 
     # 3) call Ollama / Llama-3
-    import ollama
+    
     try:
         reply = ollama.chat(
-            model="llama3:8b",
+            model=MODEL_NAME,
             messages=[{"role": "user", "content": prompt}],
             stream=False
         )
@@ -59,3 +73,24 @@ async def doc_qa(req: QARequest):
 
 
     return QAResponse(answer=answer, sources=top_chunks)
+
+
+
+# ----------  Chat endpoint ---------- #
+class ChatRequest(BaseModel):
+    user_msg: str
+    session_id: str | None = None
+
+class ChatResponse(BaseModel):
+    session_id: str
+    answer: str
+
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat(req: ChatRequest):
+    session_id = req.session_id or new_session_id()
+    try:
+        answer = chat_fn(session_id, req.user_msg)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return ChatResponse(session_id=session_id, answer=answer)

@@ -1,63 +1,61 @@
+
 # Developer Setup – **OfflineLLM**
 
-> **Last verified:** 03 Jul 2025  
+> **Last verified:** 04 Jul 2025  
 > **Host OS:** Windows 11 (PowerShell 7)
 
 ---
 
-## 0. Prerequisites
-| Tool   | Version / Notes                             |
-|--------|---------------------------------------------|
-| Python | **3.11 × 64‑bit** (ensure `python` in PATH) |
-| Git    | Latest                                      |
-| VS Code| Python extension recommended                |
+## 0 Prerequisites
+
+| Tool | Minimum version | Install notes |
+|------|-----------------|---------------|
+| **Git** | any recent | <https://git-scm.com/download/win> – add **git.exe** to PATH |
+| **Python** | 3.11 × 64‑bit | `python --version` ⇒ *3.11.x* |
+| **Docker Desktop** | 4.42 + | enable **“Use the WSL 2 based engine”** |
+| **Ollama** | 0.3.4 (inside container) | models pulled automatically |
+| **VS Code** | optional | Python + Docker extensions help |
 
 ---
 
-## 1. Clone & open
+## 1 Clone & open
 
 ```powershell
-git clone <your-fork-url> OfflineLLM
+git clone https://github.com/<your‑fork>/OfflineLLM.git
 cd OfflineLLM
-code .            # (optional) open folder in VS Code
+code .         # optional: open folder in VS Code
 ```
 
 ---
 
-## 2. Create & activate a virtual‑env
+## 2 Local virtual‑env
 
 ```powershell
 python -m venv .venv
-& ".venv\Scripts\Activate.ps1"      # prompt shows (.venv)
+& ".venv\Scripts\Activate.ps1"     # prompt shows (.venv)
 python -m pip install --upgrade pip
 ```
 
-> **If activation is blocked:**  
+> **Activation blocked?**  
 > `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force`
 
 ---
 
-## 3. Dependency‑locking workflow
+## 3 Dependency locking (pip‑tools)
 
-1. **Install pip‑tools** (one‑time):
+```powershell
+# 1 – one‑time install
+pip install pip-tools
 
-   ```powershell
-   pip install pip-tools
-   ```
+# 2 – (re)generate lock file
+pip-compile docker\requirements.in -o requirements.lock
 
-2. **Generate** the lock file:
+# 3 – install everything
+pip install -r requirements.lock
+```
 
-   ```powershell
-   pip-compile docker\requirements.in -o requirements.lock
-   ```
-
-3. **Install** all runtime packages:
-
-   ```powershell
-   pip install -r requirements.lock
-   ```
-
-**Current `docker/requirements.in`**
+<details>
+<summary>Current <code>docker/requirements.in</code></summary>
 
 ```
 fastapi
@@ -69,10 +67,11 @@ pydantic
 pymupdf
 pypdf
 ```
+</details>
 
 ---
 
-## 4. Smoke‑test FastAPI
+## 4 Run API locally (no Docker)
 
 ```powershell
 python -m uvicorn app.api:app --reload
@@ -87,32 +86,81 @@ Stop with **Ctrl‑C**.
 
 ---
 
-## 5. Test PDF ingestion
-
-Place **`sample.pdf`** in the project root, then run:
+## 5 Test PDF ingestion
 
 ```powershell
-python -c "from app.ingestion import load_and_split;chunks = load_and_split('sample.pdf');print(f'Chunks: {len(chunks)}');print('Preview:', chunks[0].page_content[:200])"
-```
-
-Expected output:
-
-```
-Chunks: 22
-Preview: Lorem ipsum dolor…
+python - <<'PY'
+from app.ingestion import load_and_split
+chunks = load_and_split("sample.pdf")
+print("Chunks:", len(chunks))
+print("Preview:", chunks[0].page_content[:200])
+PY
 ```
 
 ---
 
-## Updating dependencies later
+## 6 Docker workflow (production‑like)
+
+### 6.1 Build Ollama image (one‑time)
 
 ```powershell
-# 1. Edit docker\requirements.in
-# 2. Regenerate & reinstall
+docker build -f docker/Ollamafile -t ollama-offline:latest .
+```
+
+Downloads & caches:
+
+* **llama3:8b-instruct-q3_K_L** (~4 GB, fits in 4 GB RAM)
+* **nomic-embed-text**
+
+### 6.2 Build / run the RAG API
+
+```powershell
+docker compose build rag-app          # fast after first run
+docker compose up -d                  # starts ollama + rag-app
+```
+
+### 6.3 Health checks
+
+```powershell
+Invoke-RestMethod http://localhost:8000/ping          # {"status":"ok"}
+
+Invoke-RestMethod -Method POST `
+  -Uri http://localhost:8000/chat `
+  -ContentType application/json `
+  -Body '{"user_msg":"Hello!"}'
+```
+
+---
+
+## 7 Environment variables (inside container)
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `OLLAMA_BASE_URL` | `http://ollama:11434` | internal URL used by rag‑app |
+| `OLLAMA_HOST`     | same | fallback for *langchain‑ollama* |
+
+---
+
+## 8 Updating dependencies
+
+```powershell
+# edit docker/requirements.in
 pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
+docker compose build rag-app
 ```
 
 ---
 
-*Happy hacking!*
+## 9 Troubleshooting cheatsheet
+
+| Symptom | Fix |
+|---------|-----|
+| `winget` missing | install Git manually & ensure PATH |
+| **400 – model requires more memory** | keep using quantised tag (`q3_K_L`) or set uvicorn workers to **1** |
+| *Container name conflict* | `docker compose down` or `docker rm -f $(docker ps -aq)` |
+| First chat call ≈ 40 s | model loading; subsequent calls ≈ 2 s |
+
+---
+
+*Happy hacking & offline RAG‑ing!* 🚀

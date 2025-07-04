@@ -4,6 +4,7 @@ Persistent Chroma wrapper with Ollama embeddings.
 """
 
 from pathlib import Path
+import os
 import chromadb
 from chromadb.config import Settings
 from langchain_community.embeddings import OllamaEmbeddings
@@ -14,12 +15,20 @@ from typing import List
 CHROMA_DIR = Path("data/chroma")
 CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
-# singletons cached at import-time
+# ------------------------------------------------------------------
+# Use the service name “ollama” instead of 127.0.0.1
+# (override via OLLAMA_BASE_URL if you ever need a different host)
+# ------------------------------------------------------------------
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
+
 _client = chromadb.PersistentClient(
     path=str(CHROMA_DIR),
     settings=Settings(allow_reset=True, anonymized_telemetry=False),
 )
-_ollama = OllamaEmbeddings(model="nomic-embed-text", base_url="http://127.0.0.1:11434")
+_ollama = OllamaEmbeddings(
+    model="nomic-embed-text",
+    base_url=OLLAMA_BASE_URL,
+)
 _vector_store = Chroma(
     client=_client,
     collection_name="docs",
@@ -27,6 +36,7 @@ _vector_store = Chroma(
 )
 
 
+# ---------------- API helpers ----------------
 def add_documents(chunks: List[Document]) -> None:
     """Add a list of LangChain Documents to the vector store."""
     _vector_store.add_documents(chunks)

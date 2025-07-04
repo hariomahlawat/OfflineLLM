@@ -29,6 +29,7 @@ OfflineLLM/
 │   └─ chat.py             # Chat + memory
 ├─ docker/
 │   ├─ Dockerfile
+│   ├─ Ollamafile
 │   ├─ requirements.in
 │   └─ entrypoint.sh
 ├─ compose.yaml
@@ -41,11 +42,11 @@ OfflineLLM/
 
 ## 🚀 Quick‑start (local dev)
 
-Follow **docs/DEV_SETUP.md** for the detailed workflow.  
-Short version:
+See **docs/DEV_SETUP.md** for the step‑by‑step guide.  
+TL;DR:
 
 ```powershell
-git clone <your‑fork‑url> OfflineLLM
+git clone https://github.com/<your‑fork>/OfflineLLM.git
 cd OfflineLLM
 python -m venv .venv
 & ".venv\Scripts\Activate.ps1"
@@ -55,7 +56,7 @@ pip install -r requirements.lock
 python -m uvicorn app.api:app --reload
 ```
 
-Browse to:
+Open in browser:
 
 * <http://127.0.0.1:8000/ping>
 * <http://127.0.0.1:8000/docs>
@@ -65,46 +66,51 @@ Browse to:
 ## 🐳 Docker quick‑start
 
 ```bash
-# build images (requires internet once)
+# build images (one‑time with internet)
 docker compose build
 
-# run both containers
+# run the stack
 docker compose up -d
 
-# first time: seed models
-curl http://localhost:11434/api/pull -d '{"name":"llama3:8b"}'
+# first time only – make sure models are present
+docker exec ollama ollama pull llama3:8b-instruct-q3_K_L
 ```
 
-To migrate to an air‑gapped server:
+### Air‑gap deployment
 
 ```bash
-docker save -o offline_stack.tar rag-app:latest ollama-offline:latest
-# copy the tar, then
+# on build machine
+docker save -o offline_stack.tar offlinellm-rag-app:latest ollama-offline:latest
+
+# copy to server
 docker load -i offline_stack.tar
 docker compose up -d
 ```
 
 ---
 
-## 📚 Documentation
+## 📚 Docs
 
-* **DOCS/DEV_SETUP.md** – developer environment  
-* **TODO:** Add usage examples and API reference as modules stabilise.
+* **docs/DEV_SETUP.md** – full developer setup
+* API usage examples coming soon
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repo and create your branch: `git checkout -b feature/foo`.
-2. Run `pip install -r requirements.lock && pytest -q`.
-3. Submit a PR with a clear description of changes.
+```bash
+git checkout -b feature/my-feature
+pip install -r requirements.lock
+pytest -q
+# commit, push, open PR
+```
 
 ---
 
 ## 📝 License
 
-*Pending – choose MIT or Apache‑2.0 before first public release.*
+MIT … TBD before public release.
 
 ---
 
-Made with 💻 & ☕ by the OfflineLLM project.
+Made with 💻 & ☕ by @hariomahlawat
