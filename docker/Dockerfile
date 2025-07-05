@@ -13,26 +13,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 FROM python:3.11-slim
 WORKDIR /app
 
+# ---------------- runtime deps ----------------
 COPY requirements.lock .
 COPY --from=builder /build/wheelhouse /wheelhouse
-RUN pip install --no-index --find-links=/wheelhouse -r requirements.lock 
+RUN pip install --no-index --find-links=/wheelhouse -r requirements.lock
 
-# copy the script FIRST …
+# ---------------- entrypoint & util -----------
 COPY docker/entrypoint.sh /app/entrypoint.sh
-
-# … then in the SAME RUN do chmod + add user + chown
 RUN chmod +x /app/entrypoint.sh \
- && useradd -m llm \
- && chown -R llm /app
+ && apt-get update && apt-get install -y --no-install-recommends gosu \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd -m llm && chown -R llm /app      # create the unprivileged user
 
-
-USER llm
-
-COPY app/ /app/app
-
+# -----------  runtime env --------------------
 ENV CHROMA_DIR=/data/chroma \
     OLLAMA_BASE_URL=http://ollama:11434 \
     PYTHONUNBUFFERED=1
+
+COPY app/ /app/app 
+
+# ❶ **Do NOT switch to llm here** – we need root during entrypoint.sh
+# USER llm
 
 ENTRYPOINT ["bash", "/app/entrypoint.sh"]
 EXPOSE 8000

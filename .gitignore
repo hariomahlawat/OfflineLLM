@@ -1,3 +1,6 @@
 .venv/
 data/chroma/
 *.pdf
+models/
+data/chroma/
+offline_llm_models/

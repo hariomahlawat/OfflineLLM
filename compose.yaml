@@ -1,8 +1,6 @@
-
-
 services:
   ollama:
-    image: ollama-offline:latest        # built earlier with pre-pulled models
+    image: ollama-offline:latest
     container_name: ollama
     volumes:
       - ollama_models:/root/.ollama
@@ -14,22 +12,31 @@ services:
       dockerfile: docker/Dockerfile
     container_name: rag-app
     depends_on: [ollama]
+
+    # ------------ mounts ------------
     volumes:
-      - chroma_data:/data/chroma        # persists vector DB
+      # 1️⃣  Chroma runtime DB  ➜ writable
+      - chroma_data:/app/data/chroma
+      - ./data/persist:/app/data/persist:ro
+      # 👇 NEW – offline Mini-LM cross-encoder
+      - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
+
+    # --------------------------------
+
     ports:
       - "8000:8000"
-    networks: [rag-net]
-    
-        # 👇 add this block
+
     environment:
-      # used by your LangChain classes
       - OLLAMA_BASE_URL=http://ollama:11434
-      # used by the python-ollama helper
       - OLLAMA_HOST=http://ollama:11434
-      - LANGCHAIN_ENDPOINT=disabled        # optional
+      - LANGCHAIN_ENDPOINT=disabled
+      - CHROMA_TELEMETRY=FALSE # disable telemetry
+
+    networks: [rag-net]
 
 volumes:
   chroma_data:
+  # chroma_persist:     # uncomment if you added the volume above
   ollama_models:
 
 networks:
