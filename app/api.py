@@ -8,41 +8,40 @@ FastAPI routes
 * /doc_qa               – RAG answer from permanent KB (+ session KB)
 * /upload_pdf           – (multipart) add a PDF **only** to this session
 * /session/{id} DELETE  – purge session vector-store
+* /session_qa           – RAG over session + persistent KB
 """
 
-import app.boot                                  # side-effect: index /data/persist
-
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+import tempfile, shutil
+from pathlib import Path
+from uuid import uuid4
 from typing import List, Optional
 
+from fastapi import FastAPI, File, UploadFile, Query, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+import ollama
+
+import app.boot                                # side‐effect: index /data/persist
 from app.ingestion import load_and_split
 from app.vector_store import (
     similarity_search,
     new_session_store,
     purge_session_store,
-    similarity_search, 
-    get_session_store
+    get_session_store,
 )
 from app.rerank import rerank
 from app.chat import chat as chat_fn, new_session_id, MODEL_NAME
 
-import ollama
-from uuid import uuid4
-from pathlib import Path
-import tempfile
-import shutil
-
 # ────────────────────────────────────────────────────────────────────────────────
 app = FastAPI(title="OfflineLLM API", version="0.2.0")
-# in-memory cache of live Chroma handles per session
+# in‐memory cache of live Chroma handles per session
 _SESSION_STORES = {}
+
 
 # ───────────────────────── ping ────────────────────────────
 class PingResponse(BaseModel):
     status: str = "ok"
-
 
 @app.get("/ping", response_model=PingResponse)
 async def ping():
@@ -54,32 +53,29 @@ class QARequest(BaseModel):
     question: str
     session_id: Optional[str] = None
 
-
 class QAResponse(BaseModel):
     answer: str
     sources: List[str]
 
-
 @app.post("/doc_qa", response_model=QAResponse)
 async def doc_qa(req: QARequest):
-    # 1️⃣ retrieve from permanent KB
-    docs_perm = similarity_search(req.question, k=10)
+    # 1️⃣ search permanent KB
+    docs = similarity_search(req.question, k=10)
 
-    # 2️⃣ also search the session KB if it exists
-    docs_session = []
-    if req.session_id and req.session_id in _SESSION_STORES:
-        docs_session = _SESSION_STORES[req.session_id].similarity_search(
-            req.question, k=10
-        )
+    # 2️⃣ optionally search session KB
+    if req.session_id:
+        store = _SESSION_STORES.get(req.session_id)
+        if store:
+            docs += store.similarity_search(req.question, k=10)
 
-    merged = docs_perm + docs_session
-    if not merged:
+    if not docs:
         return QAResponse(answer="I don't know.", sources=[])
 
-    # 3️⃣ re-rank
-    top_chunks = rerank(req.question, [d.page_content for d in merged], top_k=3)
+    # 3️⃣ rerank
+    chunks = [d.page_content for d in docs]
+    top_chunks = rerank(req.question, chunks, top_k=3)
 
-    # 4️⃣ LLM call
+    # 4️⃣ call Ollama
     sep = "\n---\n"
     prompt = (
         "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
@@ -95,7 +91,7 @@ async def doc_qa(req: QARequest):
         )
         answer = reply["message"]["content"]
     except Exception as e:
-        raise HTTPException(500, str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
     return QAResponse(answer=answer, sources=top_chunks)
 
@@ -105,11 +101,9 @@ class ChatRequest(BaseModel):
     user_msg: str
     session_id: Optional[str] = None
 
-
 class ChatResponse(BaseModel):
     session_id: str
     answer: str
-
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
@@ -117,22 +111,28 @@ async def chat(req: ChatRequest):
     try:
         answer = chat_fn(session_id, req.user_msg)
     except Exception as e:
-        raise HTTPException(500, str(e))
+        raise HTTPException(status_code=500, detail=str(e))
     return ChatResponse(session_id=session_id, answer=answer)
 
 
 # ───────────────────────── Upload one PDF (ephemeral) ──────
-@app.post("/upload_pdf")
+class UploadPDFResponse(BaseModel):
+    status: str
+    session_id: str
+    chunks_indexed: int
+
+@app.post("/upload_pdf", response_model=UploadPDFResponse)
 async def upload_pdf(
-    session_id: str,
+    session_id: str = Query(..., description="Tie this PDF to an existing session"),
     file: UploadFile = File(..., description="PDF to add only for this session"),
 ):
-    # lazily create a session store
+    # create session store lazily
     store = _SESSION_STORES.get(session_id)
     if store is None:
-        store = _SESSION_STORES[session_id] = new_session_store(session_id)
+        store = new_session_store(session_id)
+        _SESSION_STORES[session_id] = store
 
-    # save to tmp -> ingest -> delete
+    # write to temp file, ingest, then delete
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             shutil.copyfileobj(file.file, tmp)
@@ -142,52 +142,47 @@ async def upload_pdf(
         store.add_documents(chunks)
         added = len(chunks)
     except Exception as e:
-        raise HTTPException(400, f"Failed to ingest PDF: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to ingest PDF: {e}")
     finally:
         file.file.close()
         tmp_path.unlink(missing_ok=True)
 
-    return JSONResponse(
-        {"status": "ok", "session_id": session_id, "chunks_indexed": added}
-    )
+    return UploadPDFResponse(status="ok", session_id=session_id, chunks_indexed=added)
 
 
 # ───────────────────────── Delete / end session ────────────
 @app.delete("/session/{session_id}")
 async def end_session(session_id: str):
-    # drop vector store
     purge_session_store(session_id)
     _SESSION_STORES.pop(session_id, None)
-    # (chat memory lives only in RAM – will be GC’d)
     return JSONResponse({"status": "purged", "session_id": session_id})
 
 
-# ───────────────────────── Session-scoped RAG  ─────────────────────────  #
+# ───────────────────────── Session-scoped RAG  ─────────────
 class SessionQARequest(BaseModel):
     question: str
     session_id: str
 
-class SessionQAResponse(QAResponse):  # answer + sources
-    pass
-
+class SessionQAResponse(BaseModel):
+    answer: str
+    sources: List[str]
 
 @app.post("/session_qa", response_model=SessionQAResponse)
 async def session_qa(req: SessionQARequest):
-    """RAG that searches BOTH the session store and the persistent corpus."""
-    # ➊ collect docs
+    # 1️⃣ gather session + persistent docs
     sess_store = get_session_store(req.session_id)
-    sess_docs  = sess_store.similarity_search(req.question, k=5)
-    persist_docs = similarity_search(req.question, k=10)   # existing helper
+    sess_docs = sess_store.similarity_search(req.question, k=5)
+    persist_docs = similarity_search(req.question, k=10)
 
     all_docs = sess_docs + persist_docs
     if not all_docs:
         return SessionQAResponse(answer="I don't know.", sources=[])
 
-    # ➋ rank
+    # 2️⃣ rerank
     chunks = [d.page_content for d in all_docs]
     top_chunks = rerank(req.question, chunks, top_k=3)
 
-    # ➌ prompt & ask Ollama
+    # 3️⃣ ask Ollama
     sep = "\n---\n"
     prompt = (
         "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
@@ -201,8 +196,8 @@ async def session_qa(req: SessionQARequest):
             messages=[{"role": "user", "content": prompt}],
             stream=False,
         )
+        answer = reply["message"]["content"]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return SessionQAResponse(answer=reply["message"]["content"],
-                             sources=top_chunks)
+    return SessionQAResponse(answer=answer, sources=top_chunks)
