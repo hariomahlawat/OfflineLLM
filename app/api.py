@@ -22,6 +22,8 @@ from app.vector_store import (
     similarity_search,
     new_session_store,
     purge_session_store,
+    similarity_search, 
+    get_session_store
 )
 from app.rerank import rerank
 from app.chat import chat as chat_fn, new_session_id, MODEL_NAME
@@ -158,3 +160,49 @@ async def end_session(session_id: str):
     _SESSION_STORES.pop(session_id, None)
     # (chat memory lives only in RAM – will be GC’d)
     return JSONResponse({"status": "purged", "session_id": session_id})
+
+
+# ───────────────────────── Session-scoped RAG  ─────────────────────────  #
+class SessionQARequest(BaseModel):
+    question: str
+    session_id: str
+
+class SessionQAResponse(QAResponse):  # answer + sources
+    pass
+
+
+@app.post("/session_qa", response_model=SessionQAResponse)
+async def session_qa(req: SessionQARequest):
+    """RAG that searches BOTH the session store and the persistent corpus."""
+    # ➊ collect docs
+    sess_store = get_session_store(req.session_id)
+    sess_docs  = sess_store.similarity_search(req.question, k=5)
+    persist_docs = similarity_search(req.question, k=10)   # existing helper
+
+    all_docs = sess_docs + persist_docs
+    if not all_docs:
+        return SessionQAResponse(answer="I don't know.", sources=[])
+
+    # ➋ rank
+    chunks = [d.page_content for d in all_docs]
+    top_chunks = rerank(req.question, chunks, top_k=3)
+
+    # ➌ prompt & ask Ollama
+    sep = "\n---\n"
+    prompt = (
+        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+        "If unsure, say 'I don't know.'\n\n"
+        f"CONTEXT:\n{sep.join(top_chunks)}\n\n"
+        f"QUESTION: {req.question}\nANSWER:"
+    )
+    try:
+        reply = ollama.chat(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            stream=False,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return SessionQAResponse(answer=reply["message"]["content"],
+                             sources=top_chunks)
