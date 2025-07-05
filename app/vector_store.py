@@ -1,11 +1,14 @@
 # app/vector_store.py
-"""
-Vector-store abstraction layer.
 
-* `persistent_store`  – holds embeddings for PDFs placed in  data/persist/
-* `new_session_store(session_id)` – returns a Chroma instance dedicated to
-  one chat-session; delete the collection when the session is closed.
 """
+Vector-store abstraction layer
+──────────────────────────────
+• persistent_store         – embeddings for PDFs in  data/persist/
+• new_session_store(id)    – Chroma handle dedicated to ONE chat session
+• purge_session(id)        – drop the collection + files for that session
+"""
+
+from __future__ import annotations
 
 from pathlib import Path
 from typing import List
@@ -16,65 +19,88 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 
-# --------------------------------------------------------------------------
-# configuration
-# --------------------------------------------------------------------------
-PERSIST_PATH   = Path("data/chroma_persist")
-SESSIONS_ROOT  = Path("data/chroma_sessions")
-EMBEDDINGS = OllamaEmbeddings(
-    model="nomic-embed-text",
-    base_url="http://ollama:11434",
-)
+# ────────────────────────────────────────────────────────────────────────────────
+# Config ─ pick up dirs & Ollama URL from env if the defaults are wrong.
+# ────────────────────────────────────────────────────────────────────────────────
+from os import getenv
 
-# make sure directories exist
+PERSIST_PATH = Path(getenv("PERSIST_CHROMA_DIR", "data/chroma_persist"))
+SESSIONS_ROOT = Path(getenv("SESSION_CHROMA_DIR", "data/chroma_sessions"))
+
+OLLAMA_URL = getenv("OLLAMA_BASE_URL", "http://ollama:11434")
+EMBEDDINGS = OllamaEmbeddings(model="nomic-embed-text", base_url=OLLAMA_URL)
+
 PERSIST_PATH.mkdir(parents=True, exist_ok=True)
 SESSIONS_ROOT.mkdir(parents=True, exist_ok=True)
 
-# --------------------------------------------------------------------------
-# permanent store  (indexed at startup by app.boot)
-# --------------------------------------------------------------------------
-_persist_client = chromadb.PersistentClient(
+# ────────────────────────────────────────────────────────────────────────────────
+# 1) 𝙿𝚎𝚛𝚖𝚊𝚗𝚎𝚗𝚝 𝚟𝚎𝚌𝚝𝚘𝚛 store  – indexed once at boot
+# ────────────────────────────────────────────────────────────────────────────────
+_persist_cli = chromadb.PersistentClient(
     path=str(PERSIST_PATH),
     settings=Settings(allow_reset=False, anonymized_telemetry=False),
 )
 
-persistent_store = Chroma(
-    client=_persist_client,
+persistent_store: Chroma = Chroma(
+    client=_persist_cli,
     collection_name="persistent_docs",
     embedding_function=EMBEDDINGS,
 )
 
-# convenience helper – was useful in boot-strap
-def persist_has_source(src: str) -> bool:
-    """True if *src* (usually the PDF filename) already indexed."""
-    return any(md.get("source") == src for md in persistent_store.get()["metadatas"])
 
-# --------------------------------------------------------------------------
-# session-scoped store
-# --------------------------------------------------------------------------
+def persist_has_source(src: str) -> bool:
+    """Return *True* if the given PDF (metadata 'source_file') is already in the
+    permanent collection – used during boot to avoid double-ingest."""
+    return any(m.get("source_file") == src for m in persistent_store.get()["metadatas"])
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+# 2) 𝚂𝚎𝚜𝚜𝚒𝚘𝚗-𝚜𝚌𝚘𝚙𝚎𝚍 stores  – one per chat tab / API session
+# ────────────────────────────────────────────────────────────────────────────────
+def _session_path(session_id: str) -> Path:
+    """Return the on-disk folder for *session_id*."""
+    return SESSIONS_ROOT / session_id
+
+
 def new_session_store(session_id: str) -> Chroma:
     """
-    Create (or reopen) a Chroma collection dedicated to a chat-session.
-    Call `store._collection.delete_collection()` when the session ends.
-    """
-    sess_path = SESSIONS_ROOT / session_id
-    sess_path.mkdir(parents=True, exist_ok=True)
+    Open (or create) a Chroma collection backed by its own SQLite+parquet files.
 
-    client = chromadb.PersistentClient(
-        path=str(sess_path),
+    ⚠️  IMPORTANT: Call `purge_session_store(session_id)` when the chat ends
+    to delete both the collection and the cached embeddings on disk.
+    """
+    path = _session_path(session_id)
+    path.mkdir(parents=True, exist_ok=True)
+
+    cli = chromadb.PersistentClient(
+        path=str(path),
         settings=Settings(allow_reset=True, anonymized_telemetry=False),
     )
     return Chroma(
-        client=client,
+        client=cli,
         collection_name=f"session_{session_id}",
         embedding_function=EMBEDDINGS,
     )
 
-# --------------------------------------------------------------------------
-# thin helper wrappers (for backwards-compat)
-# --------------------------------------------------------------------------
+
+def purge_session_store(session_id: str) -> None:
+    """Delete the on-disk DB for *session_id* – atomic and safe to call twice."""
+    path = _session_path(session_id)
+    if path.exists():
+        # remove dir + everything inside
+        for p in path.rglob("*"):
+            p.unlink(missing_ok=True)
+        path.rmdir()
+
+
+# ────────────────────────────────────────────────────────────────────────────────
+# Thin wrappers kept for older code paths
+# ────────────────────────────────────────────────────────────────────────────────
 def add_documents(chunks: List[Document]) -> None:
+    """Add docs to the *persistent* store (legacy helper)."""
     persistent_store.add_documents(chunks)
 
+
 def similarity_search(query: str, k: int = 10) -> List[Document]:
+    """Query the permanent knowledge base (legacy helper)."""
     return persistent_store.similarity_search(query, k=k)

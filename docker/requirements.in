@@ -2,9 +2,10 @@ fastapi
 uvicorn[standard]
 langchain-community
 chromadb==0.5.23
-sentence-transformers
 pydantic
 pymupdf
 pypdf
 ollama==0.3.3
 sentence-transformers[onnx]
+python-multipart
+python-ollama>=0.2,<0.3
