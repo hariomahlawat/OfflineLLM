@@ -35,6 +35,8 @@ from app.rerank import rerank
 from app.chat import chat as chat_fn, new_session_id, DEFAULT_MODEL
 from app.ollama_utils import finalize_ollama_chat
 
+from fastapi.middleware.cors import CORSMiddleware
+
 
 # ────────────────────────────────────────────────────────────────────────────────
 # In-memory session stores
@@ -49,6 +51,15 @@ class ModelInfo(BaseModel):
     description: Optional[str] = None
 
 app = FastAPI(title="OfflineLLM API", version="0.2.0")
+
+# allow Vite dev server
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # <-- your UI origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/models", response_model=List[ModelInfo])
 async def list_models():

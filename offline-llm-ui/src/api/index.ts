@@ -1,6 +1,8 @@
 // src/api/index.ts
 
-const BASE = import.meta.env.VITE_API_URL;
+// src/api/index.ts
+const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 
 export interface ModelInfo {
   name: string
