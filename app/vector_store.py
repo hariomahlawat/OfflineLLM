@@ -19,6 +19,8 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 
+import shutil
+
 # ────────────────────────────────────────────────────────────────────────────────
 # Config ─ pick up dirs & Ollama URL from env if the defaults are wrong.
 # ────────────────────────────────────────────────────────────────────────────────
@@ -87,10 +89,29 @@ def purge_session_store(session_id: str) -> None:
     """Delete the on-disk DB for *session_id* – atomic and safe to call twice."""
     path = _session_path(session_id)
     if path.exists():
-        # remove dir + everything inside
-        for p in path.rglob("*"):
-            p.unlink(missing_ok=True)
-        path.rmdir()
+        # remove dir + everything inside in one go
+        import shutil
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def get_session_store(session_id: str) -> Chroma:
+    """
+    Re-open an existing session store WITHOUT resetting its contents.
+    Raises if the session folder doesn’t exist.
+    """
+    path = SESSIONS_ROOT / session_id
+    if not path.exists():
+        raise ValueError(f"Session '{session_id}' not found")
+    client = chromadb.PersistentClient(
+        path=str(path),
+        settings=Settings(allow_reset=False, anonymized_telemetry=False),
+    )
+    return Chroma(
+        client=client,
+        collection_name=f"session_{session_id}",
+        embedding_function=EMBEDDINGS,
+    )
+
 
 
 # ────────────────────────────────────────────────────────────────────────────────

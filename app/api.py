@@ -17,6 +17,7 @@ from uuid import uuid4
 from typing import List, Optional
 
 from fastapi import FastAPI, File, UploadFile, Query, HTTPException
+
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -25,10 +26,11 @@ import ollama
 import app.boot                                # side‐effect: index /data/persist
 from app.ingestion import load_and_split
 from app.vector_store import (
+    SESSIONS_ROOT,
+    get_session_store,
     similarity_search,
     new_session_store,
     purge_session_store,
-    get_session_store,
 )
 from app.rerank import rerank
 from app.chat import chat as chat_fn, new_session_id, MODEL_NAME
@@ -153,9 +155,13 @@ async def upload_pdf(
 # ───────────────────────── Delete / end session ────────────
 @app.delete("/session/{session_id}")
 async def end_session(session_id: str):
+    path = SESSIONS_ROOT / session_id
+    if not path.exists() and session_id not in _SESSION_STORES:
+        raise HTTPException(404, f"Session '{session_id}' not found")
     purge_session_store(session_id)
     _SESSION_STORES.pop(session_id, None)
-    return JSONResponse({"status": "purged", "session_id": session_id})
+    return {"status": "purged", "session_id": session_id}
+
 
 
 # ───────────────────────── Session-scoped RAG  ─────────────
@@ -170,8 +176,21 @@ class SessionQAResponse(BaseModel):
 @app.post("/session_qa", response_model=SessionQAResponse)
 async def session_qa(req: SessionQARequest):
     # 1️⃣ gather session + persistent docs
-    sess_store = get_session_store(req.session_id)
-    sess_docs = sess_store.similarity_search(req.question, k=5)
+    #sess_store = get_session_store(req.session_id)
+    # don’t re-open the store on disk with different settings
+    # sess_store = _SESSION_STORES.get(req.session_id)
+    # sess_docs = sess_store.similarity_search(req.question, k=5)
+    # 1️⃣ gather session + persistent docs
+    try:
+        sess_store = get_session_store(req.session_id)
+        if store is None:
+            store = get_session_store(req.session_id)
+            _SESSION_STORES[req.session_id] = store
+        sess_docs = sess_store.similarity_search(req.question, k=5)
+    except ValueError as e:
+        # session folder was deleted
+        raise HTTPException(status_code=404, detail=str(e))
+
     persist_docs = similarity_search(req.question, k=10)
 
     all_docs = sess_docs + persist_docs
