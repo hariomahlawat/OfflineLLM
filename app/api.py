@@ -135,7 +135,7 @@ async def doc_qa(req: QARequest):
         raw = ollama.chat(
             model=model,
             messages=[{"role": "user", "content": prompt}],
-            stream=False,
+            stream=True,
         )
         msg = finalize_ollama_chat(raw)
         answer = msg["message"]["content"]
@@ -266,7 +266,7 @@ async def session_qa(req: SessionQARequest):
         raw = ollama.chat(
             model=model,
             messages=[{"role": "user", "content": prompt}],
-            stream=False,
+            stream=True,
         )
         msg = finalize_ollama_chat(raw)
         answer = msg["message"]["content"]
