@@ -34,7 +34,7 @@ A comprehensive step-by-step guide to reproducing, troubleshooting, and verifyin
 
 ```powershell
 # 1. Clone the repo
-git clone https://github.com/hariomahlawat/OfflineLLM.git
+git clone https://github.com/your-org/OfflineLLM.git
 cd OfflineLLM
 
 # 2. Switch to the feature branch (if needed)

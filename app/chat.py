@@ -1,29 +1,26 @@
-# app/chat.py
 """
 Session-based chat helper.
 Keeps one ConversationBufferMemory per session_id and proxies to Ollama.
 """
+
 from __future__ import annotations
 
 import os
-from typing import Dict
+from typing import Dict, Optional
 from uuid import uuid4
 
+import ollama
 from langchain.memory import ConversationBufferMemory
-# from langchain_community.chat_models import ChatOllama
+from app.ollama_utils import finalize_ollama_chat
+
 
 # ------------------------------------------------------------------
 # configuration
 # ------------------------------------------------------------------
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-MODEL_NAME = "llama3:8b-instruct-q3_K_L"
+DEFAULT_MODEL = "llama3:8b-instruct-q3_K_L"
 
-# _llm = ChatOllama(
-#     model=MODEL_NAME,
-#     temperature=0.2,
-#     base_url=OLLAMA_BASE_URL,
-# )
-
+# in-memory map session_id → ConversationBufferMemory
 _sessions: Dict[str, ConversationBufferMemory] = {}
 
 
@@ -37,41 +34,58 @@ def new_session_id() -> str:
     return str(uuid4())
 
 
-# ------------------------------------------------------------------
-# helper: translate LangChain chat history ⟶ Ollama schema
-# ------------------------------------------------------------------
 def _lc_to_ollama(msg) -> dict:
+    """
+    Convert a LangChain message to Ollama’s expected schema.
+    """
     role_map = {
         "human": "user",
         "ai": "assistant",
         "system": "system",
-        # tool / function messages map to "assistant" by convention
+        # tool / function messages map to assistant by default
     }
-    role = role_map.get(msg.type, "assistant")
-    return {"role": role, "content": msg.content}
+    return {"role": role_map.get(msg.type, "assistant"), "content": msg.content}
 
 
-# ------------------------------------------------------------------
-# main entry
-# ------------------------------------------------------------------
-def chat(session_id: str, user_msg: str) -> str:
+def chat(
+    session_id: str,
+    user_msg: str,
+    model: Optional[str] = None,
+    temperature: float = 0.4,
+) -> str:
+    """
+    Send a turn of chat to Ollama, with session-based memory.
+
+    Args:
+        session_id: ID of the conversation.
+        user_msg:   The user’s message.
+        model:      (Optional) Ollama model to use; defaults to DEFAULT_MODEL.
+        temperature: Sampling temperature.
+
+    Returns:
+        The assistant’s reply.
+    """
+    # 1) retrieve or create the session memory
     mem = _get_memory(session_id)
 
-    # build full history for Ollama
+    # 2) build full chat history in Ollama format
     messages = [_lc_to_ollama(m) for m in mem.chat_memory.messages]
     messages.append({"role": "user", "content": user_msg})
 
-    import ollama
+    # 3) pick which model to use
+    chosen_model = model or DEFAULT_MODEL
 
-    resp = ollama.chat(
-        model=MODEL_NAME,
-        #base_url=OLLAMA_BASE_URL,
+    # 4) call the Ollama API
+    raw = ollama.chat(
+        model=chosen_model,
         messages=messages,
         stream=False,
     )
-    assistant_reply = resp["message"]["content"]
+    msg = finalize_ollama_chat(raw)
+    assistant_reply = msg["message"]["content"]
 
-    # persist to memory
+    # 5) persist this turn in memory
     mem.chat_memory.add_user_message(user_msg)
     mem.chat_memory.add_ai_message(assistant_reply)
+
     return assistant_reply
