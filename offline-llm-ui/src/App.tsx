@@ -15,7 +15,7 @@ export default function App() {
       
       <HStack align="stretch" h="100vh" p={4} spacing={4}>
         {/* Left: Document QA panel */}
-        <Box w="30%" overflowY="auto">
+        <Box w="50%" flex="1" overflowY="auto">
           <DocQaPanel />
         </Box>
 
@@ -24,7 +24,7 @@ export default function App() {
           <Box>
             <ModelSelector />
           </Box>
-          <Box flex="1" overflowY="auto">
+          <Box w="50%" flex="1" overflowY="auto">
             <ChatWindow />
           </Box>
           <Box>

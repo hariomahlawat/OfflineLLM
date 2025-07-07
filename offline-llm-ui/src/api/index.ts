@@ -1,6 +1,5 @@
 // src/api/index.ts
 
-// src/api/index.ts
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 
@@ -94,9 +93,10 @@ export async function uploadPdf(sessionId: string, file: File) {
 export async function sessionQA(
   question: string,
   sessionId: string,
-  model?: string
+  model?: string,
+  persistent = true,
 ): Promise<QAResponse> {
-  const payload: Record<string, any> = { question, session_id: sessionId }
+  const payload: Record<string, any> = { question, session_id: sessionId, persistent }
   if (model) payload.model = model
 
   const res = await fetch(`${BASE}/session_qa`, {

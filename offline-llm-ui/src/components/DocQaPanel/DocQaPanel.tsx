@@ -1,123 +1,148 @@
-import { useState } from 'react';
+// src/components/DocQaPanel/DocQaPanel.tsx
 import {
-  Box,
-  Button,
+  HStack,
   Input,
-  Textarea,
+  IconButton,
+  Switch,
+  Text,
   Spinner,
-  Alert,
-  AlertIcon,
-  VStack,
-  UnorderedList,
+  useToast,
+  Box,
   ListItem,
-} from '@chakra-ui/react';
-import { useChat } from '../../contexts/ChatContext';
-import { uploadPdf, docQa } from '../../api';
+  UnorderedList,
+} from "@chakra-ui/react";
+import { AttachmentIcon, ArrowRightIcon } from "@chakra-ui/icons";
+import { useState } from "react";
+import { useChat } from "../../contexts/ChatContext";
+import { uploadPdf, sessionQA, docQa } from "../../api";
 
 export function DocQaPanel() {
-  const { sessionId } = useChat();
-  const [file, setFile] = useState<File | null>(null);
+  const toast = useToast();
+  const { sessionId, model } = useChat();
+
+  // have we successfully ingested at least one PDF this session?
+  const [hasUploadedPdf, setHasUploadedPdf] = useState(false);
+
+  // spinners
   const [uploading, setUploading] = useState(false);
-  const [ingestedChunks, setIngestedChunks] = useState<number | null>(null);
+  const [asking, setAsking]       = useState(false);
 
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState<string | null>(null);
+  // controls
+  const [toggleDocOnly, setToggleDocOnly] = useState(false);
+  const [question, setQuestion]           = useState("");
+
+  // results
+  const [answer, setAnswer]   = useState<string | null>(null);
   const [sources, setSources] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
 
-  const [error, setError] = useState<string | null>(null);
+  // 1️⃣  fire immediately on file pick
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
 
-  const handleUpload = async () => {
-    if (!file) return;
-    setError(null);
     setUploading(true);
     try {
-      const resp = await uploadPdf(sessionId, file);
-      setIngestedChunks(resp.chunks_indexed);
-    } catch (e: any) {
-      setError(e.message);
+      const resp = await uploadPdf(sessionId, f);
+      toast({ status: "success", description: `Indexed ${resp.chunks_indexed} chunks` });
+      setHasUploadedPdf(true);
+    } catch (err: any) {
+      toast({ status: "error", description: err.message });
     } finally {
       setUploading(false);
     }
   };
 
-  const handleAsk = async () => {
-    if (!question) return;
-    setError(null);
-    setLoading(true);
+  // 2️⃣  send question
+  const onSend = async () => {
+    if (!question.trim()) return;
+    setAsking(true);
+
     try {
-      const { answer: ans, sources } = await docQa(question);
-      setAnswer(ans);
-      setSources(sources);
-    } catch (e: any) {
-      setError(e.message);
+      let resp;
+      if (toggleDocOnly) {
+        // only from uploaded PDF
+        resp = await docQa(question, sessionId, model);
+        //toast({ status: "success", description: `Answer recd from persistent RAG- ${resp.answer} ` });
+      } else if (hasUploadedPdf) {
+        // session + persistent RAG
+        resp = await sessionQA(question, sessionId, model);
+        //toast({ status: "success", description: `Answer recd from session + persistent RAG- ${resp.answer} ` });
+      } else {
+        // no PDF yet → fall back to permanent KB only
+        resp = await docQa(question, undefined, model);
+        //toast({ status: "success", description: `Answer recd from persistent RAG- ${resp.answer} ` });
+      }
+
+      setAnswer(resp.answer);
+      setSources(resp.sources);
+    } catch (err: any) {
+      toast({ status: "error", description: err.message });
     } finally {
-      setLoading(false);
+      setAsking(false);
+      setQuestion("");
     }
   };
 
   return (
-    <VStack align="stretch" spacing={4} p={4} borderWidth="1px" borderRadius="md">
-      <Box>
-        <Input
+    <Box p={4} borderWidth="1px" borderRadius="md">
+      <HStack spacing={2} mb={4}>
+        {/* hidden file input */}
+        <input
           type="file"
           accept="application/pdf"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          id="doc-upload"
+          style={{ display: "none" }}
+          onChange={onFileChange}
         />
-        <Button
-          mt={2}
-          onClick={handleUpload}
-          isLoading={uploading}
-          isDisabled={!file || uploading}
-          colorScheme="blue"
-        >
-          Upload PDF
-        </Button>
-        {ingestedChunks !== null && (
-          <Alert status="success" mt={2}>
-            <AlertIcon />
-            Indexed {ingestedChunks} chunks.
-          </Alert>
-        )}
-      </Box>
 
-      {ingestedChunks !== null && (
-        <>
-          <Textarea
-            placeholder="Ask a question about the uploaded document..."
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
+        {/* 📄 upload */}
+        <IconButton
+          aria-label="Upload PDF"
+          icon={uploading ? <Spinner size="xs" /> : <AttachmentIcon />}
+          onClick={() => document.getElementById("doc-upload")?.click()}
+          isDisabled={uploading}
+        />
+
+        {/* 📝 question */}
+        <Input
+          placeholder="Ask a question…"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          flex="1"
+        />
+
+        {/* ➡️ send */}
+        <IconButton
+          aria-label="Send"
+          icon={<ArrowRightIcon />}
+          onClick={onSend}
+          isLoading={asking}
+          isDisabled={asking || !question.trim()}
+        />
+
+        {/* 🔄 only document */}
+        <HStack spacing={1}>
+          <Switch
+            isChecked={toggleDocOnly}
+            onChange={(e) => setToggleDocOnly(e.target.checked)}
           />
-          <Button onClick={handleAsk} isLoading={loading} colorScheme="teal">
-            Ask Document
-          </Button>
-        </>
-      )}
+          <Text fontSize="sm">Only document</Text>
+        </HStack>
+      </HStack>
 
-      {loading && <Spinner />}
-
-      {error && (
-        <Alert status="error">
-          <AlertIcon />
-          {error}
-        </Alert>
-      )}
-
+      {/* 3️⃣ show answer */}
       {answer && (
         <Box>
-          <Box fontWeight="bold" mb={2}>
-            Answer:
-          </Box>
-          <Box mb={4}>{answer}</Box>
-
-          <Box fontWeight="bold">Sources:</Box>
+          <Text fontWeight="bold">Answer:</Text>
+          <Text mb={2}>{answer}</Text>
+          <Text fontWeight="bold">Sources:</Text>
           <UnorderedList>
-            {sources.map((src, i) => (
-              <ListItem key={i}>{src}</ListItem>
+            {sources.map((s, i) => (
+              <ListItem key={i}>{s}</ListItem>
             ))}
           </UnorderedList>
         </Box>
       )}
-    </VStack>
+    </Box>
   );
 }
