@@ -1,4 +1,4 @@
-import { Spinner, Select, Box } from '@chakra-ui/react'
+import { Spinner, Select, Box, FormControl, FormLabel } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { listModels, type ModelInfo } from '../../api'
 
@@ -15,22 +15,35 @@ export function ModelSelector() {
 
   if (models === null) {
     return (
-      <Box textAlign="center" py={2}>
-        <Spinner />
+      <Box textAlign="center" py={1.5}>
+        <Spinner size="sm" />
       </Box>
     )
   }
 
   return (
-    <Select
-      value={selected}
-      onChange={(e) => setSelected(e.target.value)}
-    >
-      {models.map((m) => (
-        <option key={m.name} value={m.name}>
-          {m.name}
-        </option>
-      ))}
-    </Select>
+    <FormControl width="auto" display="flex" alignItems="center" mb={0}>
+      <FormLabel htmlFor="model-select" mb="0" fontSize="sm" fontWeight="medium" color="gray.100" pr={2}>
+        Model:
+      </FormLabel>
+      <Select
+        id="model-select"
+        value={selected}
+        onChange={(e) => setSelected(e.target.value)}
+        size="sm"
+        variant="outline"
+        borderRadius="md"
+        fontSize="sm"
+        bg="gray.50"
+        _focus={{ borderColor: "blue.400" }}
+        maxW="140px"
+      >
+        {models.map((m) => (
+          <option key={m.name} value={m.name}>
+            {m.name}
+          </option>
+        ))}
+      </Select>
+    </FormControl>
   )
 }
