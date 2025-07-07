@@ -33,10 +33,9 @@ export default function App() {
 
   return (
     <ChatProvider>
-      <Box minH="100vh" w="100vw" bg="gray.50" display="flex" flexDirection="column">
+      <Box minH="100vh" w="100vw" bg="gray.50" display="flex" flexDirection="column" overflowX="hidden">
         <AppHeader />
-        {/* Main content: FULL WIDTH, NO maxW, NO mx="auto" */}
-        <Box flex="1" minH={0} display="flex" flexDirection="column" w="100vw">
+        <Box flex="1" minH={0} display="flex" flexDirection="column" w="100%">
           <HStack
             align="stretch"
             spacing={0}
@@ -63,7 +62,7 @@ export default function App() {
               h="100%"
             >
               <Box px={4} py={3} borderBottomWidth={1} borderColor="blue.100" bg="blue.100">
-                <Text fontWeight="bold" fontSize="md" color="blue.800" letterSpacing="wider">
+                <Text fontWeight="bold" fontSize="sm" color="blue.800" letterSpacing="wider">
                   PDF & Knowledgebase Chat
                 </Text>
               </Box>
@@ -88,6 +87,7 @@ export default function App() {
                 aria-orientation="vertical"
                 tabIndex={0}
                 h="100%"
+                aria-label="Resize panel"
               >
                 <Box width="4px" height="36px" borderRadius="xl" bg="gray.400" opacity={0.5} />
               </Box>
@@ -106,7 +106,7 @@ export default function App() {
               position="relative"
             >
               <Box px={4} py={3} borderBottomWidth={1} borderColor="gray.100" bg="gray.100">
-                <Text fontWeight="bold" fontSize="md" color="gray.700" letterSpacing="wider">
+                <Text fontWeight="bold" fontSize="sm" color="gray.700" letterSpacing="wider">
                   Chat
                 </Text>
               </Box>

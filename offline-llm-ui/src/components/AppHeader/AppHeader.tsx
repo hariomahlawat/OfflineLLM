@@ -1,97 +1,101 @@
 import {
-  Flex, Heading, Image, Box, Text,
-  useColorMode, IconButton
+  Flex,
+  Heading,
+  Image,
+  Box,
+  Text,
+  useBreakpointValue,
 } from "@chakra-ui/react";
-import { SunIcon, MoonIcon } from "@chakra-ui/icons";
 import { ModelSelector } from "./../ModelSelector/ModelSelector";
 
 export function AppHeader() {
-  // Fixed matte black color, not using useColorModeValue for header bg
-  const matteBg = "#22232b"; // Matte black, change as needed
-  const mainHeadingColor = "white";
-  const orgColor = "#f3f4fa"; // Off-white/pale pastel
-  const subtitleColor = "#dbe2ea"; // Lighter gray/blue
+  // Colors
+  const matteBg = "#22232b"; // Matte black header
+  const orgColor = "#e8eaf3"; // Soft off-white for center
+  const mainHeadingColor = "#ffe3a3"; // Warm pastel gold
+  const subtitleColor = "#b8bdc9"; // Muted gray/blue
 
-  const { colorMode, toggleColorMode } = useColorMode();
+  const isMobile = useBreakpointValue({ base: true, md: false });
 
   return (
     <Flex
       as="header"
       align="center"
       px={{ base: 2, md: 6 }}
-      py={{ base: 1, md: 2 }}
-      boxShadow="sm"
+      py={{ base: 1.5, md: 2 }}
       bg={matteBg}
-      borderBottomWidth={0}
+      borderBottomWidth={1}
+      borderColor="#232436"
       position="sticky"
       top={0}
       zIndex={20}
       w="100%"
-      minH={{ base: "54px", md: "62px" }}
-      fontFamily="system-ui, sans-serif"
-      letterSpacing="normal"
+      minH={{ base: "48px", md: "58px" }}
+      fontFamily="Inter, system-ui, sans-serif"
     >
-      {/* Logo and App Name */}
-      <Flex align="center" minW="220px">
+      {/* Logo + App Name */}
+      <Flex align="center" minW="200px">
         <Image
           src="/sdd.png"
-          alt="EklavyaAI Logo"
-          boxSize={{ base: "26px", md: "36px" }}
-          borderRadius="lg"
+          alt="Logo"
+          boxSize={isMobile ? "26px" : "32px"}
           mr={2}
-          fallbackSrc="https://via.placeholder.com/36"
+          borderRadius="md"
+          bg="white"
+          p={1}
+          boxShadow="sm"
         />
         <Box>
           <Heading
             as="h1"
-            size="md"
-            fontWeight={600}
-            letterSpacing="normal"
+            fontSize={isMobile ? "md" : "lg"}
+            fontWeight={700}
             color={mainHeadingColor}
+            letterSpacing="tight"
             lineHeight={1.1}
+            mb={-1}
           >
             EklavyaAI Chat
           </Heading>
-          <Text fontSize="sm" color={subtitleColor} mt={-0.5}>
+          <Text fontSize="xs" color={subtitleColor}>
             Ask Anything. Learn Like Eklavya.
           </Text>
         </Box>
       </Flex>
 
-      {/* Centered Org Name */}
-      <Flex
-        flex="1"
-        justify="center"
-        align="center"
-        px={2}
-        display={{ base: "none", md: "flex" }}
-      >
+      {/* Center: Organisation Name */}
+      <Flex flex="1" justify="center" align="center" px={2}>
         <Heading
-          fontWeight={500}
-          fontSize={{ base: "md", md: "lg", lg: "xl" }}
+          fontWeight={700}
+          fontSize={isMobile ? "md" : "xl"}
           color={orgColor}
           letterSpacing="wide"
           textAlign="center"
+          fontFamily="inherit"
         >
           Simulator Development Division
         </Heading>
       </Flex>
 
-      {/* Right: Model Selector & Dark Mode */}
-      <Flex align="center" minW="170px" justify="flex-end">
-        <Box minW={["90px", "150px"]} ml={{ base: 2, md: 6 }}>
-          <ModelSelector />
+      {/* Right: Model Selector only */}
+      <Flex align="center" minW="180px">
+        <Box
+          minW={["120px", "180px"]}
+          ml={{ base: 2, md: 6 }}
+          display="flex"
+          alignItems="center"
+        >
+          <Box
+            border="1px solid #e2e8f0"
+            borderRadius="md"
+            bg="white"
+            px={2}
+            py={0.5}
+            boxShadow="xs"
+          >
+            <ModelSelector />
+          </Box>
         </Box>
-        <IconButton
-          ml={3}
-          aria-label="Toggle dark mode"
-          onClick={toggleColorMode}
-          variant="ghost"
-          size="lg"
-          icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-          color="white"
-          _focus={{ outline: "none" }}
-        />
       </Flex>
     </Flex>
   );

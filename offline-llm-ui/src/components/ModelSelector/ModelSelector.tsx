@@ -23,7 +23,7 @@ export function ModelSelector() {
 
   return (
     <FormControl width="auto" display="flex" alignItems="center" mb={0}>
-      <FormLabel htmlFor="model-select" mb="0" fontSize="sm" fontWeight="medium" color="gray.100" pr={2}>
+      <FormLabel htmlFor="model-select" mb="0" fontSize="sm" fontWeight="medium" color="gray.700" pr={2}>
         Model:
       </FormLabel>
       <Select
