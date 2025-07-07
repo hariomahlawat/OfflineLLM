@@ -135,7 +135,7 @@ async def doc_qa(req: QARequest):
         raw = ollama.chat(
             model=model,
             messages=[{"role": "user", "content": prompt}],
-            stream=True,
+            stream=False,
         )
         msg = finalize_ollama_chat(raw)
         answer = msg["message"]["content"]
@@ -223,6 +223,7 @@ async def end_session(session_id: str):
 class SessionQARequest(BaseModel):
     question: str
     session_id: str
+    persistent: Optional[bool] = True
     model: Optional[str] = None
 
 class SessionQAResponse(BaseModel):
@@ -244,7 +245,8 @@ async def session_qa(req: SessionQARequest):
 
     # 2️⃣ similarity searches
     sess_docs = sess_store.similarity_search(req.question, k=5)
-    persist_docs = similarity_search(req.question, k=10)
+    #persist_docs = similarity_search(req.question, k=10)
+    persist_docs = [] if req.persistent is False else similarity_search(req.question, k=10)
     all_docs = sess_docs + persist_docs
 
     if not all_docs:
@@ -266,7 +268,7 @@ async def session_qa(req: SessionQARequest):
         raw = ollama.chat(
             model=model,
             messages=[{"role": "user", "content": prompt}],
-            stream=True,
+            stream=False,
         )
         msg = finalize_ollama_chat(raw)
         answer = msg["message"]["content"]
