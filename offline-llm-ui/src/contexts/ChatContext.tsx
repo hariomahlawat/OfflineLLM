@@ -2,13 +2,13 @@
 import { createContext, useContext, useState, type ReactNode } from "react"
 import { chat } from "../api"
 
-
 interface ChatContextValue {
   sessionId: string
   model: string
   setModel: (m: string) => void
   messages: { from: "user" | "assistant"; text: string }[]
   sendMessage: (text: string) => Promise<void>
+  sending: boolean        // <--- Add this
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined)
@@ -19,16 +19,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<
     { from: "user" | "assistant"; text: string }[]
   >([])
+  const [sending, setSending] = useState(false)        // <--- Add this
 
   async function sendMessage(text: string) {
     setMessages((m) => [...m, { from: "user", text }])
-    const { answer } = await chat(sessionId, text, model)
-    setMessages((m) => [...m, { from: "assistant", text: answer }])
+    setSending(true)                                  // <--- Set true before sending
+    try {
+      const { answer } = await chat(sessionId, text, model)
+      setMessages((m) => [...m, { from: "assistant", text: answer }])
+    } finally {
+      setSending(false)                               // <--- Always set false after
+    }
   }
 
   return (
     <ChatContext.Provider
-      value={{ sessionId, model, setModel, messages, sendMessage }}
+      value={{ sessionId, model, setModel, messages, sendMessage, sending }} // <--- Add sending here
     >
       {children}
     </ChatContext.Provider>
