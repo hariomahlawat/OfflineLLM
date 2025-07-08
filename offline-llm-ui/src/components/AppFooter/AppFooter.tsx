@@ -13,7 +13,9 @@ export function AppFooter() {
       fontSize="sm"
       color="gray.600"
       w="100%"
-      position="relative"
+      position="sticky"
+      bottom={0}
+      zIndex={10} // keep above any content scrollbars
     >
       © {new Date().getFullYear()} EklavyaAI Chat · Simulator Development Division (Devp and Designed by @hariomahlawat)
     </Flex>

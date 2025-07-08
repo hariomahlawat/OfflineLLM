@@ -24,6 +24,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../contexts/ChatContext";
 import { uploadPdf, sessionQA, docQa } from "../../api";
+import ReactMarkdown from "react-markdown";
 
 export function DocQaPanel() {
   const toast = useToast();
@@ -250,17 +251,40 @@ export function DocQaPanel() {
                     <Text fontSize="sm" fontWeight="bold" color="blue.500" mb={1}>
                       AI
                     </Text>
-                    <Text mb={2}>
-                      {item.pending ? (
-                        <Spinner size="xs" color="blue.500" mr={2} />
-                      ) : null}
-                      {item.answer ||
-                        (item.pending && (
-                          <Text as="span" color="gray.400">
-                            Waiting for answer…
-                          </Text>
-                        ))}
-                    </Text>
+
+                    <Box mb={2} fontSize="md" color={aiBubbleText} sx={{
+  ul: { pl: 4, mb: 2 },
+  ol: { pl: 4, mb: 2 },
+  li: { mb: 1 },
+  strong: { fontWeight: 700 },
+  code: {
+    bg: useColorModeValue("#f5f5f5", "#333"),
+    px: 1, borderRadius: "sm", fontSize: "0.97em"
+  },
+  pre: {
+    bg: useColorModeValue("#f5f5f5", "#333"),
+    borderRadius: "md", p: 2, mb: 2, fontSize: "0.97em",
+    overflowX: "auto"
+  },
+  h1: { fontSize: "lg", mb: 1, mt: 1 },
+  h2: { fontSize: "md", mb: 1, mt: 1 },
+  h3: { fontSize: "sm", mb: 1, mt: 1 },
+  a: { color: "blue.500", textDecoration: "underline" },
+  p: { mb: 2 }
+}}>
+  {item.pending ? (
+    <Spinner size="xs" color="blue.500" mr={2} />
+  ) : null}
+  {item.answer ? (
+    <ReactMarkdown>{item.answer}</ReactMarkdown>
+  ) : item.pending ? (
+    <Text as="span" color="gray.400">
+      Waiting for answer…
+    </Text>
+  ) : null}
+</Box>
+
+
                     {item.answer && (
                       <>
                         <Text
