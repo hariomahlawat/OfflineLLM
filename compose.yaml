@@ -14,7 +14,7 @@ services:
   rag-app:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.backend
     container_name: rag-app
     depends_on:
       - ollama
@@ -29,6 +29,20 @@ services:
       - OLLAMA_HOST=http://ollama:11434
       - LANGCHAIN_ENDPOINT=disabled
       - CHROMA_TELEMETRY=FALSE
+    networks:
+      - rag-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: offline-llm-frontend
+    ports:
+      - "443:443"
+    depends_on:
+      - rag-app
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
     networks:
       - rag-net
 
