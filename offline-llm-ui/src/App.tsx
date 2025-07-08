@@ -1,141 +1,132 @@
-import { useState, useRef } from "react";
-import { HStack, Box, useBreakpointValue, Text } from "@chakra-ui/react";
+// src/App.tsx
+
+import { useState } from "react";
+import { Box, Text, useBreakpointValue } from "@chakra-ui/react";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
+import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import ChatInput from "./components/ChatInput/ChatInput";
-import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
 import { AppFooter } from "./components/AppFooter/AppFooter";
 
 export default function App() {
-  const [leftPercent, setLeftPercent] = useState(40);
+  const [leftPct, setLeftPct] = useState(40);
   const isStacked = useBreakpointValue({ base: true, md: false });
-  const dragging = useRef(false);
 
-  function startDrag(_e: any) {
+  function startDrag(e: React.MouseEvent) {
     if (isStacked) return;
-    dragging.current = true;
+    e.preventDefault();
     document.body.style.cursor = "col-resize";
-    function onMove(ev: { clientX: number; }) {
-      const total = window.innerWidth;
-      let pct = Math.max(18, Math.min(82, (ev.clientX / total) * 100));
-      setLeftPercent(pct);
+
+    function onMouseMove(ev: MouseEvent) {
+      const pct = (ev.clientX / window.innerWidth) * 100;
+      setLeftPct(Math.max(18, Math.min(82, pct)));
     }
-    function onUp() {
-      dragging.current = false;
+    function onMouseUp() {
       document.body.style.cursor = "";
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     }
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
   }
 
   return (
     <ChatProvider>
-      {/* Main App Wrapper */}
       <Box minH="100vh" w="100vw" display="flex" flexDirection="column">
-        {/* Sticky Header */}
+        {/* HEADER */}
         <Box as="header" position="sticky" top={0} zIndex={100} flexShrink={0}>
           <AppHeader />
         </Box>
-        {/* Main Content Area */}
-        <Box
-          flex="1"
-          minH={0}
-          display="flex"
-          flexDirection="column"
-          overflow="auto"   // <-- this allows the main content to scroll
-        >
-          <HStack flex="1" minH={0} spacing={0} w="100%" align="stretch" overflow="hidden">
-            {/* Left Panel */}
+
+        {/* MAIN PANELS */}
+        <Box flex="1" minH={0} display="flex" overflow="hidden">
+          
+          {/* LEFT PANE */}
+          <Box
+            flex={`0 0 ${leftPct}%`}
+            minW="240px"
+            maxW="82vw"
+            display="flex"
+            flexDirection="column"
+            minH={0}
+            overflow="hidden"
+            bg="blue.50"
+            borderRightWidth={isStacked ? 0 : 1}
+            borderColor="blue.200"
+            boxShadow="md"
+          >
             <Box
-              width={isStacked ? "100%" : `${leftPercent}%`}
-              minW="240px"
-              maxW={isStacked ? "100%" : "82vw"}
-              display="flex"
-              flexDirection="column"
-              overflow="hidden"
-              h="100%"
-              bg="blue.50"
-              borderRightWidth={isStacked ? 0 : 1}
-              borderColor="blue.200"
-              boxShadow="md"
-              position="relative"
+              px={4}
+              py={3}
+              bg="blue.100"
+              flexShrink={0}
+              borderBottom="1px solid"
+              borderColor="blue.100"
             >
-              <Box px={4} py={3} borderBottomWidth={1} borderColor="blue.100" bg="blue.100">
-                <Text fontWeight="bold" fontSize="sm" color="blue.800" letterSpacing="wider">
-                  PDF & Knowledgebase Chat
-                </Text>
-              </Box>
-              <Box flex="1" minH={0} overflowY="auto">
-                <DocQaPanel />
-              </Box>
+              <Text fontWeight="bold" color="blue.800">
+                PDF & Knowledgebase Query
+              </Text>
             </Box>
-            {/* Splitter */}
-            {!isStacked && (
-              <Box
-                width="10px"
-                cursor="col-resize"
-                bg="gray.100"
-                transition="background 0.2s"
-                _hover={{ bg: "blue.200" }}
-                onMouseDown={startDrag}
-                zIndex={3}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                role="separator"
-                aria-orientation="vertical"
-                tabIndex={0}
-                h="100%"
-                aria-label="Resize panel"
-                userSelect="none"
-              >
-                <Box width="4px" height="36px" borderRadius="xl" bg="gray.400" opacity={0.5} />
-              </Box>
-            )}
-            {/* Right Panel */}
+            <Box flex="1" minH={0} overflowY="auto">
+              <DocQaPanel />
+            </Box>
+          </Box>
+
+          {/* GUTTER */}
+          {!isStacked && (
             <Box
-              flex="1"
-              minW="240px"
-              maxW="100%"
-              display="flex"
-              flexDirection="column"
-              overflow="hidden"
-              h="100%"
+              w="8px"
+              cursor="col-resize"
+              onMouseDown={startDrag}
+              userSelect="none"
+              bg="gray.200"
+              _hover={{ bg: "gray.300" }}
+            />
+          )}
+
+          {/* RIGHT PANE */}
+          <Box
+            flex="1"
+            minW="240px"
+            display="flex"
+            flexDirection="column"
+            minH={0}
+            overflow="hidden"
+            bg="white"
+          >
+            <Box
+              px={4}
+              py={3}
+              bg="gray.100"
+              flexShrink={0}
+              borderBottom="1px solid"
+              borderColor="gray.100"
+            >
+              <Text fontWeight="bold" color="gray.700">
+                Chat
+              </Text>
+            </Box>
+            <Box flex="1" minH={0} overflowY="auto">
+              <ChatWindow />
+            </Box>
+            <Box
+              position="sticky"
+              bottom={0}
               bg="white"
-              borderRadius={isStacked ? "none" : "2xl"}
-              boxShadow="md"
-              position="relative"
+              borderTop="1px solid"
+              borderColor="gray.100"
+              px={4}
+              py={2}
             >
-              <Box px={4} py={3} borderBottomWidth={1} borderColor="gray.100" bg="gray.100">
-                <Text fontWeight="bold" fontSize="sm" color="gray.700" letterSpacing="wider">
-                  Chat
-                </Text>
-              </Box>
-              <Box flex="1" minH={0} display="flex" flexDirection="column" overflow="hidden">
-                <Box flex="1" minH={0} overflowY="auto">
-                  <ChatWindow />
-                </Box>
-                <Box
-                  position="sticky"
-                  bottom={0}
-                  bg="white"
-                  borderTopWidth={1}
-                  borderColor="gray.100"
-                  px={4}
-                  py={2}
-                  zIndex={1}
-                >
-                  <ChatInput />
-                </Box>
-              </Box>
+              <ChatInput />
             </Box>
-          </HStack>
+          </Box>
         </Box>
-        {/* Sticky Footer */}
-        <Box as="footer" position="sticky" bottom={0} zIndex={100} flexShrink={0}>
+
+        {/* FOOTER */}
+        <Box as="footer" position="sticky" bottom={0} flexShrink={0}>
           <AppFooter />
         </Box>
       </Box>
