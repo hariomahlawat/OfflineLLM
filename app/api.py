@@ -120,7 +120,7 @@ async def doc_qa(req: QARequest):
 
     # 3️⃣ rerank
     chunks = [d.page_content for d in docs]
-    top_chunks = rerank(req.question, chunks, top_k=3)
+    top_chunks = rerank(req.question, chunks)
 
     # 4️⃣ call Ollama
     sep = "\n---\n"
@@ -254,7 +254,7 @@ async def session_qa(req: SessionQARequest):
 
     # 3️⃣ rerank & prompt
     chunks = [d.page_content for d in all_docs]
-    top_chunks = rerank(req.question, chunks, top_k=3)
+    top_chunks = rerank(req.question, chunks)
 
     sep = "\n---\n"
     prompt = (

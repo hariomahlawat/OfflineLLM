@@ -138,6 +138,9 @@ Invoke-RestMethod -Method POST `
 |----------|---------|---------|
 | `OLLAMA_BASE_URL` | `http://ollama:11434` | internal URL used by rag‑app |
 | `OLLAMA_HOST`     | same | fallback for *langchain‑ollama* |
+| `CHUNK_SIZE`      | `800` | PDF text-splitter chunk size |
+| `CHUNK_OVERLAP`   | `100` | overlap between chunks |
+| `RERANK_TOP_K`    | `3` | number of chunks sent to the LLM |
 
 ---
 

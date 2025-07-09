@@ -1,4 +1,5 @@
 # app/ingestion.py
+# PDF ingestion and processing utilities
 
 """
 PDF loader and text splitter utilities.
@@ -6,10 +7,14 @@ PDF loader and text splitter utilities.
 
 from io import BytesIO
 from typing import List
+import os
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema import Document
+
+DEFAULT_CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "800"))
+DEFAULT_CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "100"))
 
 
 # ────────────────────────────────────────────────────────────────────────────────
@@ -28,8 +33,8 @@ def _split(pages: List[Document], *, chunk_size: int, overlap: int) -> List[Docu
 # ────────────────────────────────────────────────────────────────────────────────
 def load_and_split(
     file_path: str,
-    chunk_size: int = 800,
-    overlap: int = 100,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
+    overlap: int = DEFAULT_CHUNK_OVERLAP,
 ) -> List[Document]:
     """
     Load a PDF from *file_path* and return a list of LangChain Document

@@ -29,6 +29,9 @@ services:
       - OLLAMA_HOST=http://ollama:11434
       - LANGCHAIN_ENDPOINT=disabled
       - CHROMA_TELEMETRY=FALSE
+      - CHUNK_SIZE=800
+      - CHUNK_OVERLAP=100
+      - RERANK_TOP_K=3
     networks:
       - rag-net
 
