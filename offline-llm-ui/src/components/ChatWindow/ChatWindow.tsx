@@ -4,13 +4,14 @@ import {
   Text,
   Avatar,
   useColorModeValue,
+  Spinner,
 } from "@chakra-ui/react";
 import { useChat } from "../../contexts/ChatContext";
 import ReactMarkdown from "react-markdown";
 import { useRef, useEffect } from "react";
 
 export function ChatWindow() {
-  const { messages } = useChat();
+  const { messages, sending } = useChat();
   const userBg = useColorModeValue("blue.400", "blue.600");
   const userText = "white";
   const aiBg = useColorModeValue("gray.100", "gray.700");
@@ -20,7 +21,7 @@ export function ChatWindow() {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, sending]);
 
   return (
     <Box
@@ -42,80 +43,106 @@ export function ChatWindow() {
           </Text>
         </Box>
       ) : (
-        messages.map((m, i) => (
-          <HStack
-            key={i}
-            justify={m.from === "user" ? "flex-end" : "flex-start"}
-            mb={1.5}
-            spacing={2}
-          >
-            {m.from !== "user" && (
+        <>
+          {messages.map((m, i) => (
+            <HStack
+              key={i}
+              justify={m.from === "user" ? "flex-end" : "flex-start"}
+              mb={1.5}
+              spacing={2}
+            >
+              {m.from !== "user" && (
+                <Avatar
+                  size="xs"
+                  bg="gray.400"
+                  color="white"
+                  icon={<span style={{ fontSize: 18 }}>🤖</span>}
+                />
+              )}
+              <Box
+                bg={m.from === "user" ? userBg : aiBg}
+                color={m.from === "user" ? userText : aiText}
+                px={4}
+                py={2}
+                borderRadius="2xl"
+                maxW="70%"
+                boxShadow={m.from === "user" ? "md" : "sm"}
+                alignSelf={m.from === "user" ? "flex-end" : "flex-start"}
+                minW="10px"
+              >
+                <Text
+                  fontSize="xs"
+                  fontWeight="bold"
+                  opacity={0.8}
+                  mb={1}
+                  color={m.from === "user" ? "white" : "blue.700"}
+                >
+                  {m.from === "user" ? "You" : "AI"}
+                </Text>
+                {m.from === "assistant" ? (
+                  <Box fontSize="sm" color={aiText} sx={{
+                    ul: { pl: 4, mb: 2 },
+                    ol: { pl: 4, mb: 2 },
+                    li: { mb: 1 },
+                    strong: { fontWeight: 700 },
+                    code: {
+                      bg: useColorModeValue("#f5f5f5", "#333"),
+                      px: 1, borderRadius: "sm", fontSize: "0.97em"
+                    },
+                    pre: {
+                      bg: useColorModeValue("#f5f5f5", "#333"),
+                      borderRadius: "md", p: 2, mb: 2, fontSize: "0.97em",
+                      overflowX: "auto"
+                    },
+                    h1: { fontSize: "lg", mb: 1, mt: 1 },
+                    h2: { fontSize: "md", mb: 1, mt: 1 },
+                    h3: { fontSize: "sm", mb: 1, mt: 1 },
+                    a: { color: "blue.500", textDecoration: "underline" },
+                    p: { mb: 2 }
+                  }}>
+                    <ReactMarkdown>{m.text}</ReactMarkdown>
+                  </Box>
+                ) : (
+                  <Text fontSize="sm" wordBreak="break-word">
+                    {m.text}
+                  </Text>
+                )}
+              </Box>
+              {m.from === "user" && (
+                <Avatar
+                  size="xs"
+                  bg="blue.500"
+                  color="white"
+                  icon={<span style={{ fontSize: 18 }}>🧑</span>}
+                />
+              )}
+            </HStack>
+          ))}
+          {sending && (
+            <HStack justify="flex-start" mb={1.5} spacing={2}>
               <Avatar
                 size="xs"
                 bg="gray.400"
                 color="white"
                 icon={<span style={{ fontSize: 18 }}>🤖</span>}
               />
-            )}
-            <Box
-              bg={m.from === "user" ? userBg : aiBg}
-              color={m.from === "user" ? userText : aiText}
-              px={4}
-              py={2}
-              borderRadius="2xl"
-              maxW="70%"
-              boxShadow={m.from === "user" ? "md" : "sm"}
-              alignSelf={m.from === "user" ? "flex-end" : "flex-start"}
-              minW="10px"
-            >
-              <Text
-                fontSize="xs"
-                fontWeight="bold"
-                opacity={0.8}
-                mb={1}
-                color={m.from === "user" ? "white" : "blue.700"}
+              <HStack
+                bg={aiBg}
+                color={aiText}
+                px={4}
+                py={2}
+                borderRadius="2xl"
+                maxW="70%"
+                boxShadow="sm"
               >
-                {m.from === "user" ? "You" : "AI"}
-              </Text>
-              {m.from === "assistant" ? (
-                <Box fontSize="sm" color={aiText} sx={{
-                  ul: { pl: 4, mb: 2 },
-                  ol: { pl: 4, mb: 2 },
-                  li: { mb: 1 },
-                  strong: { fontWeight: 700 },
-                  code: {
-                    bg: useColorModeValue("#f5f5f5", "#333"),
-                    px: 1, borderRadius: "sm", fontSize: "0.97em"
-                  },
-                  pre: {
-                    bg: useColorModeValue("#f5f5f5", "#333"),
-                    borderRadius: "md", p: 2, mb: 2, fontSize: "0.97em",
-                    overflowX: "auto"
-                  },
-                  h1: { fontSize: "lg", mb: 1, mt: 1 },
-                  h2: { fontSize: "md", mb: 1, mt: 1 },
-                  h3: { fontSize: "sm", mb: 1, mt: 1 },
-                  a: { color: "blue.500", textDecoration: "underline" },
-                  p: { mb: 2 }
-                }}>
-                  <ReactMarkdown>{m.text}</ReactMarkdown>
-                </Box>
-              ) : (
-                <Text fontSize="sm" wordBreak="break-word">
-                  {m.text}
+                <Spinner size="sm" color="blue.500" mr={2} />
+                <Text fontSize="sm" color="gray.400">
+                  Waiting for answer…
                 </Text>
-              )}
-            </Box>
-            {m.from === "user" && (
-              <Avatar
-                size="xs"
-                bg="blue.500"
-                color="white"
-                icon={<span style={{ fontSize: 18 }}>🧑</span>}
-              />
-            )}
-          </HStack>
-        ))
+              </HStack>
+            </HStack>
+          )}
+        </>
       )}
       {/* Always scroll to this div */}
       <div ref={endRef} />
