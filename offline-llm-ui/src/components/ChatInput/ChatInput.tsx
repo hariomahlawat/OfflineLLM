@@ -22,7 +22,7 @@ export default function ChatInput() {
   };
 
   return (
-    <HStack spacing={2} px={2} pb={2} align="end">
+    <HStack spacing={2} px={2} pb={2} align="end"  position="sticky" bottom={0} zIndex={10}>
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}

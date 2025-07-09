@@ -108,11 +108,14 @@ export default function App() {
                 Chat
               </Text>
             </Box>
+
             <Box flex="1" minH={0} overflowY="auto">
               <ChatWindow />
             </Box>
+
             <Box
               position="sticky"
+              zIndex={100} flexShrink={0}
               bottom={0}
               bg="white"
               borderTop="1px solid"
@@ -122,6 +125,7 @@ export default function App() {
             >
               <ChatInput />
             </Box>
+
           </Box>
         </Box>
 

@@ -55,7 +55,7 @@ app = FastAPI(title="OfflineLLM API", version="0.2.0")
 # allow Vite dev server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # <-- your UI origin
+    allow_origins=["*"],  # <-- your UI origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
