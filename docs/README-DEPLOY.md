@@ -191,3 +191,16 @@ docker compose build --no-cache
 docker compose up -d
 ```
 
+
+
+# Build backend image
+docker build \
+  -f docker/Dockerfile.backend \
+  -t offlinellm-backend:latest \
+  .
+
+# Build frontend image
+docker build \
+  -f docker/Dockerfile.frontend \
+  -t offlinellm-frontend:latest \
+  .

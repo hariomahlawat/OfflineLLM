@@ -1,3 +1,6 @@
+// File: src/components/ChatInput/ChatInput.tsx
+// This file is part of the Offline LLM UI project.
+
 import { useState } from "react";
 import { Textarea, IconButton, HStack, useColorModeValue } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";

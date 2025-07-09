@@ -1,3 +1,7 @@
+# Dockerfile for building and serving the Offline LLM UI with Nginx
+# This Dockerfile builds the UI using Node.js and serves it with Nginx over HTTPS
+
+
 FROM node:20 AS build
 
 WORKDIR /ui
