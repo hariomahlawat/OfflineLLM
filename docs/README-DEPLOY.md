@@ -117,6 +117,7 @@ services:
       - ollama
     volumes:
       - chroma_data:/app/data/chroma
+      - chroma_persist:/app/data/chroma_persist
       - ./data/persist:/app/data/persist:ro
       - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
     ports:
@@ -126,6 +127,7 @@ services:
       - OLLAMA_HOST=http://ollama:11434
       - LANGCHAIN_ENDPOINT=disabled
       - CHROMA_TELEMETRY=FALSE
+      - PERSIST_CHROMA_DIR=/app/data/chroma_persist
     networks:
       - rag-net
 
@@ -145,6 +147,7 @@ services:
 
 volumes:
   chroma_data:
+  chroma_persist:
   ollama_models:
 
 networks:

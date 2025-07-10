@@ -20,6 +20,7 @@ services:
       - ollama
     volumes:
       - chroma_data:/app/data/chroma
+      - chroma_persist:/app/data/chroma_persist
       - ./data/persist:/app/data/persist:ro
       - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
     ports:
@@ -32,6 +33,7 @@ services:
       - CHUNK_SIZE=800
       - CHUNK_OVERLAP=100
       - RERANK_TOP_K=3
+      - PERSIST_CHROMA_DIR=/app/data/chroma_persist
     networks:
       - rag-net
 
@@ -51,6 +53,7 @@ services:
 
 volumes:
   chroma_data:
+  chroma_persist:
   ollama_models:
 
 networks:
