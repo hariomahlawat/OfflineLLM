@@ -13,4 +13,8 @@ chown -R llm:llm /app/data 2>/dev/null || true
 # ------------------------------------------------------------------
 # drop privileges and launch Uvicorn
 # ------------------------------------------------------------------
+until curl -sf http://ollama:11434/ping >/dev/null; do
+  echo "⏳ waiting for Ollama..."
+  sleep 2
+done
 exec gosu llm uvicorn app.api:app --host 0.0.0.0 --port 8000 --workers 1
