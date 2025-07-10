@@ -129,6 +129,17 @@ Invoke-RestMethod -Method POST `
   -ContentType application/json `
   -Body '{"user_msg":"Hello!"}'
 ```
+### 6.4 React UI (Vite dev server)
+
+```powershell
+cd offline-llm-ui
+npm install                    # first time only
+npm run dev                    # http://localhost:5173/
+```
+
+The dev server proxies all `/api` calls to `http://localhost:8000`.
+Use `VITE_API_URL=http://localhost:8000` while developing and keep
+`VITE_API_URL=/api` for production builds (set in `offline-llm-ui/.env`).
 
 ---
 

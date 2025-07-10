@@ -1,6 +1,8 @@
 // src/api/index.ts
 
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// Default API endpoint. When running behind nginx this points to the
+// /api proxy. `VITE_API_URL` can override for local development.
+const BASE = import.meta.env.VITE_API_URL || "/api";
 
 
 export interface ModelInfo {
