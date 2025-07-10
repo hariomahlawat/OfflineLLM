@@ -34,7 +34,7 @@ export default function App() {
 
   return (
     <ChatProvider>
-      <Box minH="100vh" w="100vw" display="flex" flexDirection="column">
+      <Box h="100vh" w="100vw" display="flex" flexDirection="column" overflow="hidden">
         {/* HEADER */}
         <Box as="header" position="sticky" top={0} zIndex={100} flexShrink={0}>
           <AppHeader />
