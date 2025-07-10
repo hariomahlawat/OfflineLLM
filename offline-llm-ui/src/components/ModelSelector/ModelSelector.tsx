@@ -1,17 +1,18 @@
 import { Spinner, Select, Box, FormControl, FormLabel } from '@chakra-ui/react'
 import { useEffect, useState } from 'react'
 import { listModels, type ModelInfo } from '../../api'
+import { useChat } from '../../contexts/ChatContext'
 
 export function ModelSelector() {
   const [models, setModels] = useState<ModelInfo[] | null>(null)
-  const [selected, setSelected] = useState<string>('')
+  const { model, setModel } = useChat()
 
   useEffect(() => {
     listModels().then((ms) => {
       setModels(ms)
-      if (ms.length) setSelected(ms[0].name)
+      if (ms.length) setModel(ms[0].name)
     })
-  }, [])
+  }, [setModel])
 
   if (models === null) {
     return (
@@ -28,8 +29,8 @@ export function ModelSelector() {
       </FormLabel>
       <Select
         id="model-select"
-        value={selected}
-        onChange={(e) => setSelected(e.target.value)}
+        value={model}
+        onChange={(e) => setModel(e.target.value)}
         size="sm"
         variant="outline"
         borderRadius="md"

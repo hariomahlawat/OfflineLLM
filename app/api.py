@@ -32,7 +32,7 @@ from app.vector_store import (
     purge_session_store,
 )
 from app.rerank import rerank
-from app.chat import chat as chat_fn, new_session_id, DEFAULT_MODEL
+from app.chat import chat as chat_fn, new_session_id, DEFAULT_MODEL, safe_chat
 from app.ollama_utils import finalize_ollama_chat
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -132,7 +132,7 @@ async def doc_qa(req: QARequest):
     )
 
     try:
-        raw = ollama.chat(
+        raw = safe_chat(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             stream=False,
@@ -265,7 +265,7 @@ async def session_qa(req: SessionQARequest):
     )
 
     try:
-        raw = ollama.chat(
+        raw = safe_chat(
             model=model,
             messages=[{"role": "user", "content": prompt}],
             stream=False,

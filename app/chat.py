@@ -10,6 +10,7 @@ from typing import Dict, Optional
 from uuid import uuid4
 
 import ollama
+import logging
 from langchain.memory import ConversationBufferMemory
 from app.ollama_utils import finalize_ollama_chat
 
@@ -46,6 +47,22 @@ def _lc_to_ollama(msg) -> dict:
     }
     return {"role": role_map.get(msg.type, "assistant"), "content": msg.content}
 
+def safe_chat(*, model: str, messages: list, stream: bool = False, **kwargs):
+    """Call ``ollama.chat`` and retry once with ``DEFAULT_MODEL`` if it fails."""
+    try:
+        return ollama.chat(model=model, messages=messages, stream=stream, **kwargs)
+    except Exception as e:  # pragma: no cover - thin wrapper
+        if model == DEFAULT_MODEL:
+            raise
+        logging.warning(
+            "Model '%s' failed, falling back to '%s': %s",
+            model,
+            DEFAULT_MODEL,
+            e,
+        )
+        return ollama.chat(model=DEFAULT_MODEL, messages=messages, stream=stream, **kwargs)
+    
+
 
 def chat(
     session_id: str,
@@ -76,11 +93,7 @@ def chat(
     chosen_model = model or DEFAULT_MODEL
 
     # 4) call the Ollama API
-    raw = ollama.chat(
-        model=chosen_model,
-        messages=messages,
-        stream=False,
-    )
+    raw = safe_chat(model=chosen_model, messages=messages, stream=False, temperature=temperature)
     msg = finalize_ollama_chat(raw)
     assistant_reply = msg["message"]["content"]
 
