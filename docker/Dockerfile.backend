@@ -25,7 +25,10 @@ RUN pip install --no-index --find-links=/wheelhouse -r requirements.lock
 
 # Entrypoint + utilities
 COPY docker/entrypoint.sh /app/entrypoint.sh
-
+# --- new line ---------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+# ---------------------------------------------------------------
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends gosu dos2unix; \
