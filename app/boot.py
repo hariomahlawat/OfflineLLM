@@ -1,49 +1,61 @@
-# app/boot.py
 """
-Run *once* at process start-up:
+app.boot
+────────
+Runs **once** at FastAPI-startup:
 
-• Walk through data/persist/ looking for *.pdf
-• Skip any file that is already present in the persistent collection
-• Ingest -> chunk -> embed -> store
+• Walk through  PERSIST_PDF_DIR   (default: /app/data/persist)
+• Skip any PDF already present in the persistent Chroma collection
+• For new files →  load → chunk → embed → store  (metadata attached)
 """
 
-from pathlib import Path
-import logging
+from __future__ import annotations
+
+import logging, os
 from datetime import datetime
+from pathlib import Path
+from typing import List
 
 from app.vector_store import add_documents, persist_has_source
-from app.ingestion import load_and_split   # existing helper
+from app.ingestion import load_and_split
 
-PERSIST_PDF_DIR = Path("data/persist")      # ‹--- put your long-lived PDFs here
+# ───────────────────────── Config ──────────────────────────
+PERSIST_PDF_DIR = Path(os.getenv("PERSIST_PDF_DIR", "/app/data/persist"))
 PERSIST_PDF_DIR.mkdir(parents=True, exist_ok=True)
 
 log = logging.getLogger("boot")
 log.setLevel(logging.INFO)
+log.addHandler(logging.StreamHandler())
 
+# ───────────────────────── Helpers ─────────────────────────
 def _index_file(pdf_path: Path) -> None:
+    """Split, embed, and store one PDF."""
     log.info("🔄  indexing %s", pdf_path.name)
     chunks = load_and_split(str(pdf_path))
-    # attach metadata so we can later check persist_has_source()
-    for c in chunks:
-        c.metadata["source"] = pdf_path.name
-        c.metadata["indexed_at"] = datetime.utcnow().isoformat()
-    add_documents(chunks)
-    log.info("✅  stored %s chunks for %s", len(chunks), pdf_path.name)
 
+    # attach minimal metadata for re-ingest check & provenance
+    now = datetime.utcnow().isoformat()
+    for c in chunks:
+        c.metadata |= {"source": pdf_path.name, "indexed_at": now}
+
+    add_documents(chunks)
+    log.info("✅  stored %-4d chunks for %s", len(chunks), pdf_path.name)
+
+
+# ───────────────────────── Public entry ─────────────────────
 def run() -> None:
-    pdfs = sorted(PERSIST_PDF_DIR.glob("*.pdf"))
+    """Index any yet-unseen PDFs under PERSIST_PDF_DIR."""
+    pdfs: List[Path] = sorted(PERSIST_PDF_DIR.glob("*.pdf"))
     if not pdfs:
-        log.info("📂  data/persist/ empty – nothing to index.")
+        log.info("📂  %s empty – nothing to index.", PERSIST_PDF_DIR)
         return
 
     for pdf in pdfs:
         if persist_has_source(pdf.name):
             log.debug("↪︎  already indexed: %s", pdf.name)
             continue
+
         try:
             _index_file(pdf)
-        except Exception as exc:            # keep boot resilient
+        except Exception as exc:
+            # do **not** abort boot – just record the failure
             log.exception("❌  failed to index %s: %s", pdf.name, exc)
-
-# run immediately on import
-run()

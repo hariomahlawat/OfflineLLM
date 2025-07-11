@@ -113,7 +113,7 @@ httpx==0.27.2
     #   ollama
 httpx-sse==0.4.1
     # via langchain-community
-huggingface-hub==0.33.2
+huggingface-hub==0.33.3
     # via
     #   datasets
     #   optimum
@@ -153,7 +153,9 @@ langchain-core==0.3.68
     #   langchain-community
     #   langchain-text-splitters
 langchain-text-splitters==0.3.8
-    # via langchain
+    # via
+    #   -r docker/requirements.in
+    #   langchain
 langsmith==0.4.5
     # via
     #   langchain
@@ -329,8 +331,6 @@ python-dotenv==1.1.1
     #   uvicorn
 python-multipart==0.0.20
     # via -r docker/requirements.in
-python-ollama==0.2.4
-    # via -r docker/requirements.in
 pytz==2025.2
     # via pandas
 pyyaml==6.0.2
@@ -355,7 +355,6 @@ requests==2.32.4
     #   langchain-community
     #   langsmith
     #   posthog
-    #   python-ollama
     #   requests-oauthlib
     #   requests-toolbelt
     #   transformers

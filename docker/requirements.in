@@ -6,6 +6,7 @@ uvicorn[standard]==0.35.0            # includes uvloop & httptools
 # LangChain + Chroma vector store
 langchain-core==0.3.68
 langchain-community==0.3.27
+langchain-text-splitters==0.3.8      # ← NEW: needed for RecursiveCharacterTextSplitter
 chromadb==0.5.23
 
 # Pydantic v2
@@ -18,20 +19,18 @@ pypdf==5.7.0
 
 # Ollama client libraries
 ollama==0.3.3
-python-ollama>=0.2,<0.3
 
 # Sentence-Transformers (ONNX back-end only → no PyTorch)
 sentence-transformers[onnx]==5.0.0
 onnxruntime==1.22.0                  # CPU-only wheel
 
-# Multipart/form-data parsing
+# Multipart / form-data parsing
 python-multipart==0.0.20
 # ---------------------------------------------------------------------
 
-############################################################################
+########################################################################
 # 🟢  CPU-ONLY NOTE
 #
-# We deliberately omit “torch” here.  `sentence-transformers[onnx]`
-# works fine with just ONNX Runtime for inference.  No gigantic CUDA
-# wheels will be pulled, so the image stays <600 MB instead of >2 GB.
-############################################################################
+# We deliberately omit “torch”.  sentence-transformers[onnx] runs fine
+# with ONNX Runtime, so no gigantic CUDA wheels are downloaded.
+########################################################################

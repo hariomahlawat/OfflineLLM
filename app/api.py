@@ -1,151 +1,127 @@
-# app/api.py
-
 """
 FastAPI routes
 ──────────────
-* /models               – list all locally-pulled Ollama models
-* /ping                 – health-check
-* /chat                 – chat w/ conversation memory (optional model override)
-* /doc_qa               – RAG answer from permanent KB (+ session KB, optional model)
-* /upload_pdf           – add a PDF only to this session
-* /session/{id} DELETE  – purge session vector-store
-* /session_qa           – RAG over session + persistent KB (optional model)
+* /models               – list all Ollama models (resilient to startup lag)
+* /ping                 – lightweight health check
+* /chat                 – chat with session memory   (model override optional)
+* /doc_qa               – permanent-KB RAG           (model override optional)
+* /upload_pdf           – add a PDF only to session
+* /session/{id} DELETE  – purge session vector store
+* /session_qa           – session-KB ± persistent-KB RAG
 """
+app = FastAPI()
+from __future__ import annotations
 
-from fastapi import FastAPI, File, UploadFile, Query, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-import tempfile, shutil
+import asyncio, os, shutil, tempfile
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional, Dict
-from uuid import uuid4
+from typing import Dict, List, Optional
 
 import ollama
-
-import app.boot                                     # side-effect: index /data/persist
-from app.ingestion import load_and_split
-from app.vector_store import (
-    SESSIONS_ROOT,
-    get_session_store,
-    similarity_search,
-    new_session_store,
-    purge_session_store,
+from fastapi import (
+    FastAPI,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
 )
-from app.rerank import rerank
-from app.chat import chat as chat_fn, new_session_id, DEFAULT_MODEL, safe_chat
-from app.ollama_utils import finalize_ollama_chat
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from fastapi.middleware.cors import CORSMiddleware
 
-
-# ────────────────────────────────────────────────────────────────────────────────
-# In-memory session stores
-# ────────────────────────────────────────────────────────────────────────────────
-_SESSION_STORES: Dict[str, object] = {}
-
-# ────────────────────────────────────────────────────────────────────────────────
-# /models endpoint
-# ────────────────────────────────────────────────────────────────────────────────
-class ModelInfo(BaseModel):
-    name: str
-    description: Optional[str] = None
-
-app = FastAPI(title="OfflineLLM API", version="0.2.0")
-
-# allow Vite dev server
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # <-- your UI origin
+    allow_origins=["*"],  # Or ["http://localhost:5173"] for stricter control
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/models", response_model=List[ModelInfo])
-async def list_models():
+
+# ───────────────────────── Constants ──────────────────────────
+DEFAULT_MODEL = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q4_K_M")
+SESSION_TTL_MIN = int(os.getenv("SESSION_TTL_MIN", 60))          # purge after 1 h idle
+TOK_TRUNCATE = int(os.getenv("RAG_TOK_LIMIT", 2000))             # pre-truncate prompt
+
+# ───────────────────────── Lazy KB warm-up ────────────────────
+app = FastAPI(title="OfflineLLM API", version="0.3.0")
+
+@app.on_event("startup")
+async def _warm_kb() -> None:
     """
-    Return all locally-pulled Ollama models.
+    Boot-time ingestion of files under /data/persist.
+    Runs once; errors are logged but won’t kill uvicorn.
     """
-    try:
-        raw = ollama.list()  # => { "models": [ {name:..., …}, … ] }
-        models_raw = raw.get("models", [])
-        return [
-            ModelInfo(
-                name=m.get("name"),
-                description=m.get("details", {}).get("family")
-            )
-            for m in models_raw
-        ]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list models: {e}")
+    import app.boot  # side-effect indexing
 
 
-# ───────────────────────── ping ────────────────────────────────────────────
+# ───────────────────────── CORS (env override) ────────────────
+ALLOWED_ORIGINS = os.getenv("CORS_ALLOW", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ───────────────────────── Session store helpers ──────────────
+from app.ingestion import load_and_split
+from app.vector_store import (
+    SESSIONS_ROOT,
+    get_session_store,
+    new_session_store,
+    purge_session_store,
+    similarity_search,
+)
+from app.rerank import rerank
+from app.chat import chat as chat_fn, new_session_id, safe_chat
+from app.ollama_utils import finalize_ollama_chat
+
+_SESSIONS: Dict[str, object] = {}
+_SESSIONS_TOUCH: Dict[str, datetime] = {}
+_SESSIONS_LOCK = asyncio.Lock()
+
+async def _touch_sid(sid: str) -> None:
+    async with _SESSIONS_LOCK:
+        _SESSIONS_TOUCH[sid] = datetime.utcnow()
+
+async def _purge_expired_sessions() -> None:
+    cutoff = datetime.utcnow() - timedelta(minutes=SESSION_TTL_MIN)
+    async with _SESSIONS_LOCK:
+        for sid, ts in list(_SESSIONS_TOUCH.items()):
+            if ts < cutoff:
+                purge_session_store(sid)
+                _SESSIONS.pop(sid, None)
+                _SESSIONS_TOUCH.pop(sid, None)
+
+# background task to purge old sessions
+@app.on_event("startup")
+async def _start_session_gc() -> None:
+    async def gc_loop():
+        while True:
+            await _purge_expired_sessions()
+            await asyncio.sleep(60)
+    asyncio.create_task(gc_loop())
+
+# ───────────────────────── Schemas ────────────────────────────
+class ModelInfo(BaseModel):
+    name: str
+    description: Optional[str] = None
+
 class PingResponse(BaseModel):
     status: str = "ok"
-
-@app.get("/ping", response_model=PingResponse)
-async def ping():
-    return PingResponse()
-
-
-
-
-# ───────────────────────── RAG (permanent + session KB) ────
 
 class QARequest(BaseModel):
     question: str
     session_id: Optional[str] = None
-    model: Optional[str] = None  # override default
+    model: Optional[str] = None
 
 class QAResponse(BaseModel):
     answer: str
     sources: List[str]
-
-@app.post("/doc_qa", response_model=QAResponse)
-async def doc_qa(req: QARequest):
-    model = req.model or DEFAULT_MODEL
-
-    # 1️⃣ search permanent KB
-    docs = similarity_search(req.question, k=10)
-
-    # 2️⃣ optionally search session KB
-    if req.session_id:
-        store = _SESSION_STORES.get(req.session_id)
-        if store:
-            docs += store.similarity_search(req.question, k=10)
-
-    if not docs:
-        return QAResponse(answer="I don't know.", sources=[])
-
-    # 3️⃣ rerank
-    chunks = [d.page_content for d in docs]
-    top_chunks = rerank(req.question, chunks)
-
-    # 4️⃣ call Ollama
-    sep = "\n---\n"
-    prompt = (
-        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
-        "If unsure, say 'I don't know.'\n\n"
-        f"CONTEXT:\n{sep.join(top_chunks)}\n\n"
-        f"QUESTION: {req.question}\nANSWER:"
-    )
-
-    try:
-        raw = safe_chat(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            stream=False,
-        )
-        msg = finalize_ollama_chat(raw)
-        answer = msg["message"]["content"]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    return QAResponse(answer=answer, sources=top_chunks)
-
-
-# ───────────────────────── Chat (with optional model) ────────────────
 
 class ChatRequest(BaseModel):
     user_msg: str
@@ -156,69 +132,10 @@ class ChatResponse(BaseModel):
     session_id: str
     answer: str
 
-@app.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
-    session_id = req.session_id or new_session_id()
-    model = req.model or DEFAULT_MODEL
-
-    try:
-        answer = chat_fn(session_id, req.user_msg, model=model)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    return ChatResponse(session_id=session_id, answer=answer)
-
-
-# ───────────────────────── Upload one PDF (ephemeral) ──────
-
 class UploadPDFResponse(BaseModel):
     status: str
     session_id: str
     chunks_indexed: int
-
-
-@app.post("/upload_pdf", response_model=UploadPDFResponse)
-async def upload_pdf(
-    session_id: str = Query(..., description="Tie this PDF to an existing session"),
-    file: UploadFile = File(..., description="PDF to add only for this session"),
-):
-    # create session store lazily
-    store = _SESSION_STORES.get(session_id)
-    if store is None:
-        store = new_session_store(session_id)
-        _SESSION_STORES[session_id] = store
-
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            shutil.copyfileobj(file.file, tmp)
-            tmp_path = Path(tmp.name)
-
-        chunks = load_and_split(str(tmp_path))
-        store.add_documents(chunks)
-        added = len(chunks)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to ingest PDF: {e}")
-    finally:
-        file.file.close()
-        tmp_path.unlink(missing_ok=True)
-
-    return UploadPDFResponse(status="ok", session_id=session_id, chunks_indexed=added)
-
-
-# ───────────────────────── Delete / end session ────────────
-
-@app.delete("/session/{session_id}")
-async def end_session(session_id: str):
-    path = SESSIONS_ROOT / session_id
-    if not path.exists() and session_id not in _SESSION_STORES:
-        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
-
-    purge_session_store(session_id)
-    _SESSION_STORES.pop(session_id, None)
-    return {"status": "purged", "session_id": session_id}
-
-
-# ───────────────────────── Session-scoped RAG  ─────────────
 
 class SessionQARequest(BaseModel):
     question: str
@@ -230,48 +147,152 @@ class SessionQAResponse(BaseModel):
     answer: str
     sources: List[str]
 
+# ───────────────────────── /models ────────────────────────────
+@app.get("/models", response_model=List[ModelInfo])
+async def list_models():
+    """
+    List locally pulled Ollama models.
+
+    Always returns **200 OK**.  
+    If Ollama isn’t up yet we return an empty list so the frontend keeps polling.
+    """
+    try:
+        raw = ollama.list()               # might raise ConnectionError
+    except Exception:
+        return []
+
+    out: List[ModelInfo] = []
+    for m in raw.get("models", []):
+        details = m.get("details", {})
+        desc = f"{details.get('family','')}, {details.get('parameter_size','')} {details.get('quantization_level','')}"
+        out.append(ModelInfo(name=m["name"], description=desc.strip(", ")))
+    return out
+
+# ───────────────────────── /ping ──────────────────────────────
+@app.get("/ping", response_model=PingResponse)
+async def ping():
+    return PingResponse()
+
+# ───────────────────────── /doc_qa ────────────────────────────
+@app.post("/doc_qa", response_model=QAResponse)
+async def doc_qa(req: QARequest):
+    model = req.model or DEFAULT_MODEL
+    docs = similarity_search(req.question, k=10)
+
+    if req.session_id:
+        store = _SESSIONS.get(req.session_id)
+        if store:
+            docs += store.similarity_search(req.question, k=10)
+
+    if not docs:
+        return QAResponse(answer="I don't know.", sources=[])
+
+    chunks = [d.page_content for d in docs]
+    top_chunks = rerank(req.question, chunks)
+    ctx = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
+
+    prompt = (
+        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+        "If unsure, say 'I don't know.'\n\n"
+        f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
+    )
+
+    try:
+        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
+        answer = finalize_ollama_chat(raw)["message"]["content"]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return QAResponse(answer=answer, sources=top_chunks)
+
+# ───────────────────────── /chat ──────────────────────────────
+@app.post("/chat", response_model=ChatResponse)
+async def chat(req: ChatRequest):
+    session_id = req.session_id or new_session_id()
+    model = req.model or DEFAULT_MODEL
+
+    try:
+        answer = chat_fn(session_id, req.user_msg, model=model)
+        await _touch_sid(session_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return ChatResponse(session_id=session_id, answer=answer)
+
+# ───────────────────────── /upload_pdf ────────────────────────
+@app.post("/upload_pdf", response_model=UploadPDFResponse)
+async def upload_pdf(
+    session_id: str = Query(..., description="Session ID this PDF belongs to"),
+    file: UploadFile = File(..., description="PDF to ingest into session KB"),
+):
+    store = _SESSIONS.get(session_id)
+    if store is None:
+        store = new_session_store(session_id)
+        _SESSIONS[session_id] = store
+
+    tmp_path: Optional[Path] = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            shutil.copyfileobj(file.file, tmp)
+            tmp_path = Path(tmp.name)
+
+        chunks = load_and_split(str(tmp_path))
+        store.add_documents(chunks)
+        added = len(chunks)
+        await _touch_sid(session_id)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to ingest PDF: {e}")
+    finally:
+        file.file.close()
+        if tmp_path:
+            tmp_path.unlink(missing_ok=True)
+
+    return UploadPDFResponse(status="ok", session_id=session_id, chunks_indexed=added)
+
+# ───────────────────────── /session/{id} DELETE ───────────────
+@app.delete("/session/{session_id}")
+async def end_session(session_id: str):
+    if (SESSIONS_ROOT / session_id).exists() or session_id in _SESSIONS:
+        purge_session_store(session_id)
+        _SESSIONS.pop(session_id, None)
+        _SESSIONS_TOUCH.pop(session_id, None)
+        return {"status": "purged", "session_id": session_id}
+    raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+
+# ───────────────────────── /session_qa ────────────────────────
 @app.post("/session_qa", response_model=SessionQAResponse)
 async def session_qa(req: SessionQARequest):
     model = req.model or DEFAULT_MODEL
 
-    # 1️⃣ look up or re-open the session store
-    sess_store = _SESSION_STORES.get(req.session_id)
+    sess_store = _SESSIONS.get(req.session_id)
     if sess_store is None:
         try:
             sess_store = get_session_store(req.session_id)
+            _SESSIONS[req.session_id] = sess_store
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
-        _SESSION_STORES[req.session_id] = sess_store
 
-    # 2️⃣ similarity searches
     sess_docs = sess_store.similarity_search(req.question, k=5)
-    #persist_docs = similarity_search(req.question, k=10)
     persist_docs = [] if req.persistent is False else similarity_search(req.question, k=10)
     all_docs = sess_docs + persist_docs
 
     if not all_docs:
         return SessionQAResponse(answer="I don't know.", sources=[])
 
-    # 3️⃣ rerank & prompt
     chunks = [d.page_content for d in all_docs]
     top_chunks = rerank(req.question, chunks)
+    ctx = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
-    sep = "\n---\n"
     prompt = (
         "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
         "If unsure, say 'I don't know.'\n\n"
-        f"CONTEXT:\n{sep.join(top_chunks)}\n\n"
-        f"QUESTION: {req.question}\nANSWER:"
+        f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
     )
 
     try:
-        raw = safe_chat(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            stream=False,
-        )
-        msg = finalize_ollama_chat(raw)
-        answer = msg["message"]["content"]
+        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
+        answer = finalize_ollama_chat(raw)["message"]["content"]
+        await _touch_sid(req.session_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -2,31 +2,43 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
-    ports:
-      - "11434:11434"
+    ports: ["11434:11434"]
     volumes:
       - ollama_models:/root/.ollama
-    networks:
-      rag-net:
-        aliases:
-          - ollama
+    networks: [rag-net]
+
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+    restart: unless-stopped
 
   rag-app:
     build:
       context: .
       dockerfile: docker/Dockerfile.backend
     container_name: rag-app
+
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
     volumes:
-      - chroma_data:/app/data/chroma
       - chroma_persist:/app/data/chroma_persist
       - ./data/persist:/app/data/persist:ro
       - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
-    ports:
-      - "8000:8000"
+
+    ports: ["8000:8000"]
+
     environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
       - OLLAMA_HOST=http://ollama:11434
       - LANGCHAIN_ENDPOINT=disabled
       - CHROMA_TELEMETRY=FALSE
@@ -34,29 +46,33 @@ services:
       - CHUNK_OVERLAP=100
       - RERANK_TOP_K=3
       - PERSIST_CHROMA_DIR=/app/data/chroma_persist
-    networks:
-      - rag-net
+
+    networks: [rag-net]
+    restart: unless-stopped
 
   frontend:
     build:
       context: .
       dockerfile: docker/Dockerfile.frontend
       args:
-        - VITE_API_URL=http://rag-app:8000
+        VITE_API_URL: https://localhost/api
     environment:
-      - VITE_API_URL=http://rag-app:8000   # runtime fallback
+      - VITE_API_URL=https://localhost/api
     container_name: offline-llm-frontend
-    ports:
-      - "443:443"
+    ports: ["443:443"]
+
     depends_on:
-      - rag-app
+      rag-app:
+        condition: service_healthy
+
     volumes:
       - ./certs:/etc/nginx/certs:ro
-    networks:
-      - rag-net
 
+    networks: [rag-net]
+    restart: unless-stopped
+
+# ────────────── Named volumes & network ──────────────
 volumes:
-  chroma_data:
   chroma_persist:
   ollama_models:
 

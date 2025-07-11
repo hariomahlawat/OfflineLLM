@@ -1,9 +1,8 @@
-# /app/entrypoint.sh  (excerpt)
+#!/usr/bin/env bash
+set -euo pipefail
 
-until curl -sf http://ollama:11434/api/tags >/dev/null; do
-  echo "⏳ waiting for Ollama..."
-  sleep 2
-done
+# Ensure any Docker volumes under /app/data are writable by llm
+chown -R llm:llm /app/data || true     # ← add this line
 
-echo "✅ Ollama is up"
-exec gosu llm uvicorn app.main:app --host 0.0.0.0 --port 8000
+exec gosu llm uvicorn app.api:app --host 0.0.0.0 --port 8000
+

@@ -1,69 +1,78 @@
 """
-Session-based chat helper.
-Keeps one ConversationBufferMemory per session_id and proxies to Ollama.
+Session-based chat helper
+──────────────────────────
+• One ConversationBufferMemory per session_id
+• Resilient call to Ollama with optional fallback model
+• Idle sessions auto-purged to cap RAM
 """
 
 from __future__ import annotations
 
-import os
+import asyncio, logging, os
+from datetime import datetime, timedelta
 from typing import Dict, Optional
 from uuid import uuid4
 
 import ollama
-import logging
 from langchain.memory import ConversationBufferMemory
+
 from app.ollama_utils import finalize_ollama_chat
 
+# ───────────────────────── Configuration ──────────────────────────
+DEFAULT_MODEL = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q4_K_M")
+SESSION_TTL_MIN = int(os.getenv("SESSION_TTL_MIN", 60))  # purge after 1 h idle
 
-# ------------------------------------------------------------------
-# configuration
-# ------------------------------------------------------------------
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-DEFAULT_MODEL = "llama3:8b-instruct-q3_K_L"
+log = logging.getLogger("chat")
+log.setLevel(logging.INFO)
 
-# in-memory map session_id → ConversationBufferMemory
+# ───────────────────────── In-memory stores ───────────────────────
 _sessions: Dict[str, ConversationBufferMemory] = {}
-
+_last_touch: Dict[str, datetime] = {}
+_LOCK = asyncio.Lock()
 
 def _get_memory(session_id: str) -> ConversationBufferMemory:
     if session_id not in _sessions:
         _sessions[session_id] = ConversationBufferMemory(return_messages=True)
+    _last_touch[session_id] = datetime.utcnow()
     return _sessions[session_id]
-
 
 def new_session_id() -> str:
     return str(uuid4())
 
-
+# ───────────────────────── Utilities ──────────────────────────────
 def _lc_to_ollama(msg) -> dict:
-    """
-    Convert a LangChain message to Ollama’s expected schema.
-    """
-    role_map = {
-        "human": "user",
-        "ai": "assistant",
-        "system": "system",
-        # tool / function messages map to assistant by default
-    }
+    """Convert a LangChain Message to Ollama chat schema."""
+    role_map = {"human": "user", "ai": "assistant", "system": "system"}
     return {"role": role_map.get(msg.type, "assistant"), "content": msg.content}
 
-def safe_chat(*, model: str, messages: list, stream: bool = False, **kwargs):
-    """Call ``ollama.chat`` and retry once with ``DEFAULT_MODEL`` if it fails."""
+def safe_chat(*, model: str, messages: list, **kwargs):
+    """
+    Call ``ollama.chat``; if it fails and model ≠ DEFAULT_MODEL, retry once with default.
+    """
     try:
-        return ollama.chat(model=model, messages=messages, stream=stream, **kwargs)
-    except Exception as e:  # pragma: no cover - thin wrapper
+        return ollama.chat(model=model, messages=messages, **kwargs)
+    except Exception as exc:
         if model == DEFAULT_MODEL:
             raise
-        logging.warning(
-            "Model '%s' failed, falling back to '%s': %s",
-            model,
-            DEFAULT_MODEL,
-            e,
-        )
-        return ollama.chat(model=DEFAULT_MODEL, messages=messages, stream=stream, **kwargs)
-    
+        log.warning("Model %s failed, falling back to %s: %s", model, DEFAULT_MODEL, exc)
+        return ollama.chat(model=DEFAULT_MODEL, messages=messages, **kwargs)
 
+# ───────────────────────── Background GC task ─────────────────────
+async def _gc_loop():
+    while True:
+        cutoff = datetime.utcnow() - timedelta(minutes=SESSION_TTL_MIN)
+        async with _LOCK:
+            for sid, ts in list(_last_touch.items()):
+                if ts < cutoff:
+                    _sessions.pop(sid, None)
+                    _last_touch.pop(sid, None)
+                    log.info("💬 purged idle session %s", sid)
+        await asyncio.sleep(60)
 
+# spawn at import time (safe in single-process uvicorn)
+asyncio.create_task(_gc_loop())
+
+# ───────────────────────── Public API ─────────────────────────────
 def chat(
     session_id: str,
     user_msg: str,
@@ -71,34 +80,35 @@ def chat(
     temperature: float = 0.4,
 ) -> str:
     """
-    Send a turn of chat to Ollama, with session-based memory.
+    One chat turn with session memory.
 
     Args:
-        session_id: ID of the conversation.
-        user_msg:   The user’s message.
-        model:      (Optional) Ollama model to use; defaults to DEFAULT_MODEL.
-        temperature: Sampling temperature.
+        session_id: conversation UUID (create outside or call new_session_id()).
+        user_msg:   user’s message.
+        model:      optional override; falls back to DEFAULT_MODEL on failure.
+        temperature: sampling temperature.
 
     Returns:
-        The assistant’s reply.
+        assistant reply string.
     """
-    # 1) retrieve or create the session memory
     mem = _get_memory(session_id)
 
-    # 2) build full chat history in Ollama format
+    # Build full history in Ollama format
     messages = [_lc_to_ollama(m) for m in mem.chat_memory.messages]
     messages.append({"role": "user", "content": user_msg})
 
-    # 3) pick which model to use
     chosen_model = model or DEFAULT_MODEL
 
-    # 4) call the Ollama API
-    raw = safe_chat(model=chosen_model, messages=messages, stream=False, temperature=temperature)
-    msg = finalize_ollama_chat(raw)
-    assistant_reply = msg["message"]["content"]
+    raw = safe_chat(
+        model=chosen_model,
+        messages=messages,
+        stream=False,
+        temperature=temperature,
+    )
+    reply = finalize_ollama_chat(raw)["message"]["content"]
 
-    # 5) persist this turn in memory
+    # Persist turn in memory
     mem.chat_memory.add_user_message(user_msg)
-    mem.chat_memory.add_ai_message(assistant_reply)
+    mem.chat_memory.add_ai_message(reply)
 
-    return assistant_reply
+    return reply
