@@ -1,14 +1,37 @@
-fastapi
-uvicorn[standard]
-langchain-community
+# ---------------------------------------------------------------------
+# Core framework
+fastapi==0.115.4
+uvicorn[standard]==0.35.0            # includes uvloop & httptools
+
+# LangChain + Chroma vector store
+langchain-core==0.3.68
+langchain-community==0.3.27
 chromadb==0.5.23
-pydantic>=2.0.0
-pydantic-core>=2.0.0
-pymupdf
-pypdf
+
+# Pydantic v2
+pydantic==2.11.7
+pydantic-core==2.33.2
+
+# PDF / document helpers
+pymupdf==1.26.3
+pypdf==5.7.0
+
+# Ollama client libraries
 ollama==0.3.3
-sentence-transformers[onnx]
-python-multipart
 python-ollama>=0.2,<0.3
-onnxruntime>=1.15.1
-langchain-core>=0.2.0
+
+# Sentence-Transformers (ONNX back-end only → no PyTorch)
+sentence-transformers[onnx]==5.0.0
+onnxruntime==1.22.0                  # CPU-only wheel
+
+# Multipart/form-data parsing
+python-multipart==0.0.20
+# ---------------------------------------------------------------------
+
+############################################################################
+# 🟢  CPU-ONLY NOTE
+#
+# We deliberately omit “torch” here.  `sentence-transformers[onnx]`
+# works fine with just ONNX Runtime for inference.  No gigantic CUDA
+# wheels will be pulled, so the image stays <600 MB instead of >2 GB.
+############################################################################
