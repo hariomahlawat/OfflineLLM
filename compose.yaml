@@ -61,7 +61,9 @@ services:
     environment:
       - VITE_API_URL=http://localhost/api
     container_name: offline-llm-frontend
-    ports: ["5173:80"]
+    ports:
+      - "443:443"
+      - "80:80"
 
 
     depends_on:

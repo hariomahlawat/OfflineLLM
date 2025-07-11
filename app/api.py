@@ -62,7 +62,6 @@ async def _warm_kb() -> None:
     Boot-time ingestion of files under /data/persist.
     Runs once; errors are logged but won’t kill uvicorn.
     """
-    import app.boot  # side-effect indexing
 
 
 # ───────────────────────── CORS (env override) ────────────────
@@ -188,7 +187,7 @@ async def doc_qa(req: QARequest):
         try:
             docs = similarity_search(req.question, k=10)
         except ValueError as e:
-            if "nomic-embed-text" in str(e):
+            if "nomic-embed-text:latest" in str(e):
                 return JSONResponse(
                     status_code=500, content={"detail": f"chat model failed: {str(e)}"
                     },
@@ -201,11 +200,11 @@ async def doc_qa(req: QARequest):
                 try:
                     docs += store.similarity_search(req.question, k=10)
                 except ValueError as e:
-                    if "nomic-embed-text" in str(e):
+                    if "nomic-embed-text:latest" in str(e):
                         return JSONResponse(
                             status_code=503,
                             content={
-                                "detail": "embedding model not found; run `ollama pull nomic-embed-text`"
+                                "detail": "embedding model not found; run `ollama pull nomic-embed-text:latest`"
                             },
                         )
                     raise
