@@ -12,7 +12,10 @@ FastAPI routes
 
 from __future__ import annotations
 
-import asyncio, os, shutil, tempfile
+import asyncio
+import os
+import shutil
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -30,12 +33,10 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 
-
-
 # ───────────────────────── Constants ──────────────────────────
 DEFAULT_MODEL = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q4_K_M")
-SESSION_TTL_MIN = int(os.getenv("SESSION_TTL_MIN", 60))          # purge after 1 h idle
-TOK_TRUNCATE = int(os.getenv("RAG_TOK_LIMIT", 2000))             # pre-truncate prompt
+SESSION_TTL_MIN = int(os.getenv("SESSION_TTL_MIN", 60))  # purge after 1 h idle
+TOK_TRUNCATE = int(os.getenv("RAG_TOK_LIMIT", 2000))  # pre-truncate prompt
 
 # ───────────────────────── Lazy KB warm-up ────────────────────
 app = FastAPI(title="OfflineLLM API", version="0.3.0")
@@ -53,6 +54,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.on_event("startup")
 async def _warm_kb() -> None:
@@ -83,9 +85,11 @@ _SESSIONS: Dict[str, object] = {}
 _SESSIONS_TOUCH: Dict[str, datetime] = {}
 _SESSIONS_LOCK = asyncio.Lock()
 
+
 async def _touch_sid(sid: str) -> None:
     async with _SESSIONS_LOCK:
         _SESSIONS_TOUCH[sid] = datetime.utcnow()
+
 
 async def _purge_expired_sessions() -> None:
     cutoff = datetime.utcnow() - timedelta(minutes=SESSION_TTL_MIN)
@@ -95,6 +99,7 @@ async def _purge_expired_sessions() -> None:
                 purge_session_store(sid)
                 _SESSIONS.pop(sid, None)
                 _SESSIONS_TOUCH.pop(sid, None)
+
 
 # background task to purge old sessions
 @app.on_event("startup")
@@ -152,11 +157,11 @@ async def list_models():
     """
     List locally pulled Ollama models.
 
-    Always returns **200 OK**.  
+    Always returns **200 OK**.
     If Ollama isn’t up yet we return an empty list so the frontend keeps polling.
     """
     try:
-        raw = ollama.list()               # might raise ConnectionError
+        raw = ollama.list() # might raise ConnectionError
     except Exception:
         return []
 
@@ -182,13 +187,28 @@ async def doc_qa(req: QARequest):
     try:
         try:
             docs = similarity_search(req.question, k=10)
-        except ValueError:
+        except ValueError as e:
+            if "nomic-embed-text" in str(e):
+                return JSONResponse(
+                    status_code=500, content={"detail": f"chat model failed: {str(e)}"
+                    },
+                )
             docs = []
 
         if req.session_id:
             store = _SESSIONS.get(req.session_id)
             if store:
-                docs += store.similarity_search(req.question, k=10)
+                try:
+                    docs += store.similarity_search(req.question, k=10)
+                except ValueError as e:
+                    if "nomic-embed-text" in str(e):
+                        return JSONResponse(
+                            status_code=503,
+                            content={
+                                "detail": "embedding model not found; run `ollama pull nomic-embed-text`"
+                            },
+                        )
+                    raise
 
         if not docs:
             return QAResponse(answer="I don't know.", sources=[])
@@ -203,7 +223,9 @@ async def doc_qa(req: QARequest):
             f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
         )
 
-        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
+        raw = safe_chat(
+            model=model, messages=[{"role": "user", "content": prompt}], stream=False
+        )
         answer = finalize_ollama_chat(raw)["message"]["content"]
 
         return QAResponse(answer=answer, sources=top_chunks)
@@ -212,83 +234,8 @@ async def doc_qa(req: QARequest):
         import traceback
         traceback.print_exc()
         return JSONResponse(
-            status_code=500,
-            content={"detail": f"Unexpected error: {str(e)}"}
+            status_code=500, content={"detail": f"Unexpected error: {str(e)}"}
         )
-
-    model = req.model or DEFAULT_MODEL
-
-    try:
-        docs = similarity_search(req.question, k=10)
-    except ValueError as e:
-        return QAResponse(answer="I don't know.", sources=[])
-
-    if req.session_id:
-        store = _SESSIONS.get(req.session_id)
-        if store:
-            docs += store.similarity_search(req.question, k=10)
-
-    if not docs:
-        return QAResponse(answer="I don't know.", sources=[])
-
-    chunks = [d.page_content for d in docs]
-    top_chunks = rerank(req.question, chunks)
-    ctx = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
-
-    prompt = (
-        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
-        "If unsure, say 'I don't know.'\n\n"
-        f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
-    )
-
-    try:
-        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
-        answer = finalize_ollama_chat(raw)["message"]["content"]
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"chat model failed: {str(e)}"}
-        )
-
-    return QAResponse(answer=answer, sources=top_chunks)
-
-    model = req.model or DEFAULT_MODEL
-    docs = []
-    try:
-        docs = similarity_search(req.question, k=10)
-    except ValueError:
-        pass
-    if not docs:
-        return QAResponse(answer="I don't know.", sources=[])
-
-
-    if req.session_id:
-        store = _SESSIONS.get(req.session_id)
-        if store:
-            docs += store.similarity_search(req.question, k=10)
-
-    if not docs:
-        return QAResponse(answer="I don't know.", sources=[])
-
-    chunks = [d.page_content for d in docs]
-    top_chunks = rerank(req.question, chunks)
-    ctx = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
-
-    prompt = (
-        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
-        "If unsure, say 'I don't know.'\n\n"
-        f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
-    )
-
-    try:
-        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
-        answer = finalize_ollama_chat(raw)["message"]["content"]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    return QAResponse(answer=answer, sources=top_chunks)
 
 # ───────────────────────── /chat ──────────────────────────────
 @app.post("/chat", response_model=ChatResponse)
@@ -358,7 +305,9 @@ async def session_qa(req: SessionQARequest):
             raise HTTPException(status_code=404, detail=str(e))
 
     sess_docs = sess_store.similarity_search(req.question, k=5)
-    persist_docs = [] if req.persistent is False else similarity_search(req.question, k=10)
+    persist_docs = (
+        [] if req.persistent is False else similarity_search(req.question, k=10)
+    )
     all_docs = sess_docs + persist_docs
 
     if not all_docs:
@@ -375,7 +324,9 @@ async def session_qa(req: SessionQARequest):
     )
 
     try:
-        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
+        raw = safe_chat(
+            model=model, messages=[{"role": "user", "content": prompt}], stream=False
+        )
         answer = finalize_ollama_chat(raw)["message"]["content"]
         await _touch_sid(req.session_id)
     except Exception as e:

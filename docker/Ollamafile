@@ -6,4 +6,6 @@ RUN bash -c "ollama serve & \
              sleep 5 && \
              ollama pull llama3:8b && \
              ollama pull nomic-embed-text && \
+             ollama pull deepseek-r1 && \
+             ollama pull codellama && \
              pkill ollama || true"

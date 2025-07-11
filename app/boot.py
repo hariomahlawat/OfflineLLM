@@ -50,7 +50,7 @@ def run() -> None:
         return
 
     for pdf in pdfs:
-        if persist_has_source(pdf.name):
+        if persist_has_source(str(pdf)):
             log.debug("↪︎  already indexed: %s", pdf.name)
             continue
 

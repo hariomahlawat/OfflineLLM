@@ -2,7 +2,6 @@
 data/chroma/
 *.pdf
 models/
-data/chroma/
 offline_llm_models/
 __pycache__/
 *.pyc

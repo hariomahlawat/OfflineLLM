@@ -18,7 +18,7 @@ pymupdf==1.26.3
 pypdf==5.7.0
 
 # Ollama client libraries
-ollama==0.3.3
+ollama==0.4.0
 
 # Sentence-Transformers (ONNX back-end only → no PyTorch)
 sentence-transformers[onnx]==5.0.0
