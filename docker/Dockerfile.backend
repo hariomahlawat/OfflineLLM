@@ -40,6 +40,8 @@ ENV OLLAMA_HOST=http://ollama:11434 \
     PERSIST_CHROMA_DIR=/app/data/chroma_persist \
     PYTHONUNBUFFERED=1
 
+RUN mkdir -p /app/data/chroma_persist && chown -R llm:llm /app/data
+
 COPY app/ /app/app
 
 ENTRYPOINT ["bash", "/app/entrypoint.sh"]

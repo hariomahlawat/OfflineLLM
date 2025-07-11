@@ -45,17 +45,43 @@ def _lc_to_ollama(msg) -> dict:
     role_map = {"human": "user", "ai": "assistant", "system": "system"}
     return {"role": role_map.get(msg.type, "assistant"), "content": msg.content}
 
-def safe_chat(*, model: str, messages: list, **kwargs):
+import ollama
+import logging
+
+log = logging.getLogger("safe_chat")
+
+def safe_chat(model: str, messages: list, stream: bool = False) -> dict:
     """
-    Call ``ollama.chat``; if it fails and model ≠ DEFAULT_MODEL, retry once with default.
+    A robust wrapper for ollama.chat that dynamically adjusts parameters
+    based on the model's capabilities.
     """
     try:
-        return ollama.chat(model=model, messages=messages, **kwargs)
-    except Exception as exc:
-        if model == DEFAULT_MODEL:
-            raise
-        log.warning("Model %s failed, falling back to %s: %s", model, DEFAULT_MODEL, exc)
-        return ollama.chat(model=DEFAULT_MODEL, messages=messages, **kwargs)
+        # Show model info
+        model_info = ollama.show(model)
+        mod_params = model_info.get("parameters", {})
+
+        # Base arguments
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "stream": stream
+        }
+
+        # Dynamically include temperature only if supported
+        if "temperature" in mod_params:
+            kwargs["temperature"] = 0.7  # or read from config/env
+
+        # Add other conditionally supported arguments here if needed
+        # if "top_p" in mod_params:
+        #     kwargs["top_p"] = 0.9
+
+        return ollama.chat(**kwargs)
+
+    except Exception as e:
+        log.error(f"safe_chat failed for model={model}: {e}")
+        raise
+
+
 
 # ───────────────────────── Background GC task ─────────────────────
 async def _gc_loop():
@@ -100,11 +126,12 @@ def chat(
     chosen_model = model or DEFAULT_MODEL
 
     raw = safe_chat(
-        model=chosen_model,
-        messages=messages,
-        stream=False,
-        temperature=temperature,
+    model=chosen_model,
+    messages=messages,
+    stream=False,
+    temperature=temperature,
     )
+
     reply = finalize_ollama_chat(raw)["message"]["content"]
 
     # Persist turn in memory

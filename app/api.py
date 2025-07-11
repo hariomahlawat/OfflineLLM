@@ -9,7 +9,7 @@ FastAPI routes
 * /session/{id} DELETE  – purge session vector store
 * /session_qa           – session-KB ± persistent-KB RAG
 """
-app = FastAPI()
+
 from __future__ import annotations
 
 import asyncio, os, shutil, tempfile
@@ -29,15 +29,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from fastapi.middleware.cors import CORSMiddleware
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Or ["http://localhost:5173"] for stricter control
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 # ───────────────────────── Constants ──────────────────────────
@@ -47,6 +39,20 @@ TOK_TRUNCATE = int(os.getenv("RAG_TOK_LIMIT", 2000))             # pre-truncate 
 
 # ───────────────────────── Lazy KB warm-up ────────────────────
 app = FastAPI(title="OfflineLLM API", version="0.3.0")
+ALLOWED_ORIGINS = os.getenv("CORS_ALLOW")
+
+if ALLOWED_ORIGINS:
+    origins = ALLOWED_ORIGINS.split(",")
+else:
+    origins = ["http://localhost", "http://localhost:5173", "https://localhost"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def _warm_kb() -> None:
@@ -58,14 +64,7 @@ async def _warm_kb() -> None:
 
 
 # ───────────────────────── CORS (env override) ────────────────
-ALLOWED_ORIGINS = os.getenv("CORS_ALLOW", "*").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
 
 # ───────────────────────── Session store helpers ──────────────
 from app.ingestion import load_and_split
@@ -174,10 +173,96 @@ async def ping():
     return PingResponse()
 
 # ───────────────────────── /doc_qa ────────────────────────────
+
+
 @app.post("/doc_qa", response_model=QAResponse)
 async def doc_qa(req: QARequest):
     model = req.model or DEFAULT_MODEL
-    docs = similarity_search(req.question, k=10)
+
+    try:
+        try:
+            docs = similarity_search(req.question, k=10)
+        except ValueError:
+            docs = []
+
+        if req.session_id:
+            store = _SESSIONS.get(req.session_id)
+            if store:
+                docs += store.similarity_search(req.question, k=10)
+
+        if not docs:
+            return QAResponse(answer="I don't know.", sources=[])
+
+        chunks = [d.page_content for d in docs]
+        top_chunks = rerank(req.question, chunks)
+        ctx = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
+
+        prompt = (
+            "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+            "If unsure, say 'I don't know.'\n\n"
+            f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
+        )
+
+        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
+        answer = finalize_ollama_chat(raw)["message"]["content"]
+
+        return QAResponse(answer=answer, sources=top_chunks)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Unexpected error: {str(e)}"}
+        )
+
+    model = req.model or DEFAULT_MODEL
+
+    try:
+        docs = similarity_search(req.question, k=10)
+    except ValueError as e:
+        return QAResponse(answer="I don't know.", sources=[])
+
+    if req.session_id:
+        store = _SESSIONS.get(req.session_id)
+        if store:
+            docs += store.similarity_search(req.question, k=10)
+
+    if not docs:
+        return QAResponse(answer="I don't know.", sources=[])
+
+    chunks = [d.page_content for d in docs]
+    top_chunks = rerank(req.question, chunks)
+    ctx = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
+
+    prompt = (
+        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+        "If unsure, say 'I don't know.'\n\n"
+        f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
+    )
+
+    try:
+        raw = safe_chat(model=model, messages=[{"role": "user", "content": prompt}], stream=False)
+        answer = finalize_ollama_chat(raw)["message"]["content"]
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"chat model failed: {str(e)}"}
+        )
+
+    return QAResponse(answer=answer, sources=top_chunks)
+
+    model = req.model or DEFAULT_MODEL
+    docs = []
+    try:
+        docs = similarity_search(req.question, k=10)
+    except ValueError:
+        pass
+    if not docs:
+        return QAResponse(answer="I don't know.", sources=[])
+
 
     if req.session_id:
         store = _SESSIONS.get(req.session_id)
