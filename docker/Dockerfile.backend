@@ -43,6 +43,7 @@ ENV OLLAMA_HOST=http://ollama:11434 \
 RUN mkdir -p /app/data/chroma_persist && chown -R llm:llm /app/data
 
 COPY app/ /app/app
+RUN echo "Listing /app contents:" && ls -l /app
 
 ENTRYPOINT ["bash", "/app/entrypoint.sh"]
 EXPOSE 8000

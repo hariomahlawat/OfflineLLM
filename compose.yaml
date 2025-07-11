@@ -32,7 +32,7 @@ services:
       retries: 20
 
     volumes:
-      - ./app:/app          # 👈 live mount source code
+      - ./app:/app/app        # 👈 live mount source code
       - chroma_persist:/app/data/chroma_persist
       - ./data/persist:/app/data/persist
       - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
