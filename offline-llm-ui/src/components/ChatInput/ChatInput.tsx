@@ -7,18 +7,18 @@ import { ArrowRightIcon } from "@chakra-ui/icons";
 import { useChat } from "../../contexts/ChatContext";
 
 export default function ChatInput() {
-  const { sendMessage, sending } = useChat(); // Use context sending!
+  const { sendMessage, sending, model } = useChat(); // include model state
   const [text, setText] = useState("");
 
   const onSend = async () => {
-    if (!text.trim() || sending) return;
+    if (!text.trim() || sending || !model) return;
     await sendMessage(text.trim());
     setText("");
   };
 
   // Enter to send, Shift+Enter for newline
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && text.trim() && !sending) {
+    if (e.key === "Enter" && !e.shiftKey && text.trim() && !sending && model) {
       e.preventDefault();
       onSend();
     }
@@ -29,14 +29,14 @@ export default function ChatInput() {
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Type your message…"
+        placeholder={model ? "Type your message…" : "Select a model first"}
         onKeyDown={onKeyDown}
         borderRadius="xl"
         bg={useColorModeValue("gray.50", "gray.700")}
         size="sm"
         boxShadow="sm"
         flex={1}
-        isDisabled={sending}
+        isDisabled={sending || !model}
         fontSize="sm"
         minH="80px"
         maxH="120px"
@@ -49,7 +49,7 @@ export default function ChatInput() {
         borderRadius="full"
         size="md"
         onClick={onSend}
-        isDisabled={sending || !text.trim()}
+        isDisabled={sending || !text.trim() || !model}
         boxShadow="md"
         alignSelf="end"
       />

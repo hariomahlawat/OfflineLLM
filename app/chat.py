@@ -50,9 +50,14 @@ import logging
 
 log = logging.getLogger("safe_chat")
 
-def safe_chat(model: str, messages: list, stream: bool = False) -> dict:
+def safe_chat(
+    model: str,
+    messages: list,
+    stream: bool = False,
+    temperature: float | None = None,
+) -> dict:
     """
-    A robust wrapper for ollama.chat that dynamically adjusts parameters
+    A robust wrapper for ''ollama.chat'' that dynamically adjusts parameters
     based on the model's capabilities.
     """
     try:
@@ -69,7 +74,9 @@ def safe_chat(model: str, messages: list, stream: bool = False) -> dict:
 
         # Dynamically include temperature only if supported
         if "temperature" in mod_params:
-            kwargs["temperature"] = 0.7  # or read from config/env
+            kwargs["temperature"] = (
+                temperature if temperature is not None else 0.4
+            )
 
         # Add other conditionally supported arguments here if needed
         # if "top_p" in mod_params:

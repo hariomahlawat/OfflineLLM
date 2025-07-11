@@ -6,5 +6,7 @@ ls -l /app/app
 whoami
 gosu llm whoami
 gosu llm ls -l /app/app
+python -m app.boot
+
 
 exec gosu llm uvicorn app.api:app --host 0.0.0.0 --port 8000

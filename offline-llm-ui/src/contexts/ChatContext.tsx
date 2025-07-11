@@ -15,7 +15,8 @@ const ChatContext = createContext<ChatContextValue | undefined>(undefined)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [sessionId] = useState(() => crypto.randomUUID())
-  const [model, setModel] = useState<string>("llama3:8b-instruct-q3_K_L")
+  // Model is empty until the selector loads available options
+  const [model, setModel] = useState<string>("")
   const [messages, setMessages] = useState<
     { from: "user" | "assistant"; text: string }[]
   >([])
