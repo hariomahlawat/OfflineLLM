@@ -1,116 +1,63 @@
-# OfflineLLM
+# OfflineLLM – Self‑Hosted RAG & Chat System
 
-**Offline‑ready local‑LAN Large‑Language‑Model stack**
+OfflineLLM is a **completely air‑gapped Retrieval‑Augmented Generation (RAG) stack** that lets you chat with private documents using local open‑weight LLMs.  
+It ships as three Docker services:
 
-> Bring document‑QA, chat, and semantic search to any air‑gapped Windows or Linux network—no external APIs, no internet needed.
+| Service | Technology | Purpose | Key Ports |
+|---------|------------|---------|-----------|
+| **rag-app** | Python 3.11, FastAPI, LangChain, ChromaDB | REST /chat, /doc_qa, and file ingestion endpoints | 8000 |
+| **ollama**  | Ollama 0.9.x | Runs Llama‑family LLMs and embedding models entirely on‑machine | 11434 |
+| **offline-llm-frontend** | React 18 + Vite + Chakra‑UI | Clean chat UI with doc‑QA panel and model selector | 443 (HTTPS) |
 
----
-
-## ✨ Features
-
-- **Self‑hosted RAG** – PDF ingestion → Chroma vector store → Cross‑encoder re‑rank → Ollama LLM.
-- **Chat + Document QA** – Two endpoints: free‑form chat or retrieval‑augmented answers.
-- **100 % offline reproducible build** – Pinned `requirements.lock`, pre‑pulled Ollama weights, Docker images can be exported/imported via `.tar`.
-- **FastAPI backend** – ASGI‑native, easy to scale with multiple workers.
-- **Modular codebase** – Clear separation: `ingestion.py`, `vector_store.py`, `rerank.py`, `chat.py`, `api.py`.
-- **Cross‑platform** – Develop on Windows 11, deploy on Linux server or WSL2.
+All data, vectors, and model weights stay **inside your host**. No internet egress is required after the initial image pull.
 
 ---
 
-## 📂 Project layout
-
-```text
-OfflineLLM/
-├─ app/
-│   ├─ api.py              # FastAPI routes
-│   ├─ ingestion.py        # PDF loader + splitter
-│   ├─ vector_store.py     # Chroma wrapper
-│   ├─ rerank.py           # Cross‑encoder cache
-│   └─ chat.py             # Chat + memory
-├─ docker/
-│   ├─ Dockerfile
-│   ├─ Ollamafile
-│   ├─ requirements.in
-│   └─ entrypoint.sh
-├─ compose.yaml
-├─ requirements.lock
-└─ docs/
-    └─ DEV_SETUP.md
-```
-
----
-
-## 🚀 Quick‑start (local dev)
-
-See **docs/DEV_SETUP.md** for the step‑by‑step guide.  
-TL;DR:
+## Quick Start (Docker Compose)
 
 ```powershell
-git clone https://github.com/<your‑fork>/OfflineLLM.git
 cd OfflineLLM
-python -m venv .venv
-& ".venv\Scripts\Activate.ps1"
-python -m pip install --upgrade pip pip-tools
-pip-compile docker\requirements.in -o requirements.lock
-pip install -r requirements.lock
-python -m uvicorn app.api:app --reload
+# Build or pull images, then launch in detached mode
+docker compose up -d --build
+
+# Follow backend logs
+docker compose logs -f rag-app
 ```
 
-Open in browser:
-
-* <http://127.0.0.1:8000/ping>
-* <http://127.0.0.1:8000/docs>
+Then open <https://localhost> in your browser.
 
 ---
 
-## 🐳 Docker quick‑start
+## Features
 
-```bash
-# build images (one‑time with internet)
-docker compose build
+* **Multi‑file ingestion** – drop PDFs into `data/persist/`, they are auto‑chunked & indexed at container start.
+* **Fast document QA** – cosine search + cross‑encoder rerank, streamed LLM answers with citations.
+* **Model hot‑swap** – pick any model present in Ollama (`/models` endpoint).  
+  Example: `ollama pull llama3:8b`.
+* **Health‑check driven** – backend waits for Ollama or Compose health‑checks do the job.
+* **CPU‑only by default** – tiny 600 MB backend image; GPU can be enabled by adding nvidia runtime & Torch + CUDA wheels.
 
-# run the stack
-docker compose up -d
-
-# first time only – make sure models are present
-docker exec ollama ollama pull llama3:8b-instruct-q3_K_L
-```
-
-### Air‑gap deployment
-
-```bash
-# on build machine
-docker save -o offline_stack.tar offlinellm-rag-app:latest ollama-offline:latest
-
-# copy to server
-docker load -i offline_stack.tar
-docker compose up -d
-```
+See `docs/ARCHITECTURE.md` for full request flow.
 
 ---
 
-## 📚 Docs
+## Project Layout
 
-* **docs/DEV_SETUP.md** – full developer setup
-* API usage examples coming soon
-
----
-
-## 🤝 Contributing
-
-```bash
-git checkout -b feature/my-feature
-pip install -r requirements.lock
-pytest -q
-# commit, push, open PR
+```
+.
+├── app/                   # FastAPI code (routers, services, ingestion, vector_store)
+├── docker/
+│   ├── Dockerfile.backend # builds rag-app
+│   └── entrypoint.sh      # waits for Ollama then uvicorn
+├── frontend/              # React client
+├── data/
+│   └── persist/           # long‑lived PDF store (bind‑mounted)
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
-## 📝 License
+## License
 
-MIT … TBD before public release.
-
----
-
-Made with 💻 & ☕ by @hariomahlawat
+MIT – see `LICENSE`.
