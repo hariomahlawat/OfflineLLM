@@ -5,3 +5,10 @@ models/
 offline_llm_models/
 __pycache__/
 *.pycoffline-llm-ui/node_modules/
+offline-llm-ui/node_modules/
+node_modules/
+package-lock.json
+package.json
+node_modules/
+package.json
+package-lock.json
