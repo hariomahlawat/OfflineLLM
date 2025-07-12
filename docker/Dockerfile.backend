@@ -1,18 +1,17 @@
-# ───────────────────────────  builder  ────────────────────────────
-# at the very top of Dockerfile
+# Dockerfile for the backend of the Offline LLM project
+# This Dockerfile builds the Python backend, installs dependencies, and sets up the environment for running the application
 
+########################  builder  ########################
 FROM python:3.11-slim AS builder
 
 ARG LANGCHAIN_TELEMETRY_ENABLED=false
 ENV LANGCHAIN_TELEMETRY_ENABLED=${LANGCHAIN_TELEMETRY_ENABLED}
 WORKDIR /build
 
-COPY requirements.lock .
-
-RUN set -eux \
- && apt-get update \
+COPY requirements.lock .   
+RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential \
- && python -m pip install --upgrade pip \
+ && pip install --upgrade pip \
  && pip download --dest wheelhouse -r requirements.lock \
  && apt-get purge -y build-essential \
  && apt-get autoremove -y \
@@ -22,22 +21,22 @@ RUN set -eux \
 FROM python:3.11-slim
 WORKDIR /app
 
-# ── Python deps ───────────────────────────────────────────────────
+# Python deps
 COPY requirements.lock .
 COPY --from=builder /build/wheelhouse /wheelhouse
-RUN python -m pip install --no-index --find-links=/wheelhouse -r requirements.lock
+RUN pip install --no-index --find-links=/wheelhouse -r requirements.lock
 
 # ── Entrypoint + small utilities (one APT layer) ──────────────────
 COPY docker/entrypoint.sh /app/entrypoint.sh
 
-RUN set -eux \
- && apt-get update \
- && apt-get install -y --no-install-recommends curl gosu dos2unix \
- && dos2unix /app/entrypoint.sh \
- && chmod +x /app/entrypoint.sh \
- && useradd -m llm \
- && chown -R llm:llm /app \
- && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends gosu dos2unix; \
+    dos2unix /app/entrypoint.sh; \
+    chmod +x /app/entrypoint.sh; \
+    useradd -m llm; \
+    chown -R llm:llm /app; \
+    rm -rf /var/lib/apt/lists/*
 
 # ── Runtime env ───────────────────────────────────────────────────
 ENV OLLAMA_HOST=http://ollama:11434 \
