@@ -13,6 +13,7 @@ FastAPI routes
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import shutil
 import tempfile
@@ -37,19 +38,29 @@ from pydantic import BaseModel
 DEFAULT_MODEL = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q4_K_M")
 SESSION_TTL_MIN = int(os.getenv("SESSION_TTL_MIN", 60))  # purge after 1 h idle
 TOK_TRUNCATE = int(os.getenv("RAG_TOK_LIMIT", 2000))  # pre-truncate prompt
+OLLAMA_URL = os.getenv("OLLAMA_HOST", "http://ollama:11434")
+
+log = logging.getLogger("api")
+log.setLevel(logging.INFO)
 
 # ───────────────────────── Lazy KB warm-up ────────────────────
 app = FastAPI(title="OfflineLLM API", version="0.3.0")
 ALLOWED_ORIGINS = os.getenv("CORS_ALLOW")
 
+
+# Determine allowed origins from environment or use sensible defaults
 if ALLOWED_ORIGINS:
     origins = ALLOWED_ORIGINS.split(",")
 else:
-    origins = ["http://localhost", "http://localhost:5173", "https://localhost"]
+    origins = [
+        "http://localhost",
+        "http://localhost:5173",
+        "https://localhost",
+    ]   
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,7 +73,13 @@ async def _warm_kb() -> None:
     Boot-time ingestion of files under /data/persist.
     Runs once; errors are logged but won’t kill uvicorn.
     """
-
+    from app import boot
+    log = logging.getLogger("api")
+    try:
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, boot.run)
+    except Exception as exc:  # pragma: no cover - just log
+        log.exception("KB warm-up failed: %s", exc)
 
 # ───────────────────────── CORS (env override) ────────────────
 
@@ -160,8 +177,9 @@ async def list_models():
     If Ollama isn’t up yet we return an empty list so the frontend keeps polling.
     """
     try:
-        raw = ollama.list() # might raise ConnectionError
-    except Exception:
+        raw = ollama.list()  # might raise ConnectionError
+    except Exception as exc:
+        log.warning("ollama.list failed (base_url=%s): %s", OLLAMA_URL, exc)
         return []
 
     out: List[ModelInfo] = []
