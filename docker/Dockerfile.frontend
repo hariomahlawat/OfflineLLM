@@ -19,6 +19,8 @@ RUN npm run build          # → /ui/dist
 # ──────────────────────── 2. Runtime stage ───────────────────────
 FROM nginx:1.25-alpine AS stage-1
 
+
+# Copy built UI to nginx html directory
 COPY --from=build /ui/dist /usr/share/nginx/html
 
 
