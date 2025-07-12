@@ -4,4 +4,4 @@ data/chroma/
 models/
 offline_llm_models/
 __pycache__/
-*.pyc
+*.pycoffline-llm-ui/node_modules/
