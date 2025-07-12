@@ -27,13 +27,13 @@ COPY --from=builder /build/wheelhouse /wheelhouse
 RUN pip install --no-index --find-links=/wheelhouse -r requirements.lock
 
 # ── Entrypoint + small utilities (one APT layer) ──────────────────
-COPY docker/entrypoint.sh /app/entrypoint.sh
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends gosu dos2unix; \
-    dos2unix /app/entrypoint.sh; \
-    chmod +x /app/entrypoint.sh; \
+    apt-get install -y --no-install-recommends gosu dos2unix curl; \
+    dos2unix /usr/local/bin/entrypoint.sh; \
+    chmod +x /usr/local/bin/entrypoint.sh; \
     useradd -m llm; \
     chown -R llm:llm /app; \
     rm -rf /var/lib/apt/lists/*
@@ -49,5 +49,5 @@ RUN mkdir -p /app/data/chroma_persist && chown -R llm:llm /app/data
 COPY app/ /app/app
 RUN echo "Listing /app contents:" && ls -l /app
 
-ENTRYPOINT ["bash", "/app/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 EXPOSE 8000

@@ -10,10 +10,13 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import ollama
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile, Depends
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from app import boot
 
 # ───────────────────────── Environment / Ollama client ───────────────────────
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
@@ -30,6 +33,10 @@ client = ollama.Client()
 DEFAULT_MODEL       = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q3_K_L")
 SESSION_TTL_MIN     = int(os.getenv("SESSION_TTL_MIN", 60))
 TOK_TRUNCATE        = int(os.getenv("RAG_TOK_LIMIT", 2000))
+
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+security = HTTPBasic()
+
 # retrieval tuning
 SEARCH_TOP_K        = int(os.getenv("RAG_SEARCH_TOP_K", 10))
 USE_MMR             = os.getenv("RAG_USE_MMR", "0") == "1"
@@ -53,6 +60,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+def _verify_admin(creds: HTTPBasicCredentials = Depends(security)) -> None:
+    """Simple HTTP Basic password check."""
+    if ADMIN_PASSWORD is None:
+        raise HTTPException(500, detail="ADMIN_PASSWORD not set")
+    user_ok = secrets.compare_digest(creds.username, "admin")
+    pass_ok = secrets.compare_digest(creds.password, ADMIN_PASSWORD)
+    if not (user_ok and pass_ok):
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized",
+            headers={"WWW-Authenticate": "Basic"},
+        )
 
 # ───────────────────────── Models endpoint ────────────────────────
 class ModelInfo(BaseModel):
@@ -299,4 +319,29 @@ async def session_qa(req: SessionQARequest):
     await _touch_sid(req.session_id)
 
     return SessionQAResponse(answer=answer, sources=top_chunks)
+
+
+# ───────────────────────── Admin: upload persistent PDF ───────────────────
+class AdminUploadResponse(BaseModel):
+    status: str
+    filename: str
+
+
+@app.post("/admin/upload_pdf", response_model=AdminUploadResponse)
+async def admin_upload_pdf(
+    file: UploadFile = File(..., description="PDF"),
+    _: None = Depends(_verify_admin),
+):
+    dest_dir = boot.PERSIST_PDF_DIR
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / file.filename
+
+    try:
+        with open(dest, "wb") as fh:
+            shutil.copyfileobj(file.file, fh)
+        boot._index_file(dest)
+    finally:
+        file.file.close()
+
+    return AdminUploadResponse(status="ok", filename=file.filename)
 

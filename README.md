@@ -90,6 +90,19 @@ docker save -o offline_stack.tar offlinellm-rag-app:latest ollama-offline:latest
 docker load -i offline_stack.tar
 docker compose up -d
 ```
+## 🔒 Admin mode
+
+Set an `ADMIN_PASSWORD` environment variable in the backend service. When defined, requests to any `/admin/*` endpoint must include the `Authorization: Bearer <ADMIN_PASSWORD>` header.
+
+To permanently ingest a document, use:
+
+```bash
+curl -H "Authorization: Bearer $ADMIN_PASSWORD" \
+     -F file=@file.pdf \
+     http://localhost:8000/admin/upload_pdf
+```
+
+When the frontend container is running, open `https://localhost/admin.html` and log in with the same password for a simple upload UI.
 
 ---
 

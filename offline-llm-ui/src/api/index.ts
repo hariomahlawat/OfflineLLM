@@ -26,6 +26,11 @@ export interface UploadPDFResponse {
   chunks_indexed: number
 }
 
+export interface AdminUploadResponse {
+  status: 'ok'
+  filename: string
+}
+
 /**
  * GET /models
  */
@@ -87,6 +92,23 @@ export async function uploadPdf(sessionId: string, file: File) {
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
+}
+
+/**
+ * POST /admin/upload_pdf
+ */
+export async function adminUploadPdf(file: File, password: string): Promise<AdminUploadResponse> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch(`${BASE}/admin/upload_pdf`, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Basic ' + btoa(`admin:${password}`),
+    },
+    body: form,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return (await res.json()) as AdminUploadResponse;
 }
 
 /**

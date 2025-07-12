@@ -37,6 +37,7 @@ services:
       - RAG_USE_MMR=0
       - RAG_DYNAMIC_K_FACTOR=0
       - PERSIST_CHROMA_DIR=/app/data/chroma_persist
+      - ADMIN_PASSWORD=changeme
     networks:
       - rag-net
 
