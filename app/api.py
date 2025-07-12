@@ -21,6 +21,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
+# MUST come _before_ any LangChain import!
+import os
+os.environ["LANGCHAIN_TELEMETRY_ENABLED"] = "false"
+
 import ollama
 from fastapi import (
     FastAPI,

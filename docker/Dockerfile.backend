@@ -1,5 +1,10 @@
 # ───────────────────────────  builder  ────────────────────────────
+# at the very top of Dockerfile
+
 FROM python:3.11-slim AS builder
+
+ARG LANGCHAIN_TELEMETRY_ENABLED=false
+ENV LANGCHAIN_TELEMETRY_ENABLED=${LANGCHAIN_TELEMETRY_ENABLED}
 WORKDIR /build
 
 COPY requirements.lock .
