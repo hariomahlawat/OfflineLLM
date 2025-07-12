@@ -41,7 +41,7 @@ services:
 
     environment:
       - OLLAMA_HOST=http://ollama:11434
-      - CORS_ALLOW=http://localhost,http://localhost:5173
+      - CORS_ALLOW=http://localhost,http://localhost:5173,https://localhost
       - LANGCHAIN_ENDPOINT=disabled
       - LANGCHAIN_TELEMETRY_ENABLED=false
       - CHROMA_TELEMETRY=FALSE

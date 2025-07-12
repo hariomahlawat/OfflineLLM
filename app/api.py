@@ -15,15 +15,16 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+# MUST come _before_ any LangChain import!
+os.environ["LANGCHAIN_TELEMETRY_ENABLED"] = "false"
+
 import shutil
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# MUST come _before_ any LangChain import!
-import os
-os.environ["LANGCHAIN_TELEMETRY_ENABLED"] = "false"
+
 
 import ollama
 from fastapi import (
@@ -181,7 +182,7 @@ async def list_models():
     If Ollama isn’t up yet we return an empty list so the frontend keeps polling.
     """
     try:
-        raw = ollama.list()  # might raise ConnectionError
+        raw = ollama.list(base_url=OLLAMA_URL)  # might raise ConnectionError
     except Exception as exc:
         log.warning("ollama.list failed (base_url=%s): %s", OLLAMA_URL, exc)
         return []

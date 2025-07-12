@@ -1,11 +1,10 @@
-+14
--5
-
+# .gitignore for OfflineLLM project
 # Virtual environment
 .venv/
 
 # Data
 data/chroma/
+data/chroma_persist/
 models/
 offline_llm_models/
 
