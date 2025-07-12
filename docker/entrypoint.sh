@@ -11,6 +11,11 @@ mkdir -p /app/data/chroma_persist    # persisted RAG index
 chown -R llm:llm /app/data 2>/dev/null || true
 
 # ------------------------------------------------------------------
+# index PDFs (if any) before launching the app
+# ------------------------------------------------------------------
+gosu llm python -m app.boot
+
+# ------------------------------------------------------------------
 # drop privileges and launch Uvicorn
 # ------------------------------------------------------------------
 # until curl -sf http://ollama:11434/ping >/dev/null; do

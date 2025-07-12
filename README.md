@@ -76,6 +76,10 @@ docker compose up -d
 docker exec ollama ollama pull llama3:8b-instruct-q3_K_L
 ```
 
+On startup the backend container runs `python -m app.boot` as the `llm`
+user. This indexes any PDFs mounted into `./data/persist` and simply
+logs a message if none are found.
+
 ### Air‑gap deployment
 
 ```bash
