@@ -122,6 +122,9 @@ def add_documents(chunks: List[Document]) -> None:
     persistent_store.add_documents(chunks)
 
 
-def similarity_search(query: str, k: int = 10) -> List[Document]:
-    """Query the permanent knowledge base (legacy helper)."""
+def similarity_search(query: str, k: int = 10, *, use_mmr: bool = False) -> List[Document]:
+    """Query the permanent knowledge base."""
+    if use_mmr:
+        return persistent_store.max_marginal_relevance_search(query, k=k)
     return persistent_store.similarity_search(query, k=k)
+

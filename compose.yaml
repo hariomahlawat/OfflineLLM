@@ -33,6 +33,9 @@ services:
       - CHUNK_SIZE=800
       - CHUNK_OVERLAP=100
       - RERANK_TOP_K=3
+      - RAG_SEARCH_TOP_K=10
+      - RAG_USE_MMR=0
+      - RAG_DYNAMIC_K_FACTOR=0
       - PERSIST_CHROMA_DIR=/app/data/chroma_persist
     networks:
       - rag-net

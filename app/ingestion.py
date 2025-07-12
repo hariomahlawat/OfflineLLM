@@ -56,8 +56,8 @@ def load_and_split(
 # ────────────────────────────────────────────────────────────────────────────────
 def load_and_split_bytes(
     data: bytes,
-    chunk_size: int = 800,
-    overlap: int = 100,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
+    overlap: int = DEFAULT_CHUNK_OVERLAP,
 ) -> List[Document]:
     """
     Same as `load_and_split`, but accepts a PDF **byte stream**—handy for

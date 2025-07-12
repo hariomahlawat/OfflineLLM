@@ -27,9 +27,13 @@ os.environ["LANGCHAIN_TELEMETRY_ENABLED"] = "false"
 client = ollama.Client()
 
 # ───────────────────────── Constants ──────────────────────────
-DEFAULT_MODEL   = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q3_K_L")
-SESSION_TTL_MIN = int(os.getenv("SESSION_TTL_MIN", 60))
-TOK_TRUNCATE    = int(os.getenv("RAG_TOK_LIMIT", 2000))
+DEFAULT_MODEL       = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q3_K_L")
+SESSION_TTL_MIN     = int(os.getenv("SESSION_TTL_MIN", 60))
+TOK_TRUNCATE        = int(os.getenv("RAG_TOK_LIMIT", 2000))
+# retrieval tuning
+SEARCH_TOP_K        = int(os.getenv("RAG_SEARCH_TOP_K", 10))
+USE_MMR             = os.getenv("RAG_USE_MMR", "0") == "1"
+DYNAMIC_K_FACTOR    = int(os.getenv("RAG_DYNAMIC_K_FACTOR", 0))
 
 log = logging.getLogger("api")
 log.setLevel(logging.INFO)
@@ -114,6 +118,13 @@ _SESSIONS       : Dict[str, object]   = {}
 _SESSIONS_TOUCH : Dict[str, datetime] = {}
 _SESSIONS_LOCK  = asyncio.Lock()
 
+def _calc_top_k(question: str) -> int:
+    """Return retrieval K, optionally increased for longer questions."""
+    base = SEARCH_TOP_K
+    if DYNAMIC_K_FACTOR:
+        base += len(question.split()) // DYNAMIC_K_FACTOR
+    return base
+
 async def _touch_sid(sid: str) -> None:
     async with _SESSIONS_LOCK:
         _SESSIONS_TOUCH[sid] = datetime.utcnow()
@@ -150,7 +161,8 @@ async def doc_qa(req: QARequest):
     model = req.model or DEFAULT_MODEL
 
     try:
-        docs = similarity_search(req.question, k=10)
+        k = _calc_top_k(req.question)
+        docs = similarity_search(req.question, k=k, use_mmr=USE_MMR)
     except ValueError as e:
         # handle missing embed model
         raise HTTPException(503, detail=str(e))
@@ -261,8 +273,12 @@ async def session_qa(req: SessionQARequest):
     sess = _SESSIONS.get(req.session_id) or get_session_store(req.session_id)
     _SESSIONS[req.session_id] = sess
 
-    sess_docs    = sess.similarity_search(req.question, k=5)
-    persist_docs = [] if not req.persistent else similarity_search(req.question, k=10)
+    k = _calc_top_k(req.question)
+    if USE_MMR:
+        sess_docs = sess.max_marginal_relevance_search(req.question, k=max(5, k // 2))
+    else:
+        sess_docs = sess.similarity_search(req.question, k=max(5, k // 2))
+    persist_docs = [] if not req.persistent else similarity_search(req.question, k=k, use_mmr=USE_MMR)
     all_docs     = sess_docs + persist_docs
 
     if not all_docs:

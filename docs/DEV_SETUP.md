@@ -152,7 +152,9 @@ Use `VITE_API_URL=http://localhost:8000` while developing and keep
 | `CHUNK_SIZE`      | `800` | PDF text-splitter chunk size |
 | `CHUNK_OVERLAP`   | `100` | overlap between chunks |
 | `RERANK_TOP_K`    | `3` | number of chunks sent to the LLM |
-
+| `RAG_SEARCH_TOP_K` | `10` | how many vectors to retrieve |
+| `RAG_USE_MMR`     | `0` | use Max Marginal Relevance retrieval |
+| `RAG_DYNAMIC_K_FACTOR` | `0` | words per extra retrieved chunk |
 ---
 
 ## 8 Updating dependencies
