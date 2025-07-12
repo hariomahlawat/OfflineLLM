@@ -1,6 +1,26 @@
+# .gitignore for OfflineLLM project
+# Virtual environment
 .venv/
+
+# Data
 data/chroma/
-*.pdf
+data/chroma_persist/
 models/
-data/chroma/
 offline_llm_models/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Frontend build artifacts
+offline-llm-ui/node_modules/
+offline-llm-ui/dist/
+node_modules/
+
+# Node project files
+package.json
+package-lock.json
+
+# Misc
+*.pdf
+
