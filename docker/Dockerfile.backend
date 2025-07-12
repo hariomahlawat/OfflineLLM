@@ -1,15 +1,19 @@
-# Dockerfile for the backend of the Offline LLM project
-# This Dockerfile builds the Python backend, installs dependencies, and sets up the environment for running the application
-
 ########################  builder  ########################
 FROM python:3.11-slim AS builder
 WORKDIR /build
 
-COPY requirements.lock .   
+# copy your requirements so pip can see them
+COPY requirements.lock .
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential \
  && pip install --upgrade pip \
- && pip download --dest wheelhouse -r requirements.lock \
+ # retry downloads in case of network hiccups
+ && pip download \
+      --dest wheelhouse \
+      --retries 10 \
+      --timeout 120 \
+      -r requirements.lock \
  && apt-get purge -y build-essential \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
@@ -18,9 +22,10 @@ RUN apt-get update \
 FROM python:3.11-slim
 WORKDIR /app
 
-# Python deps
-COPY requirements.lock .
+# bring in your wheels from builder
+COPY requirements.lock .  
 COPY --from=builder /build/wheelhouse /wheelhouse
+
 RUN pip install --no-index --find-links=/wheelhouse -r requirements.lock
 
 # Entrypoint + utilities
@@ -28,7 +33,10 @@ COPY docker/entrypoint.sh /app/entrypoint.sh
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y --no-install-recommends gosu dos2unix; \
+    apt-get install -y --no-install-recommends \
+      curl \
+      gosu \
+      dos2unix; \
     dos2unix /app/entrypoint.sh; \
     chmod +x /app/entrypoint.sh; \
     useradd -m llm; \
