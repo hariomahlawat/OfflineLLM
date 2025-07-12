@@ -128,3 +128,5 @@ def similarity_search(query: str, k: int = 10, *, use_mmr: bool = False) -> List
         return persistent_store.max_marginal_relevance_search(query, k=k)
     return persistent_store.similarity_search(query, k=k)
 
+
+
