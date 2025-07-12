@@ -1,14 +1,26 @@
++14
+-5
+
+# Virtual environment
 .venv/
+
+# Data
 data/chroma/
-*.pdf
 models/
 offline_llm_models/
+
+# Python cache files
 __pycache__/
-*.pycoffline-llm-ui/node_modules/
+*.pyc
+
+# Frontend build artifacts
 offline-llm-ui/node_modules/
+offline-llm-ui/dist/
 node_modules/
-package-lock.json
+
+# Node project files
 package.json
-node_modules/
-package.json
 package-lock.json
+
+# Misc
+*.pdf

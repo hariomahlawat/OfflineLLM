@@ -186,11 +186,33 @@ async def list_models():
         log.warning("ollama.list failed (base_url=%s): %s", OLLAMA_URL, exc)
         return []
 
+    
     out: List[ModelInfo] = []
+    seen: set[str] = set()
     for m in raw.get("models", []):
-        details = m.get("details", {})
-        desc = f"{details.get('family','')}, {details.get('parameter_size','')} {details.get('quantization_level','')}"
-        out.append(ModelInfo(name=m["name"], description=desc.strip(", ")))
+        name = m.get("name")
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        # `ollama.list()` may return either dictionaries or Pydantic models
+        # depending on the library version. Normalize to a dict to avoid
+        # attribute/key errors.
+        if hasattr(m, "model_dump"):
+            model_dict = m.model_dump()
+        elif hasattr(m, "dict"):
+            model_dict = m.dict()
+        elif isinstance(m, dict):
+            model_dict = m
+        else:
+            model_dict = getattr(m, "__dict__", {})
+        details = model_dict.get("details", {})
+        desc = (
+            f"{details.get('family','')}, "
+            f"{details.get('parameter_size','')} "
+            f"{details.get('quantization_level','')}"
+        )
+        name = model_dict.get("name") or getattr(m, "name", "")
+        out.append(ModelInfo(name=name, description=desc.strip(", ")))
     return out
 
 # ───────────────────────── /ping ──────────────────────────────
