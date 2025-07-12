@@ -1,45 +1,54 @@
-# Dockerfile for the backend of the Offline LLM project
-# This Dockerfile builds the Python backend, installs dependencies, and sets up the environment for running the application
+# ───────────────────────────  builder  ────────────────────────────
+# at the very top of Dockerfile
 
-########################  builder  ########################
 FROM python:3.11-slim AS builder
+
+ARG LANGCHAIN_TELEMETRY_ENABLED=false
+ENV LANGCHAIN_TELEMETRY_ENABLED=${LANGCHAIN_TELEMETRY_ENABLED}
 WORKDIR /build
 
-COPY requirements.lock .   
-RUN apt-get update \
+COPY requirements.lock .
+
+RUN set -eux \
+ && apt-get update \
  && apt-get install -y --no-install-recommends build-essential \
- && pip install --upgrade pip \
+ && python -m pip install --upgrade pip \
  && pip download --dest wheelhouse -r requirements.lock \
  && apt-get purge -y build-essential \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
-########################  runtime  ########################
+# ───────────────────────────  runtime  ────────────────────────────
 FROM python:3.11-slim
 WORKDIR /app
 
-# Python deps
+# ── Python deps ───────────────────────────────────────────────────
 COPY requirements.lock .
 COPY --from=builder /build/wheelhouse /wheelhouse
-RUN pip install --no-index --find-links=/wheelhouse -r requirements.lock
+RUN python -m pip install --no-index --find-links=/wheelhouse -r requirements.lock
 
-# Entrypoint + utilities
+# ── Entrypoint + small utilities (one APT layer) ──────────────────
 COPY docker/entrypoint.sh /app/entrypoint.sh
 
-RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends gosu dos2unix; \
-    dos2unix /app/entrypoint.sh; \
-    chmod +x /app/entrypoint.sh; \
-    useradd -m llm; \
-    chown -R llm:llm /app; \
-    rm -rf /var/lib/apt/lists/*
+RUN set -eux \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends curl gosu dos2unix \
+ && dos2unix /app/entrypoint.sh \
+ && chmod +x /app/entrypoint.sh \
+ && useradd -m llm \
+ && chown -R llm:llm /app \
+ && rm -rf /var/lib/apt/lists/*
 
-ENV CHROMA_DIR=/data/chroma \
-    OLLAMA_BASE_URL=http://ollama:11434 \
+# ── Runtime env ───────────────────────────────────────────────────
+ENV OLLAMA_HOST=http://ollama:11434 \
+    CHROMA_TELEMETRY=FALSE \
+    PERSIST_CHROMA_DIR=/app/data/chroma_persist \
     PYTHONUNBUFFERED=1
 
+RUN mkdir -p /app/data/chroma_persist && chown -R llm:llm /app/data
+
 COPY app/ /app/app
+RUN echo "Listing /app contents:" && ls -l /app
 
 ENTRYPOINT ["bash", "/app/entrypoint.sh"]
 EXPOSE 8000

@@ -1,86 +1,95 @@
-# app/api.py
+from __future__ import annotations
 
-"""
-FastAPI routes
-──────────────
-* /models               – list all locally-pulled Ollama models
-* /ping                 – health-check
-* /chat                 – chat w/ conversation memory (optional model override)
-* /doc_qa               – RAG answer from permanent KB (+ session KB, optional model)
-* /upload_pdf           – add a PDF only to this session
-* /session/{id} DELETE  – purge session vector-store
-* /session_qa           – RAG over session + persistent KB (optional model)
-"""
-
-from fastapi import FastAPI, File, UploadFile, Query, HTTPException
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-import tempfile, shutil
+import os
+import asyncio
+import logging
+import tempfile
+import shutil
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional, Dict
-from uuid import uuid4
+from typing import Dict, List, Optional
 
 import ollama
-
-import app.boot                                     # side-effect: index /data/persist
-from app.ingestion import load_and_split
-from app.vector_store import (
-    SESSIONS_ROOT,
-    get_session_store,
-    similarity_search,
-    new_session_store,
-    purge_session_store,
-)
-from app.rerank import rerank
-from app.chat import chat as chat_fn, new_session_id, DEFAULT_MODEL, safe_chat
-from app.ollama_utils import finalize_ollama_chat
-
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
+# ───────────────────────── Environment / Ollama client ───────────────────────
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
+# tell python-ollama where to reach the HTTP API
+os.environ["OLLAMA_BASE_URL"] = OLLAMA_HOST
 
-# ────────────────────────────────────────────────────────────────────────────────
-# In-memory session stores
-# ────────────────────────────────────────────────────────────────────────────────
-_SESSION_STORES: Dict[str, object] = {}
+# disable any LangChain telemetry
+os.environ["LANGCHAIN_TELEMETRY_ENABLED"] = "false"
 
-# ────────────────────────────────────────────────────────────────────────────────
-# /models endpoint
-# ────────────────────────────────────────────────────────────────────────────────
-class ModelInfo(BaseModel):
-    name: str
-    description: Optional[str] = None
+# this uses the above env var
+client = ollama.Client()
 
-app = FastAPI(title="OfflineLLM API", version="0.2.0")
+# ───────────────────────── Constants ──────────────────────────
+DEFAULT_MODEL   = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q3_K_L")
+SESSION_TTL_MIN = int(os.getenv("SESSION_TTL_MIN", 60))
+TOK_TRUNCATE    = int(os.getenv("RAG_TOK_LIMIT", 2000))
 
-# allow Vite dev server
+log = logging.getLogger("api")
+log.setLevel(logging.INFO)
+
+# ───────────────────────── FastAPI / CORS ──────────────────────────
+app = FastAPI(title="OfflineLLM API", version="0.3.0")
+origins = os.getenv("CORS_ALLOW", "")
+allow = origins.split(",") if origins else [
+    "http://localhost",
+    "http://localhost:5173",
+    "https://localhost",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # <-- your UI origin
+    allow_origins=allow,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ───────────────────────── Models endpoint ────────────────────────
+class ModelInfo(BaseModel):
+    name: str
+    description: Optional[str] = None
+
 @app.get("/models", response_model=List[ModelInfo])
 async def list_models():
     """
-    Return all locally-pulled Ollama models.
+    List all locally-pulled Ollama models.
+    Returns [] if the daemon isn’t ready yet.
     """
     try:
-        raw = ollama.list()  # => { "models": [ {name:..., …}, … ] }
-        models_raw = raw.get("models", [])
-        return [
-            ModelInfo(
-                name=m.get("name"),
-                description=m.get("details", {}).get("family")
-            )
-            for m in models_raw
-        ]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list models: {e}")
+        raw = client.list()
+    except Exception as exc:
+        log.warning("ollama.list failed: %s", exc)
+        return []
 
+    out: List[ModelInfo] = []
+    seen = set()
+    for m in raw.get("models", []):
+        # normalize to dict
+        md = m.model_dump() if hasattr(m, "model_dump") else m.dict() if hasattr(m, "dict") else m
+        name = md.get("name") or ""
+        # skip duplicates & the embedding model
+        if not name or name in seen or name.startswith("nomic-embed-text"):
+            continue
+        seen.add(name)
+        details = md.get("details", {}) or {}
+        desc = ", ".join(
+            p for p in [
+                details.get("family",""),
+                details.get("parameter_size",""),
+                details.get("quantization_level",""),
+            ] if p
+        )
+        out.append(ModelInfo(name=name, description=desc or None))
 
-# ───────────────────────── ping ────────────────────────────────────────────
+    return out
+
+# ───────────────────────── Health check ─────────────────────────
 class PingResponse(BaseModel):
     status: str = "ok"
 
@@ -88,15 +97,49 @@ class PingResponse(BaseModel):
 async def ping():
     return PingResponse()
 
+# ───────────────────────── Session store & RAG helpers ────────────────────
+from app.ingestion      import load_and_split
+from app.vector_store   import (
+    SESSIONS_ROOT,
+    get_session_store,
+    new_session_store,
+    purge_session_store,
+    similarity_search,
+)
+from app.rerank         import rerank
+from app.chat           import chat as chat_fn, new_session_id, safe_chat
+from app.ollama_utils   import finalize_ollama_chat
 
+_SESSIONS       : Dict[str, object]   = {}
+_SESSIONS_TOUCH : Dict[str, datetime] = {}
+_SESSIONS_LOCK  = asyncio.Lock()
 
+async def _touch_sid(sid: str) -> None:
+    async with _SESSIONS_LOCK:
+        _SESSIONS_TOUCH[sid] = datetime.utcnow()
 
-# ───────────────────────── RAG (permanent + session KB) ────
+async def _purge_expired_sessions() -> None:
+    cutoff = datetime.utcnow() - timedelta(minutes=SESSION_TTL_MIN)
+    async with _SESSIONS_LOCK:
+        for sid, ts in list(_SESSIONS_TOUCH.items()):
+            if ts < cutoff:
+                purge_session_store(sid)
+                _SESSIONS.pop(sid, None)
+                _SESSIONS_TOUCH.pop(sid, None)
 
+@app.on_event("startup")
+async def _start_session_gc():
+    async def _gc_loop():
+        while True:
+            await _purge_expired_sessions()
+            await asyncio.sleep(60)
+    asyncio.create_task(_gc_loop())
+
+# ───────────────────────── RAG: permanent KB (+ session) ───────────────────
 class QARequest(BaseModel):
-    question: str
+    question:   str
     session_id: Optional[str] = None
-    model: Optional[str] = None  # override default
+    model:      Optional[str] = None
 
 class QAResponse(BaseModel):
     answer: str
@@ -106,87 +149,72 @@ class QAResponse(BaseModel):
 async def doc_qa(req: QARequest):
     model = req.model or DEFAULT_MODEL
 
-    # 1️⃣ search permanent KB
-    docs = similarity_search(req.question, k=10)
+    try:
+        docs = similarity_search(req.question, k=10)
+    except ValueError as e:
+        # handle missing embed model
+        raise HTTPException(503, detail=str(e))
 
-    # 2️⃣ optionally search session KB
-    if req.session_id:
-        store = _SESSION_STORES.get(req.session_id)
-        if store:
-            docs += store.similarity_search(req.question, k=10)
+    if req.session_id and (store := _SESSIONS.get(req.session_id)):
+        docs += store.similarity_search(req.question, k=10)
 
     if not docs:
         return QAResponse(answer="I don't know.", sources=[])
 
-    # 3️⃣ rerank
-    chunks = [d.page_content for d in docs]
+    chunks     = [d.page_content for d in docs]
     top_chunks = rerank(req.question, chunks)
+    ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
-    # 4️⃣ call Ollama
-    sep = "\n---\n"
     prompt = (
         "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
         "If unsure, say 'I don't know.'\n\n"
-        f"CONTEXT:\n{sep.join(top_chunks)}\n\n"
-        f"QUESTION: {req.question}\nANSWER:"
+        f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
     )
 
-    try:
-        raw = safe_chat(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            stream=False,
-        )
-        msg = finalize_ollama_chat(raw)
-        answer = msg["message"]["content"]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    raw    = safe_chat(model=model, messages=[{"role":"user","content":prompt}], stream=False)
+    answer = finalize_ollama_chat(raw)["message"]["content"]
 
     return QAResponse(answer=answer, sources=top_chunks)
 
 
-# ───────────────────────── Chat (with optional model) ────────────────
-
+# ───────────────────────── Chat w/ memory ──────────────────────────────
 class ChatRequest(BaseModel):
-    user_msg: str
+    user_msg:   str
     session_id: Optional[str] = None
-    model: Optional[str] = None
+    model:      Optional[str] = None
 
 class ChatResponse(BaseModel):
     session_id: str
-    answer: str
+    answer:     str
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     session_id = req.session_id or new_session_id()
-    model = req.model or DEFAULT_MODEL
+    model      = req.model or DEFAULT_MODEL
 
     try:
+        # NOTE: chat_fn no longer passes temperature (python-ollama currently rejects it)
         answer = chat_fn(session_id, req.user_msg, model=model)
+        await _touch_sid(session_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(500, detail=str(e))
 
     return ChatResponse(session_id=session_id, answer=answer)
 
 
-# ───────────────────────── Upload one PDF (ephemeral) ──────
-
+# ───────────────────────── Upload a PDF to session-only KB ─────────────────
 class UploadPDFResponse(BaseModel):
-    status: str
-    session_id: str
-    chunks_indexed: int
-
+    status:          str
+    session_id:      str
+    chunks_indexed:  int
 
 @app.post("/upload_pdf", response_model=UploadPDFResponse)
 async def upload_pdf(
-    session_id: str = Query(..., description="Tie this PDF to an existing session"),
-    file: UploadFile = File(..., description="PDF to add only for this session"),
+    session_id: str = Query(..., description="Session ID to attach to"),
+    file: UploadFile = File(..., description="PDF"),
 ):
-    # create session store lazily
-    store = _SESSION_STORES.get(session_id)
-    if store is None:
-        store = new_session_store(session_id)
-        _SESSION_STORES[session_id] = store
+    store = _SESSIONS.get(session_id) or new_session_store(session_id)
+    _SESSIONS[session_id] = store
 
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -196,8 +224,7 @@ async def upload_pdf(
         chunks = load_and_split(str(tmp_path))
         store.add_documents(chunks)
         added = len(chunks)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to ingest PDF: {e}")
+        await _touch_sid(session_id)
     finally:
         file.file.close()
         tmp_path.unlink(missing_ok=True)
@@ -205,26 +232,22 @@ async def upload_pdf(
     return UploadPDFResponse(status="ok", session_id=session_id, chunks_indexed=added)
 
 
-# ───────────────────────── Delete / end session ────────────
-
+# ───────────────────────── End / purge session ─────────────────────────────
 @app.delete("/session/{session_id}")
 async def end_session(session_id: str):
-    path = SESSIONS_ROOT / session_id
-    if not path.exists() and session_id not in _SESSION_STORES:
-        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+    if (SESSIONS_ROOT/ session_id).exists() or session_id in _SESSIONS:
+        purge_session_store(session_id)
+        _SESSIONS.pop(session_id, None)
+        _SESSIONS_TOUCH.pop(session_id, None)
+        return {"status":"purged","session_id":session_id}
+    raise HTTPException(404, detail=f"Session '{session_id}' not found")
 
-    purge_session_store(session_id)
-    _SESSION_STORES.pop(session_id, None)
-    return {"status": "purged", "session_id": session_id}
-
-
-# ───────────────────────── Session-scoped RAG  ─────────────
-
+# ───────────────────────── Session-scoped RAG ──────────────────────────────
 class SessionQARequest(BaseModel):
-    question: str
+    question:   str
     session_id: str
     persistent: Optional[bool] = True
-    model: Optional[str] = None
+    model:      Optional[str] = None
 
 class SessionQAResponse(BaseModel):
     answer: str
@@ -234,45 +257,30 @@ class SessionQAResponse(BaseModel):
 async def session_qa(req: SessionQARequest):
     model = req.model or DEFAULT_MODEL
 
-    # 1️⃣ look up or re-open the session store
-    sess_store = _SESSION_STORES.get(req.session_id)
-    if sess_store is None:
-        try:
-            sess_store = get_session_store(req.session_id)
-        except ValueError as e:
-            raise HTTPException(status_code=404, detail=str(e))
-        _SESSION_STORES[req.session_id] = sess_store
+    # re-open or create session store
+    sess = _SESSIONS.get(req.session_id) or get_session_store(req.session_id)
+    _SESSIONS[req.session_id] = sess
 
-    # 2️⃣ similarity searches
-    sess_docs = sess_store.similarity_search(req.question, k=5)
-    #persist_docs = similarity_search(req.question, k=10)
-    persist_docs = [] if req.persistent is False else similarity_search(req.question, k=10)
-    all_docs = sess_docs + persist_docs
+    sess_docs    = sess.similarity_search(req.question, k=5)
+    persist_docs = [] if not req.persistent else similarity_search(req.question, k=10)
+    all_docs     = sess_docs + persist_docs
 
     if not all_docs:
         return SessionQAResponse(answer="I don't know.", sources=[])
 
-    # 3️⃣ rerank & prompt
-    chunks = [d.page_content for d in all_docs]
+    chunks     = [d.page_content for d in all_docs]
     top_chunks = rerank(req.question, chunks)
+    ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
-    sep = "\n---\n"
     prompt = (
         "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
         "If unsure, say 'I don't know.'\n\n"
-        f"CONTEXT:\n{sep.join(top_chunks)}\n\n"
-        f"QUESTION: {req.question}\nANSWER:"
+        f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
     )
 
-    try:
-        raw = safe_chat(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            stream=False,
-        )
-        msg = finalize_ollama_chat(raw)
-        answer = msg["message"]["content"]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    raw    = safe_chat(model=model, messages=[{"role":"user","content":prompt}], stream=False)
+    answer = finalize_ollama_chat(raw)["message"]["content"]
+    await _touch_sid(req.session_id)
 
     return SessionQAResponse(answer=answer, sources=top_chunks)
+

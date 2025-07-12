@@ -6,20 +6,19 @@ Keeps one ConversationBufferMemory per session_id and proxies to Ollama.
 from __future__ import annotations
 
 import os
+import logging
 from typing import Dict, Optional
 from uuid import uuid4
 
 import ollama
-import logging
 from langchain.memory import ConversationBufferMemory
 from app.ollama_utils import finalize_ollama_chat
-
 
 # ------------------------------------------------------------------
 # configuration
 # ------------------------------------------------------------------
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-DEFAULT_MODEL = "llama3:8b-instruct-q3_K_L"
+DEFAULT_MODEL    = "llama3:8b-instruct-q3_K_L"
 
 # in-memory map session_id → ConversationBufferMemory
 _sessions: Dict[str, ConversationBufferMemory] = {}
@@ -40,64 +39,60 @@ def _lc_to_ollama(msg) -> dict:
     Convert a LangChain message to Ollama’s expected schema.
     """
     role_map = {
-        "human": "user",
-        "ai": "assistant",
+        "human":  "user",
+        "ai":     "assistant",
         "system": "system",
-        # tool / function messages map to assistant by default
     }
     return {"role": role_map.get(msg.type, "assistant"), "content": msg.content}
 
+
 def safe_chat(*, model: str, messages: list, stream: bool = False, **kwargs):
-    """Call ``ollama.chat`` and retry once with ``DEFAULT_MODEL`` if it fails."""
+    """
+    Call ollama.chat and if it errors, retry once with the DEFAULT_MODEL.
+    """
     try:
         return ollama.chat(model=model, messages=messages, stream=stream, **kwargs)
-    except Exception as e:  # pragma: no cover - thin wrapper
+    except Exception as e:
         if model == DEFAULT_MODEL:
             raise
         logging.warning(
-            "Model '%s' failed, falling back to '%s': %s",
-            model,
-            DEFAULT_MODEL,
-            e,
+            "Model '%s' failed, falling back to '%s': %s", model, DEFAULT_MODEL, e
         )
         return ollama.chat(model=DEFAULT_MODEL, messages=messages, stream=stream, **kwargs)
-    
 
 
 def chat(
     session_id: str,
-    user_msg: str,
-    model: Optional[str] = None,
-    temperature: float = 0.4,
+    user_msg:    str,
+    model:       Optional[str] = None,
 ) -> str:
     """
-    Send a turn of chat to Ollama, with session-based memory.
+    Send one turn of chat to Ollama, holding on to conversation memory.
 
     Args:
-        session_id: ID of the conversation.
-        user_msg:   The user’s message.
-        model:      (Optional) Ollama model to use; defaults to DEFAULT_MODEL.
-        temperature: Sampling temperature.
+      session_id: UUID for your session.
+      user_msg:   The user’s latest message.
+      model:      Optional override (e.g. "mistral:latest").
 
     Returns:
-        The assistant’s reply.
+      The assistant’s reply.
     """
-    # 1) retrieve or create the session memory
+    # 1) get or create the memory buffer
     mem = _get_memory(session_id)
 
-    # 2) build full chat history in Ollama format
+    # 2) rebuild full history in Ollama schema
     messages = [_lc_to_ollama(m) for m in mem.chat_memory.messages]
     messages.append({"role": "user", "content": user_msg})
 
-    # 3) pick which model to use
+    # 3) choose the model
     chosen_model = model or DEFAULT_MODEL
 
-    # 4) call the Ollama API
-    raw = safe_chat(model=chosen_model, messages=messages, stream=False, temperature=temperature)
+    # 4) call Ollama (no temperature arg here)
+    raw = safe_chat(model=chosen_model, messages=messages, stream=False)
     msg = finalize_ollama_chat(raw)
     assistant_reply = msg["message"]["content"]
 
-    # 5) persist this turn in memory
+    # 5) save this turn
     mem.chat_memory.add_user_message(user_msg)
     mem.chat_memory.add_ai_message(assistant_reply)
 
