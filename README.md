@@ -92,17 +92,16 @@ docker compose up -d
 ```
 ## 🔒 Admin mode
 
-Set an `ADMIN_PASSWORD` environment variable in the backend service. When defined, requests to any `/admin/*` endpoint must include the `Authorization: Bearer <ADMIN_PASSWORD>` header.
+Set an `ADMIN_PASSWORD` environment variable in the backend service. When defined, requests to any `/admin/*` endpoint must authenticate using HTTP Basic credentials with the `admin` username.
 
 To permanently ingest a document, use:
 
 ```bash
-curl -H "Authorization: Bearer $ADMIN_PASSWORD" \
-     -F file=@file.pdf \
+curl -u "admin:$ADMIN_PASSWORD" -F file=@file.pdf \
      http://localhost:8000/admin/upload_pdf
 ```
 
-When the frontend container is running, open `https://localhost/admin.html` and log in with the same password for a simple upload UI.
+When the frontend container is running, open `https://localhost/admin.html` and log in using the same Basic credentials for a simple upload UI.
 
 ---
 
