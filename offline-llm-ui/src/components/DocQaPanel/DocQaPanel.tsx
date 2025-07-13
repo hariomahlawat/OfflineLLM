@@ -171,7 +171,9 @@ export function DocQaPanel() {
       overflow="hidden"
       px={{ base: 0, md: 0 }}
       py={0}
-      borderLeft="5px solid #3182ce" // Brand accent
+      borderLeftWidth="5px"
+      borderLeftStyle="solid"
+      borderLeftColor="brand.accent"
     >
       {/* File Upload */}
       <Box

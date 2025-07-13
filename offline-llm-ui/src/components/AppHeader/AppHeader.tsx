@@ -45,10 +45,10 @@ const promptTips = [
 
 export function AppHeader() {
   /* palette */
-  const matteBg = "#22232b";
-  const orgColor = "#e8eaf3";
-  const mainHeadingColor = "#ffe3a3";
-  const subtitleColor = "#b8bdc9";
+  const matteBg = 'brand.bg';
+  const orgColor = 'brand.primary';
+  const mainHeadingColor = 'brand.secondary';
+  const subtitleColor = 'brand.tertiary';
 
   const isMobile = useBreakpointValue({ base: true, md: false });
 
@@ -67,7 +67,7 @@ export function AppHeader() {
         py={{ base: 1.5, md: 2 }}
         bg={matteBg}
         borderBottomWidth={1}
-        borderColor="#232436"
+        borderColor="brand.surface"
         position="sticky"
         top={0}
         zIndex={20}
@@ -119,7 +119,8 @@ export function AppHeader() {
         {/* right: model selector & kebab */}
         <Flex align="center" gap={3} minW="200px">
           <Box
-            border="1px solid #e2e8f0"
+            border="1px solid"
+            borderColor="gray.200"
             borderRadius="md"
             bg="white"
             px={2}
@@ -152,7 +153,7 @@ export function AppHeader() {
       {/* ═══════════ Model Guide modal ═══════════ */}
       <Modal isOpen={modelModal.isOpen} onClose={modelModal.onClose} size="lg">
         <ModalOverlay />
-        <ModalContent bg="#1e1f29" color="gray.200">
+        <ModalContent bg="brand.surface" color="gray.200">
           <ModalHeader>Model selection guide</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -187,7 +188,7 @@ export function AppHeader() {
       {/* ═══════════ Prompt Tips modal ═══════════ */}
       <Modal isOpen={promptModal.isOpen} onClose={promptModal.onClose} size="md">
         <ModalOverlay />
-        <ModalContent bg="#1e1f29" color="gray.200">
+        <ModalContent bg="brand.surface" color="gray.200">
           <ModalHeader>Prompt quick-reference</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -214,7 +215,7 @@ export function AppHeader() {
       {/* ═══════════ About modal ═══════════ */}
       <Modal isOpen={aboutModal.isOpen} onClose={aboutModal.onClose} size="lg">
         <ModalOverlay />
-        <ModalContent bg="#1e1f29" color="gray.200">
+        <ModalContent bg="brand.surface" color="gray.200">
           <ModalHeader>About EklavyaAI Chat</ModalHeader>
           <ModalCloseButton />
           <ModalBody fontSize="sm" lineHeight={1.55}>
