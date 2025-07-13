@@ -232,7 +232,12 @@ Invoke-RestMethod `
   ```bash
   docker network inspect offlinellm_rag-net
   ```
-
+ "Connection refused" on `curl http://localhost:8000/...` usually means the
+  backend is still waiting for Ollama. Check container status:
+  ```bash
+  docker compose ps
+  docker logs rag-app
+  ```
 ---
 
 *Keep this guide updated with any new findings!*

@@ -1,20 +1,20 @@
 # app/boot.py
-"""
-Run *once* at process start-up:
 
-• Walk through data/persist/ looking for *.pdf
-• Skip any file that is already present in the persistent collection
-• Ingest -> chunk -> embed -> store
+"""
+Run once at process start-up:
+• Walk through /app/data/chroma_persist looking for *.pdf
+• Skip any file already indexed
+• Ingest → chunk → embed → store
 """
 
-from pathlib import Path
 import logging
+from pathlib import Path
 from datetime import datetime
 
 from app.vector_store import add_documents, persist_has_source
-from app.ingestion import load_and_split   # existing helper
+from app.ingestion import load_and_split
 
-PERSIST_PDF_DIR = Path("data/persist")      # ‹--- put your long-lived PDFs here
+PERSIST_PDF_DIR = Path("/app/data/chroma_persist")
 PERSIST_PDF_DIR.mkdir(parents=True, exist_ok=True)
 
 log = logging.getLogger("boot")
@@ -26,20 +26,19 @@ def _index_file(pdf_path: Path) -> None:
     if not chunks:
         log.warning("⚠️  no text extracted from %s – skipping", pdf_path.name)
         return
-    # attach metadata so we can later check persist_has_source()
     for c in chunks:
         c.metadata["source"] = pdf_path.name
         c.metadata["indexed_at"] = datetime.utcnow().isoformat()
 
     if add_documents(chunks):
-        log.info("✅  stored %s chunks for %s", len(chunks), pdf_path.name)
+        log.info("✅  stored %d chunks for %s", len(chunks), pdf_path.name)
     else:
-        log.warning("↪︎  skipped %s due to embedding failure", pdf_path.name)    
+        log.warning("↪︎  skipped %s due to embedding failure", pdf_path.name)
 
 def run() -> None:
     pdfs = sorted(PERSIST_PDF_DIR.glob("*.pdf"))
     if not pdfs:
-        log.info("📂  data/persist/ empty – nothing to index.")
+        log.info("📂  no PDFs found – skipping indexing")
         return
 
     for pdf in pdfs:
@@ -48,8 +47,8 @@ def run() -> None:
             continue
         try:
             _index_file(pdf)
-        except Exception as exc:            # keep boot resilient
-            log.exception("❌  failed to index %s: %s", pdf.name, exc)
+        except Exception:
+            log.exception("❌  failed to index %s", pdf.name)
 
-# run immediately on import
-run()
+if __name__ == "__main__":
+    run()

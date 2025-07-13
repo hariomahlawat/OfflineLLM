@@ -49,6 +49,6 @@ RUN mkdir -p /app/data/chroma_persist && chown -R llm:llm /app/data
 COPY app/ /app/app
 RUN echo "Listing /app contents:" && ls -l /app
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EXPOSE 8000
 

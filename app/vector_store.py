@@ -21,7 +21,6 @@ from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
 
-import shutil
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Config ─ pick up dirs & Ollama URL from env if the defaults are wrong.
