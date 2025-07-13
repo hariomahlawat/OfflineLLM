@@ -286,7 +286,7 @@ export function DocQaPanel() {
             <Tag key={f} size="sm" variant="subtle" colorScheme="brand">
               {f}
             </Tag>
-          ))
+          ))}
         </HStack>
       )}
 
