@@ -2,7 +2,7 @@
 
 """
 Run once at process start-up:
-• Walk through /app/data/chroma_persist looking for *.pdf
+• Walk through /app/data/persist looking for *.pdf
 • Skip any file already indexed
 • Ingest → chunk → embed → store
 """
@@ -14,7 +14,7 @@ from datetime import datetime
 from app.vector_store import add_documents, persist_has_source
 from app.ingestion import load_and_split
 
-PERSIST_PDF_DIR = Path("/app/data/chroma_persist")
+PERSIST_PDF_DIR = Path("/app/data/persist")
 PERSIST_PDF_DIR.mkdir(parents=True, exist_ok=True)
 
 log = logging.getLogger("boot")
