@@ -19,7 +19,7 @@ OfflineLLM/
 ├── certs/
 │   ├── server.crt            # SSL certificate
 │   └── server.key            # SSL private key
-├── docker-compose.yml
+├── compose.yaml
 └── data/                     # Persistent data (Chroma, models, etc.)
 ```
 
@@ -171,13 +171,13 @@ networks:
 
 ## 6. Build & Deploy
 
-From the repo root:
+From the repo root (where `compose.yaml` lives):
 
 ```bash
 # Rebuild images without cache
-docker compose build --no-cache
+docker compose -f compose.yaml build --no-cache
 # Start all services
-docker compose up -d
+docker compose -f compose.yaml up -d
 ```
 
 ---
@@ -203,8 +203,8 @@ docker compose up -d
 Whenever you change code:
 
 ```bash
-docker compose build --no-cache
-docker compose up -d
+docker compose -f compose.yaml build --no-cache
+docker compose -f compose.yaml up -d
 ```
 
 

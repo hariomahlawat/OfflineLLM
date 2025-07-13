@@ -14,6 +14,8 @@
 - **FastAPI backend** – ASGI‑native, easy to scale with multiple workers.
 - **Modular codebase** – Clear separation: `ingestion.py`, `vector_store.py`, `rerank.py`, `chat.py`, `api.py`.
 - **Cross‑platform** – Develop on Windows 11, deploy on Linux server or WSL2.
+- **Model listing** – `/models` enumerates available local LLMs.
+- **Session‑based uploads + QA** – Upload a PDF via `/upload_pdf`, then query it with `/session_qa`.
 
 ---
 

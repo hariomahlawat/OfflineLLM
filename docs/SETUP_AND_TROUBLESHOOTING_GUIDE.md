@@ -37,15 +37,16 @@ A comprehensive step-by-step guide to reproducing, troubleshooting, and verifyin
 git clone https://github.com/your-org/OfflineLLM.git
 cd OfflineLLM
 
-# 2. Switch to the feature branch (if needed)
-git checkout feature/ephemeral-session-rag
+# 2. Switch to the main branch (if needed)
+git checkout main
 ```
 
 ---
 
 ## Docker Compose Configuration
 
-Your `compose.yaml` should define **two** services on a shared network (`rag-net`):
+Your `compose.yaml` defines **three** services (`ollama`, `rag-app`, and `frontend`) on a shared network (`rag-net`).
+It also declares a `chroma_persist` volume and environment variables for model tuning:
 
 ```yaml
 services:

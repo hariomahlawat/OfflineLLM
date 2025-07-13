@@ -162,6 +162,13 @@ Use `VITE_API_URL=http://localhost:8000` while developing and keep
 | `RAG_SEARCH_TOP_K` | `10` | how many vectors to retrieve |
 | `RAG_USE_MMR`     | `0` | use Max Marginal Relevance retrieval |
 | `RAG_DYNAMIC_K_FACTOR` | `0` | words per extra retrieved chunk |
+| `PERSIST_CHROMA_DIR` | `data/chroma_persist` | permanent embeddings |
+| `SESSION_CHROMA_DIR` | `data/chroma_sessions` | per-chat embeddings |
+| `ADMIN_PASSWORD` | `None` | protects `/admin/*` endpoints |
+| `OLLAMA_DEFAULT_MODEL` | `llama3:8b-instruct-q3_K_L` | default chat model |
+| `SESSION_TTL_MIN` | `60` | delete idle sessions after *N* minutes |
+| `RAG_TOK_LIMIT` | `2000` | truncate history to this many tokens |
+| `CORS_ALLOW` | `""` | comma-separated allowed origins |
 ---
 
 ## 8 Updating dependencies
