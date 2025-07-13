@@ -99,7 +99,7 @@ export function AppHeader() {
               lineHeight={1.1}
               mb={-1}
             >
-              EklavyaAI&nbsp;Chat
+              EklavyaAI&nbsp;
             </Heading>
             <Text fontSize="xs" color={subtitleColor}>
               Ask Anything.&nbsp; Learn Like Eklavya.
@@ -232,7 +232,7 @@ export function AppHeader() {
           <ModalCloseButton />
           <ModalBody fontSize="sm" lineHeight={1.55}>
             <Text mb={4}>
-              <strong>EklavyaAI Chat</strong> is an offline, retrieval‑augmented
+              <strong>EklavyaAI</strong> is an offline, retrieval‑augmented
               conversational assistant purpose‑built for the Simulator
               Development Division (SDD). It is fully air‑gapped: <strong>all</strong> large‑language‑model inference, vector retrieval and document processing run on local infrastructure—no cloud calls, telemetry, or external connectivity.
               <br />
