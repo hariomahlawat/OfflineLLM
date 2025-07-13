@@ -77,7 +77,7 @@ export function AppHeader() {
         zIndex={20}
         w="100%"
         minH={{ base: "48px", md: "58px" }}
-        fontFamily="Inter, system-ui, sans-serif"
+        fontFamily="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
       >
         {/* logo + title */}
         <Flex align="center" minW="200px">

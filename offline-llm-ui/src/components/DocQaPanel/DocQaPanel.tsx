@@ -183,12 +183,40 @@ export function DocQaPanel() {
         flexDirection="column"
         maxW="100%"
         minH="240px"
-        sx={{ scrollbarWidth: "thin" }}
+        position="relative"
+        sx={{
+          scrollbarWidth: 'thin',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: "url('/sdd.png')",
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            backgroundSize: 'contain',
+            opacity: 0.05,
+            pointerEvents: 'none',
+            zIndex: -1,
+          },
+        }}
       >
         {chat.length === 0 ? (
-          <Text color="text.muted" textAlign="center" py={10} fontSize="sm">
-            Ask a question about your uploaded PDF or knowledge base to begin.
-          </Text>
+          <Box
+            flex="1"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            minH={300}
+          >
+            <Text
+              color="text.muted"
+              fontSize="lg"
+              fontWeight="medium"
+              textAlign="center"
+            >
+              Ask a question about your uploaded PDF or knowledge base to begin.
+            </Text>
+          </Box>
         ) : (
           chat.map((item, idx) => (
             <Box key={idx} mb={2}>

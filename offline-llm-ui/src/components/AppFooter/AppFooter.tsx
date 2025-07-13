@@ -12,6 +12,7 @@ export function AppFooter() {
       borderColor="border.default"
       fontSize="sm"
       color="text.secondary"
+      fontFamily="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
       w="100%"
       position="sticky"
       bottom={0}
