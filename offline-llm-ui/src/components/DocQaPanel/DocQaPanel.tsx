@@ -14,6 +14,7 @@ import {
   FormControl,
   FormLabel,
   Avatar,
+  Tag,
 } from "@chakra-ui/react";
 import {
   AttachmentIcon,
@@ -32,6 +33,7 @@ export function DocQaPanel() {
   // File upload
   const [hasUploadedPdf, setHasUploadedPdf] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
 
   // Drag-over effect
   const [isDragOver, setIsDragOver] = useState(false);
@@ -69,6 +71,7 @@ export function DocQaPanel() {
       const resp = await uploadPdf(sessionId, f);
       toast({ status: 'success', description: `Indexed ${resp.chunks_indexed} chunks` });
       setHasUploadedPdf(true);
+      setUploadedFiles((files) => Array.from(new Set([...files, f.name])));
     } catch (err: any) {
       toast({ status: 'error', description: err.message });
     } finally {
@@ -158,8 +161,6 @@ export function DocQaPanel() {
       h="100%"
       flex={1}
       bg={panelBg}
-      borderRadius="2xl"
-      boxShadow="md"
       display="flex"
       flexDirection="column"
       overflow="hidden"
@@ -278,6 +279,16 @@ export function DocQaPanel() {
         )}
         <div ref={chatBottomRef} />
       </Box>
+
+      {uploadedFiles.length > 0 && (
+        <HStack px={2} py={1} spacing={2} flexWrap="wrap">
+          {uploadedFiles.map((f) => (
+            <Tag key={f} size="sm" variant="subtle" colorScheme="brand">
+              {f}
+            </Tag>
+          ))
+        </HStack>
+      )}
 
       {/* Switch */}
       <FormControl display="flex" alignItems="center" mb={2} mt={0.5} px={2}>
