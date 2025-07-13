@@ -2,6 +2,7 @@
 from functools import lru_cache
 from typing import List
 import os
+import logging
 from sentence_transformers import CrossEncoder
 
 MODEL_DIR = "/app/models/cross_encoder"
@@ -12,7 +13,12 @@ DEFAULT_TOP_K = int(os.getenv("RERANK_TOP_K", "3"))
 
 @lru_cache(maxsize=1)
 def _cross() -> CrossEncoder:
-    return CrossEncoder(MODEL_DIR, device="cpu", local_files_only=True)
+    """Return a cached cross-encoder instance."""
+    try:
+        return CrossEncoder(MODEL_DIR, device="cpu", local_files_only=True)
+    except OSError as exc:
+        logging.warning("Cross-encoder model missing at %s: %s", MODEL_DIR, exc)
+        raise RuntimeError(f"cross-encoder model not found in {MODEL_DIR}") from exc
 
 def rerank(query: str, docs: List[str], top_k: int = DEFAULT_TOP_K) -> List[str]:
     scores = _cross().predict([[query, d] for d in docs])

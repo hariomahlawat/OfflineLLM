@@ -194,7 +194,10 @@ async def doc_qa(req: QARequest):
         return QAResponse(answer="I don't know.", sources=[])
 
     chunks     = [d.page_content for d in docs]
-    top_chunks = rerank(req.question, chunks)
+    try:
+        top_chunks = rerank(req.question, chunks)
+    except Exception as e:
+        raise HTTPException(503, detail=str(e))
     ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
     prompt = (
@@ -305,7 +308,10 @@ async def session_qa(req: SessionQARequest):
         return SessionQAResponse(answer="I don't know.", sources=[])
 
     chunks     = [d.page_content for d in all_docs]
-    top_chunks = rerank(req.question, chunks)
+    try:
+        top_chunks = rerank(req.question, chunks)
+    except Exception as e:
+        raise HTTPException(503, detail=str(e))
     ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
     prompt = (
