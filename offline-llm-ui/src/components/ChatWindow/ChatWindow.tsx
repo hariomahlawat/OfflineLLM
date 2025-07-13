@@ -35,10 +35,25 @@ export function ChatWindow() {
       py={2}
       borderRadius="xl"
       bg="brand.surface"
+      position="relative"
+      sx={{
+        "&::before": {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: "url('/sdd.png')",
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          backgroundSize: 'contain',
+          opacity: 0.05,
+          pointerEvents: 'none',
+          zIndex: -1,
+        },
+      }}
     >
       {messages.length === 0 && !sending ? (
         <Box flex="1" display="flex" alignItems="center" justifyContent="center" minH={300}>
-          <Text color="text.muted" fontSize="lg" textAlign="center">
+          <Text color="text.muted" fontSize="lg" fontWeight="medium" textAlign="center">
             No messages yet. Start a conversation!
           </Text>
         </Box>
