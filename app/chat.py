@@ -15,6 +15,18 @@ from langchain.memory import ConversationBufferMemory
 from app.ollama_utils import finalize_ollama_chat
 
 # ------------------------------------------------------------------
+# system prompts
+# ------------------------------------------------------------------
+DEFAULT_SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", "You are a helpful assistant.")
+
+# per-model system prompt overrides
+SYSTEM_PROMPTS: Dict[str, str] = {
+    "deepseek-r1": "You are a helpful assistant.",
+    "codellama:7b": "You are a coding assistant.",
+}
+
+
+# ------------------------------------------------------------------
 # configuration
 # ------------------------------------------------------------------
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
@@ -82,10 +94,16 @@ def chat(
 
     # 2) rebuild full history in Ollama schema
     messages = [_lc_to_ollama(m) for m in mem.chat_memory.messages]
-    messages.append({"role": "user", "content": user_msg})
 
     # 3) choose the model
     chosen_model = model or DEFAULT_MODEL
+    
+    # insert system prompt on first turn
+    if not messages:
+        system_prompt = SYSTEM_PROMPTS.get(chosen_model, DEFAULT_SYSTEM_PROMPT)
+        messages.append({"role": "system", "content": system_prompt})
+
+    messages.append({"role": "user", "content": user_msg})
 
     # 4) call Ollama (no temperature arg here)
     raw = safe_chat(model=chosen_model, messages=messages, stream=False)

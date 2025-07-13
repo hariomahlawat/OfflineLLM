@@ -202,11 +202,11 @@ async def doc_qa(req: QARequest):
 
     prompt = (
         "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
-        "If unsure, say 'I don't know.'\n\n"
+        "Answer in English. If unsure, say 'I don't know.'\n\n"
         f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
     )
 
-    raw    = safe_chat(model=model, messages=[{"role":"user","content":prompt}], stream=False)
+    raw    = safe_chat(model=model, messages=[{"role":"system","content":prompt}], stream=False)
     answer = finalize_ollama_chat(raw)["message"]["content"]
 
     return QAResponse(answer=answer, sources=top_chunks)
@@ -316,11 +316,11 @@ async def session_qa(req: SessionQARequest):
 
     prompt = (
         "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
-        "If unsure, say 'I don't know.'\n\n"
+        "Answer in English. If unsure, say 'I don't know.'\n\n"
         f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
     )
 
-    raw    = safe_chat(model=model, messages=[{"role":"user","content":prompt}], stream=False)
+    raw    = safe_chat(model=model, messages=[{"role":"system","content":prompt}], stream=False)
     answer = finalize_ollama_chat(raw)["message"]["content"]
     await _touch_sid(req.session_id)
 
