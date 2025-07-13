@@ -45,7 +45,7 @@ git checkout feature/ephemeral-session-rag
 
 ## Docker Compose Configuration
 
-Your `docker-compose.yml` should define **two** services on a shared network (`rag-net`):
+Your `compose.yaml` should define **two** services on a shared network (`rag-net`):
 
 ```yaml
 services:
@@ -64,27 +64,59 @@ services:
   rag-app:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.backend
     container_name: rag-app
-    depends_on: [ollama]
+    depends_on:
+      - ollama
     volumes:
       - chroma_data:/app/data/chroma
+      - chroma_persist:/app/data/chroma_persist
       - ./data/persist:/app/data/persist:ro
       - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
     ports:
       - "8000:8000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_HOST=http://ollama:11434
       - LANGCHAIN_ENDPOINT=disabled
       - CHROMA_TELEMETRY=FALSE
-    networks: [rag-net]
+      - CHUNK_SIZE=800
+      - CHUNK_OVERLAP=100
+      - RERANK_TOP_K=3
+      - RAG_SEARCH_TOP_K=10
+      - RAG_USE_MMR=0
+      - RAG_DYNAMIC_K_FACTOR=0
+      - PERSIST_CHROMA_DIR=/app/data/chroma_persist
+      - ADMIN_PASSWORD=changeme
+    networks:
+      - rag-net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        - VITE_API_URL=/api
+    environment:
+      - VITE_API_URL=/api   # runtime fallback
+    container_name: offline-llm-frontend
+    ports:
+      - "443:443"
+    depends_on:
+      - rag-app
+    volumes:
+      - ./certs:/etc/nginx/certs:ro
+    networks:
+      - rag-net
 
 volumes:
   chroma_data:
+  chroma_persist:
   ollama_models:
 
 networks:
   rag-net:
+
 ```
 
 ---

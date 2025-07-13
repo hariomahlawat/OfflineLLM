@@ -93,10 +93,9 @@ http {
 
 ---
 
-## 5. Docker Compose (`docker-compose.yml`)
+## 5. Docker Compose (`compose.yaml`)
 
 ```yaml
-version: '3.8'
 services:
   ollama:
     image: ollama/ollama:latest
@@ -106,7 +105,9 @@ services:
     volumes:
       - ollama_models:/root/.ollama
     networks:
-      - rag-net
+      rag-net:
+        aliases:
+          - ollama
 
   rag-app:
     build:
@@ -117,6 +118,7 @@ services:
       - ollama
     volumes:
       - chroma_data:/app/data/chroma
+      - chroma_persist:/app/data/chroma_persist
       - ./data/persist:/app/data/persist:ro
       - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
     ports:
@@ -126,6 +128,14 @@ services:
       - OLLAMA_HOST=http://ollama:11434
       - LANGCHAIN_ENDPOINT=disabled
       - CHROMA_TELEMETRY=FALSE
+      - CHUNK_SIZE=800
+      - CHUNK_OVERLAP=100
+      - RERANK_TOP_K=3
+      - RAG_SEARCH_TOP_K=10
+      - RAG_USE_MMR=0
+      - RAG_DYNAMIC_K_FACTOR=0
+      - PERSIST_CHROMA_DIR=/app/data/chroma_persist
+      - ADMIN_PASSWORD=changeme
     networks:
       - rag-net
 
@@ -136,12 +146,12 @@ services:
       args:
         - VITE_API_URL=/api
     environment:
-      - VITE_API_URL=/api
+      - VITE_API_URL=/api   # runtime fallback
     container_name: offline-llm-frontend
-    depends_on:
-      - rag-app
     ports:
       - "443:443"
+    depends_on:
+      - rag-app
     volumes:
       - ./certs:/etc/nginx/certs:ro
     networks:
@@ -149,10 +159,12 @@ services:
 
 volumes:
   chroma_data:
+  chroma_persist:
   ollama_models:
 
 networks:
   rag-net:
+
 ```
 
 ---
