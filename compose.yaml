@@ -46,9 +46,9 @@ services:
       context: .
       dockerfile: docker/Dockerfile.frontend
       args:
-        - VITE_API_URL=http://rag-app:8000
+        - VITE_API_URL=/api
     environment:
-      - VITE_API_URL=http://rag-app:8000   # runtime fallback
+      - VITE_API_URL=/api   # runtime fallback
     container_name: offline-llm-frontend
     ports:
       - "443:443"

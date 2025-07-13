@@ -112,6 +112,13 @@ Downloads & caches:
 * **llama3:8b-instruct-q3_K_L** (~4 GB, fits in 4 GB RAM)
 * **nomic-embed-text**
 
+Before bringing up the stack make sure the embedding model is pulled or
+ingestion will produce **empty embeddings** and indexing errors:
+
+```powershell
+docker exec ollama ollama pull nomic-embed-text
+```
+
 ### 6.2 Build / run the RAG API
 
 ```powershell

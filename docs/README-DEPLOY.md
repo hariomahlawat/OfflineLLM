@@ -133,6 +133,10 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.frontend
+      args:
+        - VITE_API_URL=/api
+    environment:
+      - VITE_API_URL=/api
     container_name: offline-llm-frontend
     depends_on:
       - rag-app

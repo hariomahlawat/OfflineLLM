@@ -94,6 +94,8 @@ networks:
 ```powershell
 docker compose down
 docker pull ollama/ollama:latest
+docker compose up -d ollama                 # start service to load models
+docker exec ollama ollama pull nomic-embed-text  # without it embeddings are empt
 docker compose up -d --build
 ```
 
@@ -122,6 +124,8 @@ Invoke-RestMethod http://localhost:8000/ping
 docker exec -it ollama bash -lc "ollama pull nomic-embed-text && ollama pull llama3:8b-instruct-q3_K_L"
 docker exec -it ollama bash -lc "ollama list"
 ```
+
+Missing models will lead to empty embeddings and indexing failures during ingestion.
 
 ---
 

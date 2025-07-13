@@ -13,6 +13,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
+import logging
+
 import chromadb
 from chromadb.config import Settings
 from langchain_community.embeddings import OllamaEmbeddings
@@ -117,9 +119,25 @@ def get_session_store(session_id: str) -> Chroma:
 # ────────────────────────────────────────────────────────────────────────────────
 # Thin wrappers kept for older code paths
 # ────────────────────────────────────────────────────────────────────────────────
-def add_documents(chunks: List[Document]) -> None:
-    """Add docs to the *persistent* store (legacy helper)."""
-    persistent_store.add_documents(chunks)
+def add_documents(chunks: List[Document]) -> bool:
+    """Add docs to the *persistent* store (legacy helper).
+
+    Errors during embedding are logged and swallowed so boot can continue.
+    """
+    log = logging.getLogger("vector_store")
+
+    if not chunks:
+        log.warning("⚠️  no chunks to embed; skipping")
+        return False
+
+    try:
+        persistent_store.add_documents(chunks)
+        return True
+    except ValueError as exc:
+        source = chunks[0].metadata.get("source", "<unknown>")
+        log.error("❌  failed to store embeddings for %s: %s", source, exc)
+        # swallow error so caller can continue
+        return False
 
 
 def similarity_search(query: str, k: int = 10, *, use_mmr: bool = False) -> List[Document]:

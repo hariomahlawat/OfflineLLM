@@ -23,12 +23,18 @@ log.setLevel(logging.INFO)
 def _index_file(pdf_path: Path) -> None:
     log.info("🔄  indexing %s", pdf_path.name)
     chunks = load_and_split(str(pdf_path))
+    if not chunks:
+        log.warning("⚠️  no text extracted from %s – skipping", pdf_path.name)
+        return
     # attach metadata so we can later check persist_has_source()
     for c in chunks:
         c.metadata["source"] = pdf_path.name
         c.metadata["indexed_at"] = datetime.utcnow().isoformat()
-    add_documents(chunks)
-    log.info("✅  stored %s chunks for %s", len(chunks), pdf_path.name)
+
+    if add_documents(chunks):
+        log.info("✅  stored %s chunks for %s", len(chunks), pdf_path.name)
+    else:
+        log.warning("↪︎  skipped %s due to embedding failure", pdf_path.name)    
 
 def run() -> None:
     pdfs = sorted(PERSIST_PDF_DIR.glob("*.pdf"))
