@@ -112,6 +112,46 @@ export async function adminUploadPdf(file: File, password: string): Promise<Admi
 }
 
 /**
+ * POST /admin/upload_pdf with progress tracking
+ */
+export function adminUploadPdfWithProgress(
+  file: File,
+  password: string,
+  onProgress: (percent: number) => void,
+): Promise<AdminUploadResponse> {
+  return new Promise((resolve, reject) => {
+    const form = new FormData();
+    form.append('file', file);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${BASE}/admin/upload_pdf`);
+    xhr.setRequestHeader('Authorization', 'Basic ' + btoa(`admin:${password}`));
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText) as AdminUploadResponse);
+        } catch (err) {
+          reject(err);
+        }
+      } else {
+        reject(new Error(xhr.responseText || `Request failed with status ${xhr.status}`));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error'));
+
+    xhr.send(form);
+  });
+}
+
+/**
  * POST /session_qa
  */
 export async function sessionQA(

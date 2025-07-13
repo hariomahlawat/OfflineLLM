@@ -103,7 +103,10 @@ curl -u "admin:$ADMIN_PASSWORD" -F file=@file.pdf \
      http://localhost:8000/admin/upload_pdf
 ```
 
-When the frontend container is running, open `https://localhost/admin.html` and log in using the same Basic credentials for a simple upload UI.
+When the frontend container is running, open `https://localhost/admin.html` and
+log in with the same Basic credentials for a simple upload UI. The page now
+matches the main site's styling and provides progress feedback along with any
+error messages while uploading.
 
 ---
 
