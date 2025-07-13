@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Input, Text, VStack } from "@chakra-ui/react";
+import { Button, Input, Text, VStack } from "@chakra-ui/react";
 import { adminUploadPdf } from "../api";
 
 export default function AdminPage() {

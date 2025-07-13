@@ -110,7 +110,7 @@ docker ps
 ## Verifying Service Health
 
 ```powershell
-curl.exe http://localhost:11434/ping
+curl.exe http://localhost:11434/api/ping
 Invoke-RestMethod http://localhost:8000/ping
 ```
 

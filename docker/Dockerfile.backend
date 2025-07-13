@@ -51,3 +51,4 @@ RUN echo "Listing /app contents:" && ls -l /app
 
 ENTRYPOINT ["entrypoint.sh"]
 EXPOSE 8000
+
