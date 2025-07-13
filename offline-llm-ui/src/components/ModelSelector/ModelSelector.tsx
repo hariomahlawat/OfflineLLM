@@ -24,7 +24,7 @@ export function ModelSelector() {
 
   return (
     <FormControl width="auto" display="flex" alignItems="center" mb={0}>
-      <FormLabel htmlFor="model-select" mb="0" fontSize="sm" fontWeight="medium" color="gray.700" pr={2}>
+      <FormLabel htmlFor="model-select" mb="0" fontSize="sm" fontWeight="medium" color="text.secondary" pr={2}>
         Model:
       </FormLabel>
       <Select
@@ -35,8 +35,8 @@ export function ModelSelector() {
         variant="outline"
         borderRadius="md"
         fontSize="sm"
-        bg="gray.50"
-        _focus={{ borderColor: "blue.400" }}
+        bg="bg.muted"
+        _focus={{ borderColor: 'brand.accent' }}
         maxW="140px"
       >
         {models.map((m) => (

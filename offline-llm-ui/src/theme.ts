@@ -6,7 +6,9 @@ const config: ThemeConfig = {
   useSystemColorMode: false,
 }
 
+
 const theme = extendTheme({
+  config,
   colors: {
     brand: {
       50:  '#f0f4ff',
@@ -70,23 +72,31 @@ const theme = extendTheme({
 
   semanticTokens: {
     colors: {
-      'bg.default':    { default: 'brand.900', _dark: 'brand.900' },
-      'bg.surface':    { default: 'brand.800', _dark: 'brand.800' },
-      'bg.muted':      { default: 'gray.700', _dark: 'gray.700' },
+      'brand.bg':        { default: 'brand.50',     _dark: 'gray.900' },
+      'brand.surface':   { default: 'white',        _dark: 'gray.800' },
+      'brand.primary':   { default: 'brand.700',    _dark: 'brand.300' },
+      'brand.secondary': { default: 'secondary.600',_dark: 'secondary.300' },
+      'brand.tertiary':  { default: 'tertiary.600', _dark: 'tertiary.300' },
+      'brand.accent':    { default: 'accent.600',   _dark: 'accent.300' },
+      'spinner.color':   { default: 'accent.500',   _dark: 'accent.300' },
 
-      'text.primary':  { default: 'brand.50',  _dark: 'brand.50'  },
-      'text.secondary':{ default: 'gray.300',  _dark: 'gray.300'  },
-      'text.muted':    { default: 'gray.500',  _dark: 'gray.500'  },
+      'bg.default':      { default: 'brand.bg',     _dark: 'brand.bg' },
+      'bg.surface':      { default: 'brand.surface',_dark: 'brand.surface' },
+      'bg.muted':        { default: 'gray.100',     _dark: 'gray.700' },
 
-      'border.default':{ default: 'gray.600',  _dark: 'gray.600'  },
+      'text.primary':    { default: 'gray.800',     _dark: 'gray.100' },
+      'text.secondary':  { default: 'gray.600',     _dark: 'gray.300' },
+      'text.muted':      { default: 'gray.500',     _dark: 'gray.500' },
 
-      'button.primary.bg':    { default: 'brand.500',   _dark: 'brand.400'   },
-      'button.primary.color': { default: 'white',       _dark: 'white'       },
+      'border.default':  { default: 'gray.300',     _dark: 'gray.600' },
+
+      'button.primary.bg':    { default: 'brand.primary', _dark: 'brand.primary' },
+      'button.primary.color': { default: 'white',         _dark: 'white'         },
 
       'button.secondary.bg':  { default: 'secondary.500', _dark: 'secondary.400' },
-      'button.secondary.color':{ default: 'white',      _dark: 'white'       },
+      'button.secondary.color':{ default: 'white',        _dark: 'white'         },
 
-      'link.color':            { default: 'accent.400',  _dark: 'accent.300'  },
+      'link.color':            { default: 'accent.600',   _dark: 'accent.300'    },
     },
   },
 

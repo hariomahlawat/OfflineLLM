@@ -52,20 +52,20 @@ export default function App() {
             flexDirection="column"
             minH={0}
             overflow="hidden"
-            bg={useColorModeValue("blue.50", "gray.900")}
+            bg="bg.surface"
             borderRightWidth={isStacked ? 0 : 1}
-            borderColor={useColorModeValue("blue.200", "blue.700")}
+            borderColor="border.default"
             boxShadow="md"
           >
             <Box
               px={4}
               py={3}
-              bg={useColorModeValue("blue.100", "gray.700")}
+              bg="bg.muted"
               flexShrink={0}
               borderBottom="1px solid"
-              borderColor={useColorModeValue("blue.100", "gray.700")}
+              borderColor="border.default"
             >
-              <Text fontWeight="bold" color={useColorModeValue("blue.800", "blue.200")}>
+              <Text fontWeight="bold" color="brand.primary">
                 PDF & Knowledgebase Query
               </Text>
             </Box>
@@ -81,8 +81,8 @@ export default function App() {
               cursor="col-resize"
               onMouseDown={startDrag}
               userSelect="none"
-              bg={useColorModeValue("gray.200", "gray.600")}
-              _hover={{ bg: useColorModeValue("gray.300", "gray.500") }}
+              bg="border.default"
+              _hover={{ bg: 'gray.300' }}
             />
           )}
 
@@ -94,17 +94,17 @@ export default function App() {
             flexDirection="column"
             minH={0}
             overflow="hidden"
-            bg={useColorModeValue("white", "gray.800")}
+            bg="brand.surface"
           >
             <Box
               px={4}
               py={3}
-              bg={useColorModeValue("gray.100", "gray.700")}
+              bg="bg.muted"
               flexShrink={0}
               borderBottom="1px solid"
-              borderColor={useColorModeValue("gray.100", "gray.700")}
+              borderColor="border.default"
             >
-              <Text fontWeight="bold" color={useColorModeValue("gray.700", "gray.200")}>
+              <Text fontWeight="bold" color="brand.primary">
                 Chat
               </Text>
             </Box>
@@ -117,9 +117,9 @@ export default function App() {
               position="sticky"
               zIndex={100} flexShrink={0}
               bottom={0}
-              bg={useColorModeValue("white", "gray.800")}
+              bg="brand.surface"
               borderTop="1px solid"
-              borderColor={useColorModeValue("gray.100", "gray.700")}
+              borderColor="border.default"
               px={4}
               py={2}
             >

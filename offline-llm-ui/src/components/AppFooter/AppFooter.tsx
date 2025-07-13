@@ -7,11 +7,11 @@ export function AppFooter() {
       align="center"
       justify="center"
       py={2}
-      bg={useColorModeValue("gray.100", "gray.900")}
+      bg="bg.muted"
       borderTopWidth={1}
-      borderColor={useColorModeValue("gray.200", "gray.700")}
+      borderColor="border.default"
       fontSize="sm"
-      color={useColorModeValue("gray.600", "gray.400")}
+      color="text.secondary"
       w="100%"
       position="sticky"
       bottom={0}

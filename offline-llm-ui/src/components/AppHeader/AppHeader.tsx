@@ -87,7 +87,7 @@ export function AppHeader() {
             boxSize={isMobile ? "26px" : "32px"}
             mr={2}
             borderRadius="md"
-            bg={useColorModeValue("white", "gray.700")}
+            bg="brand.surface"
             p={1}
             boxShadow="sm"
           />
@@ -124,9 +124,9 @@ export function AppHeader() {
         <Flex align="center" gap={3} minW="200px">
           <Box
             border="1px solid"
-            borderColor="gray.200"
+            borderColor="border.default"
             borderRadius="md"
-            bg={useColorModeValue("white", "gray.700")}
+            bg="brand.surface"
             px={2}
             py={0.5}
             boxShadow="xs"
@@ -148,7 +148,7 @@ export function AppHeader() {
               icon={<Icon as={FiMoreVertical} />}
               variant="ghost"
               aria-label="Options"
-              color="gray.300"
+              color="text.secondary"
               _hover={{ color: "white" }}
             />
             <MenuList fontSize="sm">
@@ -165,7 +165,7 @@ export function AppHeader() {
       {/* ═══════════ Model Guide modal ═══════════ */}
       <Modal isOpen={modelModal.isOpen} onClose={modelModal.onClose} size="lg">
         <ModalOverlay />
-        <ModalContent bg={useColorModeValue("white", "#1e1f29")} color={useColorModeValue("gray.800", "gray.200")}>
+        <ModalContent bg="brand.surface" color="text.secondary">
           <ModalHeader>Model selection guide</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -189,7 +189,7 @@ export function AppHeader() {
                 ))}
               </Tbody>
             </Table>
-            <Text mt={3} fontSize="xs" color="gray.400">
+            <Text mt={3} fontSize="xs" color="text.muted">
               Context = prompt + retrieved chunks visible to the model. <br />
               * 70 B model requires ≈ 45 GB RAM (deployment mode).
             </Text>
@@ -200,7 +200,7 @@ export function AppHeader() {
       {/* ═══════════ Prompt Tips modal ═══════════ */}
       <Modal isOpen={promptModal.isOpen} onClose={promptModal.onClose} size="md">
         <ModalOverlay />
-        <ModalContent bg={useColorModeValue("white", "#1e1f29")} color={useColorModeValue("gray.800", "gray.200")}>
+        <ModalContent bg="brand.surface" color="text.secondary">
           <ModalHeader>Prompt quick-reference</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -227,8 +227,8 @@ export function AppHeader() {
       {/* ═══════════ About modal ═══════════ */}
       <Modal isOpen={aboutModal.isOpen} onClose={aboutModal.onClose} size="lg">
         <ModalOverlay />
-        <ModalContent bg={useColorModeValue("white", "#1e1f29")} color={useColorModeValue("gray.800", "gray.200")}>
-          <ModalHeader>About EklavyaAI</ModalHeader>
+        <ModalContent bg="brand.surface" color="text.secondary">
+          <ModalHeader>About EklavyaAI Chat</ModalHeader>
           <ModalCloseButton />
           <ModalBody fontSize="sm" lineHeight={1.55}>
             <Text mb={4}>
@@ -238,7 +238,7 @@ export function AppHeader() {
               <br />
               <br />
               <em>Developed &amp; designed by </em>
-              <Link href="https://github.com/hariomahlawat" isExternal color="teal.300">
+              <Link href="https://github.com/hariomahlawat" isExternal color="link.color">
                 @hariomahlawat
               </Link>
               .

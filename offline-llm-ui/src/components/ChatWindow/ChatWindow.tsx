@@ -5,7 +5,6 @@ import {
   HStack,
   Text,
   Avatar,
-  useColorModeValue,
   Spinner,
 } from "@chakra-ui/react";
 import { useChat } from "../../contexts/ChatContext";
@@ -14,10 +13,10 @@ import { AssistantBubble } from "../AssistantBubble/AssistantBubble";
 
 export function ChatWindow() {
   const { messages, sending } = useChat();
-  const userBg = useColorModeValue("blue.400", "blue.600");
-  const userText = "white";
-  const aiBg = useColorModeValue("gray.100", "gray.700");
-  const aiText = useColorModeValue("gray.900", "white");
+  const userBg = 'brand.primary';
+  const userText = 'white';
+  const aiBg = 'bg.muted';
+  const aiText = 'text.primary';
 
   // Auto-scroll whenever messages list or sending state changes
   const endRef = useRef<HTMLDivElement>(null);
@@ -35,11 +34,11 @@ export function ChatWindow() {
       px={2}
       py={2}
       borderRadius="xl"
-      bg={useColorModeValue("gray.50", "gray.800")}
+      bg="brand.surface"
     >
       {messages.length === 0 && !sending ? (
         <Box flex="1" display="flex" alignItems="center" justifyContent="center" minH={300}>
-          <Text color="gray.400" fontSize="lg" textAlign="center">
+          <Text color="text.muted" fontSize="lg" textAlign="center">
             No messages yet. Start a conversation!
           </Text>
         </Box>
@@ -57,7 +56,7 @@ export function ChatWindow() {
                 <Avatar
                   size="xs"
                   name="AI"
-                  bg="gray.400"
+                  bg="brand.accent"
                   color="white"
                   icon={<span style={{ fontSize: 18 }}>🤖</span>}
                 />
@@ -77,7 +76,7 @@ export function ChatWindow() {
                   fontWeight="bold"
                   opacity={0.8}
                   mb={1}
-                  color={m.from === "user" ? "white" : "blue.700"}
+                  color={m.from === "user" ? "white" : "brand.accent"}
                 >
                   {m.from === "user" ? "You" : "AI"}
                 </Text>
@@ -95,7 +94,7 @@ export function ChatWindow() {
                 <Avatar
                   size="xs"
                   name="You"
-                  bg="blue.500"
+                  bg="brand.primary"
                   color="white"
                   icon={<span style={{ fontSize: 18 }}>🧑</span>}
                 />
@@ -109,7 +108,7 @@ export function ChatWindow() {
               <Avatar
                 size="xs"
                 name="AI"
-                bg="gray.400"
+                bg="brand.accent"
                 color="white"
                 icon={<span style={{ fontSize: 18 }}>🤖</span>}
               />
@@ -123,8 +122,8 @@ export function ChatWindow() {
                 boxShadow="sm"
               >
                 <HStack spacing={2}>
-                  <Spinner size="sm" color="blue.500" />
-                  <Text fontSize="sm" color="gray.400">
+                  <Spinner size="sm" color="spinner.color" />
+                  <Text fontSize="sm" color="text.muted">
                     Waiting for answer…
                   </Text>
                 </HStack>

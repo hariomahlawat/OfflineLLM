@@ -151,12 +151,12 @@ export function DocQaPanel() {
   };
 
   // UI Colors
-  const panelBg = useColorModeValue("gray.50", "gray.900");
-  const chatBg = useColorModeValue("white", "gray.800");
-  const userBubbleBg = useColorModeValue("blue.400", "blue.600");
-  const userBubbleText = "white";
-  const aiBubbleBg = useColorModeValue("gray.100", "gray.700");
-  const aiBubbleText = useColorModeValue("gray.900", "white");
+  const panelBg = 'brand.surface';
+  const chatBg = 'brand.surface';
+  const userBubbleBg = 'brand.primary';
+  const userBubbleText = 'white';
+  const aiBubbleBg = 'bg.muted';
+  const aiBubbleText = 'text.primary';
 
   return (
     <Box
@@ -179,8 +179,8 @@ export function DocQaPanel() {
       <Box
         borderWidth="2px"
         borderStyle="dashed"
-        borderColor={isDragOver ? "blue.400" : "gray.200"}
-        bg={isDragOver ? "blue.50" : undefined}
+        borderColor={isDragOver ? 'brand.accent' : 'border.default'}
+        bg={isDragOver ? 'brand.bg' : undefined}
         borderRadius="xl"
         p={4}
         mt={3}
@@ -199,7 +199,7 @@ export function DocQaPanel() {
         position="relative"
         minH="56px"
       >
-        <AttachmentIcon boxSize={5} color="gray.500" mr={2} />
+        <AttachmentIcon boxSize={5} color="text.secondary" mr={2} />
         <input
           type="file"
           accept="application/pdf"
@@ -247,7 +247,7 @@ export function DocQaPanel() {
         sx={{ scrollbarWidth: "thin" }}
       >
         {chat.length === 0 ? (
-          <Text color="gray.400" textAlign="center" py={10} fontSize="sm">
+          <Text color="text.muted" textAlign="center" py={10} fontSize="sm">
             Ask a question about your uploaded PDF or knowledge base to begin.
           </Text>
         ) : (
@@ -257,7 +257,7 @@ export function DocQaPanel() {
               <HStack justify="flex-end" mb={0.5} spacing={1.5}>
                 <Avatar
                   size="xs"
-                  bg="blue.500"
+                  bg="brand.primary"
                   color="white"
                   name="You"
                   icon={<span role="img" aria-label="user">🧑</span>}
@@ -294,7 +294,7 @@ export function DocQaPanel() {
                     boxShadow="sm"
                     alignSelf="flex-start"
                   >
-                    <Text fontSize="xs" fontWeight="bold" color="blue.600" mb={0.5}>
+                    <Text fontSize="xs" fontWeight="bold" color="brand.accent" mb={0.5}>
                       AI
                     </Text>
                    <Box mb={1} fontSize="sm" color={aiBubbleText}>
@@ -302,8 +302,8 @@ export function DocQaPanel() {
                         <AssistantBubble text={item.answer} color={aiBubbleText} />
                       ) : item.pending ? (
                         <HStack spacing={2}>
-                          <Spinner size="xs" color="blue.500" />
-                          <Text as="span" color="gray.400">Waiting for answer…</Text>
+                          <Spinner size="xs" color="spinner.color" />
+                          <Text as="span" color="text.muted">Waiting for answer…</Text>
                         </HStack>
                       ) : null}
                     </Box>
@@ -312,7 +312,7 @@ export function DocQaPanel() {
                         <Text
                           as="button"
                           fontSize="xs"
-                          color="blue.600"
+                          color="brand.accent"
                           _hover={{ textDecoration: "underline" }}
                           onClick={() => toggleSources(idx)}
                           aria-label={item.showSources ? "Hide sources" : "Show sources"}
@@ -323,7 +323,7 @@ export function DocQaPanel() {
                           <Box mt={1}>
                             <UnorderedList spacing={1} pl={4}>
                               {item.sources?.map((s, i) => (
-                                <ListItem key={i} fontSize="xs" color="blue.800">
+                                <ListItem key={i} fontSize="xs" color="brand.accent">
                                   <AttachmentIcon boxSize={3} mb={-0.5} /> {s}
                                 </ListItem>
                               ))}
@@ -347,7 +347,7 @@ export function DocQaPanel() {
           id="only-doc-switch"
           isChecked={toggleDocOnly}
           onChange={(e) => setToggleDocOnly(e.target.checked)}
-          colorScheme="blue"
+          colorScheme="brand"
           mr={2}
         />
         <FormLabel
@@ -370,7 +370,7 @@ export function DocQaPanel() {
               hasArrow
             >
               <span>
-                <InfoOutlineIcon color="gray.400" />
+                <InfoOutlineIcon color="text.muted" />
               </span>
             </Tooltip>
           </HStack>
@@ -387,8 +387,8 @@ export function DocQaPanel() {
           size="sm"
           borderRadius="xl"
           boxShadow="sm"
-          _focus={{ borderColor: "blue.400", boxShadow: "md" }}
-          bg="gray.50"
+          _focus={{ borderColor: 'brand.accent', boxShadow: 'md' }}
+          bg="bg.muted"
           fontSize="sm"
           flex={1}
           isDisabled={asking}
@@ -399,7 +399,7 @@ export function DocQaPanel() {
         <IconButton
           aria-label="Send"
           icon={asking ? <Spinner size="sm" /> : <ArrowRightIcon />}
-          colorScheme="blue"
+          colorScheme="brand"
           borderRadius="full"
           size="md"
           onClick={onSend}
