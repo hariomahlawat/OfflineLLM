@@ -2,7 +2,7 @@
 // This file is part of the Offline LLM UI project.
 
 import { useState } from "react";
-import { Textarea, IconButton, HStack, useColorModeValue } from "@chakra-ui/react";
+import { Textarea, IconButton, HStack } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import { useChat } from "../../contexts/ChatContext";
 
@@ -32,7 +32,7 @@ export default function ChatInput() {
         placeholder="Type your message…"
         onKeyDown={onKeyDown}
         borderRadius="xl"
-        bg={useColorModeValue("gray.50", "gray.700")}
+        bg="bg.muted"
         size="sm"
         boxShadow="sm"
         flex={1}
@@ -45,7 +45,7 @@ export default function ChatInput() {
       <IconButton
         aria-label="Send"
         icon={<ArrowRightIcon />}
-        colorScheme="blue"
+        colorScheme="brand"
         borderRadius="full"
         size="md"
         onClick={onSend}

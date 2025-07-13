@@ -52,20 +52,20 @@ export default function App() {
             flexDirection="column"
             minH={0}
             overflow="hidden"
-            bg="blue.50"
+            bg="bg.surface"
             borderRightWidth={isStacked ? 0 : 1}
-            borderColor="blue.200"
+            borderColor="border.default"
             boxShadow="md"
           >
             <Box
               px={4}
               py={3}
-              bg="blue.100"
+              bg="bg.muted"
               flexShrink={0}
               borderBottom="1px solid"
-              borderColor="blue.100"
+              borderColor="border.default"
             >
-              <Text fontWeight="bold" color="blue.800">
+              <Text fontWeight="bold" color="brand.primary">
                 PDF & Knowledgebase Query
               </Text>
             </Box>
@@ -81,8 +81,8 @@ export default function App() {
               cursor="col-resize"
               onMouseDown={startDrag}
               userSelect="none"
-              bg="gray.200"
-              _hover={{ bg: "gray.300" }}
+              bg="border.default"
+              _hover={{ bg: 'gray.300' }}
             />
           )}
 
@@ -94,17 +94,17 @@ export default function App() {
             flexDirection="column"
             minH={0}
             overflow="hidden"
-            bg="white"
+            bg="brand.surface"
           >
             <Box
               px={4}
               py={3}
-              bg="gray.100"
+              bg="bg.muted"
               flexShrink={0}
               borderBottom="1px solid"
-              borderColor="gray.100"
+              borderColor="border.default"
             >
-              <Text fontWeight="bold" color="gray.700">
+              <Text fontWeight="bold" color="brand.primary">
                 Chat
               </Text>
             </Box>
@@ -117,9 +117,9 @@ export default function App() {
               position="sticky"
               zIndex={100} flexShrink={0}
               bottom={0}
-              bg="white"
+              bg="brand.surface"
               borderTop="1px solid"
-              borderColor="gray.100"
+              borderColor="border.default"
               px={4}
               py={2}
             >
