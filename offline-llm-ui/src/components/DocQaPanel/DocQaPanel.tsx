@@ -10,7 +10,6 @@ import {
   UnorderedList,
   ListItem,
   Collapse,
-  useColorModeValue,
   Tooltip,
   FormControl,
   FormLabel,
@@ -20,8 +19,6 @@ import {
   AttachmentIcon,
   ArrowRightIcon,
   InfoOutlineIcon,
-  CheckCircleIcon,
-  CloseIcon,
 } from "@chakra-ui/icons";
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../contexts/ChatContext";
@@ -34,7 +31,6 @@ export function DocQaPanel() {
 
   // File upload
   const [hasUploadedPdf, setHasUploadedPdf] = useState(false);
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   // Drag-over effect
@@ -63,27 +59,25 @@ export function DocQaPanel() {
   }, [chat]);
 
   // File upload handler
-  const onFileChange = async (e: any) => {
-    const f = e.target.files?.[0] || (e.dataTransfer && e.dataTransfer.files[0]);
+  const onFileChange = async (
+    e: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLDivElement>
+  ) => {
+    const f = 'dataTransfer' in e ? e.dataTransfer.files[0] : e.target.files?.[0];
     if (!f) return;
     setUploading(true);
     try {
       const resp = await uploadPdf(sessionId, f);
-      toast({ status: "success", description: `Indexed ${resp.chunks_indexed} chunks` });
+      toast({ status: 'success', description: `Indexed ${resp.chunks_indexed} chunks` });
       setHasUploadedPdf(true);
-      setUploadedFileName(f.name);
     } catch (err: any) {
-      toast({ status: "error", description: err.message });
+      toast({ status: 'error', description: err.message });
     } finally {
       setUploading(false);
       setIsDragOver(false);
+      if ('target' in e) {
+        (e.target as HTMLInputElement).value = '';
+      }
     }
-  };
-
-  // Remove PDF
-  const onRemovePdf = () => {
-    setHasUploadedPdf(false);
-    setUploadedFileName(null);
   };
 
   // Send question handler
@@ -175,62 +169,6 @@ export function DocQaPanel() {
       borderLeftStyle="solid"
       borderLeftColor="brand.accent"
     >
-      {/* File Upload */}
-      <Box
-        borderWidth="2px"
-        borderStyle="dashed"
-        borderColor={isDragOver ? 'brand.accent' : 'border.default'}
-        bg={isDragOver ? 'brand.bg' : undefined}
-        borderRadius="xl"
-        p={4}
-        mt={3}
-        mb={2}
-        textAlign="center"
-        cursor="pointer"
-        onClick={() => document.getElementById("doc-upload")?.click()}
-        onDragEnter={e => { e.preventDefault(); setIsDragOver(true); }}
-        onDragLeave={e => { e.preventDefault(); setIsDragOver(false); }}
-        onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
-        onDrop={e => { e.preventDefault(); setIsDragOver(false); onFileChange(e); }}
-        transition="all 0.2s"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        position="relative"
-        minH="56px"
-      >
-        <AttachmentIcon boxSize={5} color="text.secondary" mr={2} />
-        <input
-          type="file"
-          accept="application/pdf"
-          id="doc-upload"
-          style={{ display: "none" }}
-          onChange={onFileChange}
-        />
-        {uploading ? (
-          <Text fontWeight="medium">Uploading...</Text>
-        ) : hasUploadedPdf && uploadedFileName ? (
-          <HStack spacing={2} justify="center" align="center">
-            <Text fontWeight="medium" color="green.600" isTruncated maxW="180px" fontSize="sm">
-              {uploadedFileName}
-            </Text>
-            <CheckCircleIcon color="green.400" />
-            <IconButton
-              aria-label="Remove PDF"
-              icon={<CloseIcon fontSize="xs" />}
-              size="xs"
-              colorScheme="gray"
-              variant="ghost"
-              onClick={e => { e.stopPropagation(); onRemovePdf(); }}
-            />
-          </HStack>
-        ) : (
-          <Text fontWeight="medium" fontSize="sm">
-            Click or drag PDF here to upload
-          </Text>
-        )}
-      </Box>
-
       {/* Chat history */}
       <Box
         flex="1"
@@ -379,22 +317,49 @@ export function DocQaPanel() {
 
       {/* Controls */}
       <HStack spacing={2} mb={3} px={2} align="end">
-        <Textarea
-          placeholder="Query PDF or organisation knowledge base…"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={onKeyDown}
-          size="sm"
-          borderRadius="xl"
-          boxShadow="sm"
-          _focus={{ borderColor: 'brand.accent', boxShadow: 'md' }}
-          bg="bg.muted"
-          fontSize="sm"
+        <Box
           flex={1}
-          isDisabled={asking}
-          resize="vertical"
-          minH="80px"
-          maxH="120px"
+          onDragEnter={(e) => { e.preventDefault(); setIsDragOver(true); }}
+          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setIsDragOver(false); }}
+          onDrop={(e) => { e.preventDefault(); setIsDragOver(false); onFileChange(e); }}
+        >
+          <Textarea
+            placeholder="Query PDF or organisation knowledge base…"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={onKeyDown}
+            size="sm"
+            borderRadius="xl"
+            boxShadow="sm"
+            _focus={{ borderColor: 'brand.accent', boxShadow: 'md' }}
+            bg="bg.muted"
+            fontSize="sm"
+            borderColor={isDragOver ? 'brand.accent' : undefined}
+            borderWidth={isDragOver ? '2px' : undefined}
+            isDisabled={asking}
+            resize="vertical"
+            minH="80px"
+            maxH="120px"
+          />
+        </Box>
+        <input
+          type="file"
+          accept="application/pdf"
+          id="doc-upload"
+          style={{ display: 'none' }}
+          onChange={onFileChange}
+        />
+        <IconButton
+          aria-label="Attach PDF"
+          icon={<AttachmentIcon color={hasUploadedPdf ? 'green.400' : undefined} />}
+          variant="ghost"
+          colorScheme="brand"
+          borderRadius="full"
+          size="md"
+          onClick={() => document.getElementById('doc-upload')?.click()}
+          isLoading={uploading}
+          alignSelf="end"
         />
         <IconButton
           aria-label="Send"
@@ -403,7 +368,7 @@ export function DocQaPanel() {
           borderRadius="full"
           size="md"
           onClick={onSend}
-          isDisabled={asking || !question.trim()}
+          isDisabled={asking || uploading || !question.trim()}
           boxShadow="md"
           alignSelf="end"
         />
