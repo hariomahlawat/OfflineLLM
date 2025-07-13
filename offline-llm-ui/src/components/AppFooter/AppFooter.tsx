@@ -1,4 +1,4 @@
-import { Flex } from "@chakra-ui/react";
+import { Flex, useColorModeValue } from "@chakra-ui/react";
 
 export function AppFooter() {
   return (
@@ -7,17 +7,17 @@ export function AppFooter() {
       align="center"
       justify="center"
       py={2}
-      bg="gray.100"
+      bg={useColorModeValue("gray.100", "gray.900")}
       borderTopWidth={1}
-      borderColor="gray.200"
+      borderColor={useColorModeValue("gray.200", "gray.700")}
       fontSize="sm"
-      color="gray.600"
+      color={useColorModeValue("gray.600", "gray.400")}
       w="100%"
       position="sticky"
       bottom={0}
       zIndex={10} // keep above any content scrollbars
     >
-      © {new Date().getFullYear()} EklavyaAI Chat · Simulator Development Division (Devp and Designed by @hariomahlawat)
+      © {new Date().getFullYear()} EklavyaAI · Simulator Development Division (Devp and Designed by @hariomahlawat)
     </Flex>
   );
 }

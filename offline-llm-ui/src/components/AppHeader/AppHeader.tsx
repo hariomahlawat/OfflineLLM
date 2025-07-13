@@ -25,7 +25,10 @@ import {
   Td,
   Icon,
   Link,
+  useColorMode,
+  useColorModeValue,
 } from "@chakra-ui/react";
+import { SunIcon, MoonIcon } from "@chakra-ui/icons";
 import { FiMoreVertical } from "react-icons/fi";
 import { ModelSelector } from "../ModelSelector/ModelSelector";
 
@@ -44,11 +47,12 @@ const promptTips = [
 ];
 
 export function AppHeader() {
+  const { colorMode, toggleColorMode } = useColorMode()
   /* palette */
-  const matteBg = 'brand.bg';
-  const orgColor = 'brand.primary';
-  const mainHeadingColor = 'brand.secondary';
-  const subtitleColor = 'brand.tertiary';
+  const matteBg = useColorModeValue("gray.100", "#22232b");
+  const orgColor = useColorModeValue("gray.700", "#e8eaf3");
+  const mainHeadingColor = useColorModeValue("blue.600", "#ffe3a3");
+  const subtitleColor = useColorModeValue("gray.500", "#b8bdc9");
 
   const isMobile = useBreakpointValue({ base: true, md: false });
 
@@ -67,7 +71,7 @@ export function AppHeader() {
         py={{ base: 1.5, md: 2 }}
         bg={matteBg}
         borderBottomWidth={1}
-        borderColor="brand.surface"
+        borderColor={useColorModeValue("gray.200", "#232436")}
         position="sticky"
         top={0}
         zIndex={20}
@@ -83,7 +87,7 @@ export function AppHeader() {
             boxSize={isMobile ? "26px" : "32px"}
             mr={2}
             borderRadius="md"
-            bg="white"
+            bg={useColorModeValue("white", "gray.700")}
             p={1}
             boxShadow="sm"
           />
@@ -122,13 +126,21 @@ export function AppHeader() {
             border="1px solid"
             borderColor="gray.200"
             borderRadius="md"
-            bg="white"
+            bg={useColorModeValue("white", "gray.700")}
             px={2}
             py={0.5}
             boxShadow="xs"
           >
             <ModelSelector />
           </Box>
+
+          <IconButton
+            aria-label="Toggle color mode"
+            icon={colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+            variant="ghost"
+            onClick={toggleColorMode}
+          />
+
 
           <Menu>
             <MenuButton
@@ -153,7 +165,7 @@ export function AppHeader() {
       {/* ═══════════ Model Guide modal ═══════════ */}
       <Modal isOpen={modelModal.isOpen} onClose={modelModal.onClose} size="lg">
         <ModalOverlay />
-        <ModalContent bg="brand.surface" color="gray.200">
+        <ModalContent bg={useColorModeValue("white", "#1e1f29")} color={useColorModeValue("gray.800", "gray.200")}>
           <ModalHeader>Model selection guide</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -188,7 +200,7 @@ export function AppHeader() {
       {/* ═══════════ Prompt Tips modal ═══════════ */}
       <Modal isOpen={promptModal.isOpen} onClose={promptModal.onClose} size="md">
         <ModalOverlay />
-        <ModalContent bg="brand.surface" color="gray.200">
+        <ModalContent bg={useColorModeValue("white", "#1e1f29")} color={useColorModeValue("gray.800", "gray.200")}>
           <ModalHeader>Prompt quick-reference</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -215,8 +227,8 @@ export function AppHeader() {
       {/* ═══════════ About modal ═══════════ */}
       <Modal isOpen={aboutModal.isOpen} onClose={aboutModal.onClose} size="lg">
         <ModalOverlay />
-        <ModalContent bg="brand.surface" color="gray.200">
-          <ModalHeader>About EklavyaAI Chat</ModalHeader>
+        <ModalContent bg={useColorModeValue("white", "#1e1f29")} color={useColorModeValue("gray.800", "gray.200")}>
+          <ModalHeader>About EklavyaAI</ModalHeader>
           <ModalCloseButton />
           <ModalBody fontSize="sm" lineHeight={1.55}>
             <Text mb={4}>

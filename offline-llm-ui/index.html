@@ -8,6 +8,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        const mode = localStorage.getItem('chakra-ui-color-mode');
+        if (mode) document.documentElement.classList.add('chakra-ui-' + mode);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 // src/App.tsx
 
 import { useState } from "react";
-import { Box, Text, useBreakpointValue } from "@chakra-ui/react";
+import { Box, Text, useBreakpointValue, useColorModeValue } from "@chakra-ui/react";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
@@ -52,20 +52,20 @@ export default function App() {
             flexDirection="column"
             minH={0}
             overflow="hidden"
-            bg="blue.50"
+            bg={useColorModeValue("blue.50", "gray.900")}
             borderRightWidth={isStacked ? 0 : 1}
-            borderColor="blue.200"
+            borderColor={useColorModeValue("blue.200", "blue.700")}
             boxShadow="md"
           >
             <Box
               px={4}
               py={3}
-              bg="blue.100"
+              bg={useColorModeValue("blue.100", "gray.700")}
               flexShrink={0}
               borderBottom="1px solid"
-              borderColor="blue.100"
+              borderColor={useColorModeValue("blue.100", "gray.700")}
             >
-              <Text fontWeight="bold" color="blue.800">
+              <Text fontWeight="bold" color={useColorModeValue("blue.800", "blue.200")}>
                 PDF & Knowledgebase Query
               </Text>
             </Box>
@@ -81,8 +81,8 @@ export default function App() {
               cursor="col-resize"
               onMouseDown={startDrag}
               userSelect="none"
-              bg="gray.200"
-              _hover={{ bg: "gray.300" }}
+              bg={useColorModeValue("gray.200", "gray.600")}
+              _hover={{ bg: useColorModeValue("gray.300", "gray.500") }}
             />
           )}
 
@@ -94,17 +94,17 @@ export default function App() {
             flexDirection="column"
             minH={0}
             overflow="hidden"
-            bg="white"
+            bg={useColorModeValue("white", "gray.800")}
           >
             <Box
               px={4}
               py={3}
-              bg="gray.100"
+              bg={useColorModeValue("gray.100", "gray.700")}
               flexShrink={0}
               borderBottom="1px solid"
-              borderColor="gray.100"
+              borderColor={useColorModeValue("gray.100", "gray.700")}
             >
-              <Text fontWeight="bold" color="gray.700">
+              <Text fontWeight="bold" color={useColorModeValue("gray.700", "gray.200")}>
                 Chat
               </Text>
             </Box>
@@ -117,9 +117,9 @@ export default function App() {
               position="sticky"
               zIndex={100} flexShrink={0}
               bottom={0}
-              bg="white"
+              bg={useColorModeValue("white", "gray.800")}
               borderTop="1px solid"
-              borderColor="gray.100"
+              borderColor={useColorModeValue("gray.100", "gray.700")}
               px={4}
               py={2}
             >
