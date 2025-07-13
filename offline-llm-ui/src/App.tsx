@@ -58,8 +58,8 @@ export default function App() {
             boxShadow="md"
           >
             <Box
-              px={4}
-              py={3}
+              px={5}
+              py={0}
               bg="bg.muted"
               flexShrink={0}
               borderBottom="1px solid"
@@ -77,7 +77,7 @@ export default function App() {
           {/* GUTTER */}
           {!isStacked && (
             <Box
-              w="8px"
+              w="4px"
               cursor="col-resize"
               onMouseDown={startDrag}
               userSelect="none"
@@ -97,8 +97,8 @@ export default function App() {
             bg="brand.surface"
           >
             <Box
-              px={4}
-              py={3}
+              px={5}
+              py={0}
               bg="bg.muted"
               flexShrink={0}
               borderBottom="1px solid"
