@@ -201,10 +201,16 @@ async def doc_qa(req: QARequest):
     ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
     prompt = (
-        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+        "You are EklavyaAI Mentor, a helpful assistant that answers by combining your knowledge with the provided document snippets.\n"
+        "Always reference facts only if they appear in the context.\n"
         "Answer in English. If unsure, say 'I don't know.'\n\n"
         f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
     )
+    # prompt = (
+    #     "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+    #     "Answer in English. If unsure, say 'I don't know.'\n\n"
+    #     f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
+    # )
 
     raw    = safe_chat(model=model, messages=[{"role":"system","content":prompt}], stream=False)
     answer = finalize_ollama_chat(raw)["message"]["content"]
@@ -315,10 +321,16 @@ async def session_qa(req: SessionQARequest):
     ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
     prompt = (
-        "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+        "You are EklavyaAI Mentor, a helpful assistant that answers by combining your knowledge with the provided document snippets.\n"
+        "Always reference facts only if they appear in the context.\n"
         "Answer in English. If unsure, say 'I don't know.'\n\n"
         f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
     )
+    # prompt = (
+    #     "You are a helpful assistant. Answer ONLY from the CONTEXT.\n"
+    #     "Answer in English. If unsure, say 'I don't know.'\n\n"
+    #     f"CONTEXT:\n{ctx}\n\nQUESTION: {req.question}\nANSWER:"
+    # )
 
     raw    = safe_chat(model=model, messages=[{"role":"system","content":prompt}], stream=False)
     answer = finalize_ollama_chat(raw)["message"]["content"]

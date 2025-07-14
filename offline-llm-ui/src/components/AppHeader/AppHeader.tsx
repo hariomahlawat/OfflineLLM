@@ -155,7 +155,7 @@ export function AppHeader() {
               <MenuItem onClick={modelModal.onOpen}>Model guide</MenuItem>
               <MenuItem onClick={promptModal.onOpen}>Prompt tips</MenuItem>
               <MenuItem onClick={aboutModal.onOpen}>About this app</MenuItem>
-              <MenuItem as={Link} href="/admin.html">Admin Panel</MenuItem>
+              <MenuItem as={Link} href="/admin">Admin Panel</MenuItem>
 
             </MenuList>
           </Menu>
