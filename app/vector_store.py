@@ -48,6 +48,7 @@ persistent_store: Chroma = Chroma(
     client=_persist_cli,
     collection_name="persistent_docs",
     embedding_function=EMBEDDINGS,
+    persist_directory=str(PERSIST_PATH),
 )
 
 
@@ -61,6 +62,7 @@ def new_persistent_store() -> Chroma:
         client=cli,
         collection_name="persistent_docs",
         embedding_function=EMBEDDINGS,
+        persist_directory=str(PERSIST_PATH),
     )
 
 

@@ -35,9 +35,13 @@ def _index_file(pdf_path: Path) -> None:
         c.metadata["indexed_at"] = datetime.utcnow().isoformat()
     try:
         store.add_documents(chunks)
-        store.persist()
         dur = time.perf_counter() - start
-        log.info("✅  stored %d chunks for %s in %.2fs", len(chunks), pdf_path.name, dur)
+        log.info(
+            "✅  stored %d chunks for %s in %.2fs",
+            len(chunks),
+            pdf_path.name,
+            dur,
+        )
     except ValueError as exc:
         log.error("❌  failed to store embeddings for %s: %s", pdf_path.name, exc)
     finally:
