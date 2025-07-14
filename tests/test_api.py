@@ -1,5 +1,6 @@
 import sys, types
 from pathlib import Path
+import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # ---- stub modules for dependencies ----
@@ -142,3 +143,12 @@ def test_doc_qa(monkeypatch):
         "answer": "ans",
         "sources": [{"page_number": None, "snippet": "c1"}],
     }
+
+
+def test_parse_dynamic_k_factor():
+    assert api._parse_dynamic_k_factor(None) == 0
+    assert api._parse_dynamic_k_factor("0") == 0
+    assert api._parse_dynamic_k_factor("-2") == 0
+    assert api._parse_dynamic_k_factor("3") == 3
+    with pytest.raises(ValueError):
+        api._parse_dynamic_k_factor("bad")
