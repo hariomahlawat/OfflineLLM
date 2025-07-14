@@ -51,6 +51,19 @@ persistent_store: Chroma = Chroma(
 )
 
 
+def new_persistent_store() -> Chroma:
+    """Return a fresh Chroma handle for the persistent collection."""
+    cli = chromadb.PersistentClient(
+        path=str(PERSIST_PATH),
+        settings=Settings(allow_reset=False, anonymized_telemetry=False),
+    )
+    return Chroma(
+        client=cli,
+        collection_name="persistent_docs",
+        embedding_function=EMBEDDINGS,
+    )
+
+
 def persist_has_source(src: str) -> bool:
     """Return *True* if the given PDF (metadata 'source_file') is already in the
     permanent collection – used during boot to avoid double-ingest."""
