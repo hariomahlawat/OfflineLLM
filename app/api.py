@@ -40,7 +40,24 @@ security = HTTPBasic()
 # retrieval tuning
 SEARCH_TOP_K        = int(os.getenv("RAG_SEARCH_TOP_K", 10))
 USE_MMR             = os.getenv("RAG_USE_MMR", "0") == "1"
-DYNAMIC_K_FACTOR    = int(os.getenv("RAG_DYNAMIC_K_FACTOR", 0))
+
+
+def _parse_dynamic_k_factor(val: str | None) -> int:
+    """Return positive integer value or 0 if disabled.
+
+    Raises ValueError if the env var cannot be parsed as an integer."""
+    if val is None or val == "":
+        return 0
+    try:
+        parsed = int(val)
+    except ValueError:
+        raise ValueError("RAG_DYNAMIC_K_FACTOR must be an integer") from None
+    if parsed <= 0:
+        return 0
+    return parsed
+
+
+DYNAMIC_K_FACTOR    = _parse_dynamic_k_factor(os.getenv("RAG_DYNAMIC_K_FACTOR"))
 
 log = logging.getLogger("api")
 log.setLevel(logging.INFO)
@@ -133,6 +150,7 @@ from app.vector_store   import (
 from app.rerank         import rerank
 from app.chat           import chat as chat_fn, new_session_id, safe_chat
 from app.ollama_utils   import finalize_ollama_chat
+from app.tokenizer      import count_tokens
 
 _SESSIONS       : Dict[str, object]   = {}
 _SESSIONS_TOUCH : Dict[str, datetime] = {}
@@ -142,7 +160,7 @@ def _calc_top_k(question: str) -> int:
     """Return retrieval K, optionally increased for longer questions."""
     base = SEARCH_TOP_K
     if DYNAMIC_K_FACTOR:
-        base += len(question.split()) // DYNAMIC_K_FACTOR
+        base += count_tokens(question) // DYNAMIC_K_FACTOR
     return base
 
 async def _touch_sid(sid: str) -> None:

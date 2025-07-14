@@ -16,6 +16,7 @@
 - **Cross‑platform** – Develop on Windows 11, deploy on Linux server or WSL2.
 - **Model listing** – `/models` enumerates available local LLMs.
 - **Session‑based uploads + QA** – Upload a PDF via `/upload_pdf`, then query it with `/session_qa`.
+- **Dynamic retrieval** – Number of retrieved chunks scales with question length (token based).
 
 ---
 
@@ -113,6 +114,18 @@ to build the React frontend with `npm run build` so that the compiled
 `admin.html` and assets exist under `offline-llm-ui/dist`. Otherwise visiting
 `/admin` will display a blank page. Running the `frontend` container handles the
 build automatically.
+
+## 🔎 Dynamic retrieval depth
+
+Set `RAG_DYNAMIC_K_FACTOR` in the backend service to automatically increase the
+number of retrieved chunks for longer questions. The value represents the number
+of words per extra chunk. For example:
+
+```bash
+RAG_DYNAMIC_K_FACTOR=20  # adds one result for every 20 words
+```
+
+The default is `0`, which disables this behavior entirely.
 
 ---
 

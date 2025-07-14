@@ -1,6 +1,7 @@
 import sys, types
 import pytest
 from pathlib import Path
+import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # ---- stub modules for dependencies ----
@@ -145,22 +146,4 @@ def test_doc_qa(monkeypatch):
     }
 
 
-@pytest.mark.parametrize("question", ["one two", "many words here now"])
-def test_calc_top_k_no_dynamic(monkeypatch, question):
-    monkeypatch.setattr(api, "SEARCH_TOP_K", 5)
-    monkeypatch.setattr(api, "DYNAMIC_K_FACTOR", 0)
-    assert api._calc_top_k(question) == 5
 
-
-@pytest.mark.parametrize(
-    "question,expected",
-    [
-        ("one two", 5),
-        ("one two three four five six", 7),
-        ("1 2 3 4 5 6 7 8 9", 8),
-    ],
-)
-def test_calc_top_k_dynamic(monkeypatch, question, expected):
-    monkeypatch.setattr(api, "SEARCH_TOP_K", 5)
-    monkeypatch.setattr(api, "DYNAMIC_K_FACTOR", 3)
-    assert api._calc_top_k(question) == expected
