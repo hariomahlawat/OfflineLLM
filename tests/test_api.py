@@ -138,4 +138,7 @@ def test_doc_qa(monkeypatch):
     client = TestClient(api.app)
     resp = client.post("/doc_qa", json={"question": "hi"})
     assert resp.status_code == 200
-    assert resp.json() == {"answer": "ans", "sources": ["c1"]}
+    assert resp.json() == {
+        "answer": "ans",
+        "sources": [{"page_number": None, "snippet": "c1"}],
+    }
