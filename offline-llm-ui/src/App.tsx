@@ -106,7 +106,7 @@ export default function App() {
             width={showLeft ? (showRight ? `${leftPct}%` : '100%') : '0%'}
             flex={showLeft ? (showRight ? '0 0 auto' : '1') : '0 0 0%'}
             minW={showLeft ? '240px' : '0'}
-            maxW="82vw"
+            maxW={showRight ? "82vw" : "100vw"}
             display="flex"
             flexDirection="column"
             minH={0}
