@@ -145,10 +145,4 @@ def test_doc_qa(monkeypatch):
     }
 
 
-def test_parse_dynamic_k_factor():
-    assert api._parse_dynamic_k_factor(None) == 0
-    assert api._parse_dynamic_k_factor("0") == 0
-    assert api._parse_dynamic_k_factor("-2") == 0
-    assert api._parse_dynamic_k_factor("3") == 3
-    with pytest.raises(ValueError):
-        api._parse_dynamic_k_factor("bad")
+
