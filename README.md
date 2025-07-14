@@ -108,6 +108,12 @@ log in with the same Basic credentials for a simple upload UI. The page now
 matches the main site's styling and provides progress feedback along with any
 error messages while uploading.
 
+If you serve the backend directly (e.g. `uvicorn` during development) make sure
+to build the React frontend with `npm run build` so that the compiled
+`admin.html` and assets exist under `offline-llm-ui/dist`. Otherwise visiting
+`/admin` will display a blank page. Running the `frontend` container handles the
+build automatically.
+
 ---
 
 ## 📚 Docs
