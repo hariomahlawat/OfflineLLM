@@ -25,6 +25,7 @@ import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../contexts/ChatContext";
 import { uploadPdf, sessionQA, docQa, type SourceChunk } from "../../api";
 import { AssistantBubble } from "../AssistantBubble/AssistantBubble";
+import { FOOTER_HEIGHT } from "../../constants";
 
 export function DocQaPanel() {
   const toast = useToast();
@@ -355,7 +356,19 @@ export function DocQaPanel() {
       </FormControl>
 
       {/* Controls */}
-      <HStack spacing={2} mb={3} px={2} align="end">
+      <HStack
+        spacing={2}
+        mt={2}
+        px={2}
+        py={2}
+        align="end"
+        position="sticky"
+        bottom={FOOTER_HEIGHT}
+        bg={panelBg}
+        borderTop="1px solid"
+        borderColor="border.default"
+        zIndex={1}
+      >
         <Box
           flex={1}
           onDragEnter={(e) => { e.preventDefault(); setIsDragOver(true); }}

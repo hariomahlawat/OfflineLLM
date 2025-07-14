@@ -2,6 +2,7 @@
 // This file is part of the Offline LLM UI project.
 
 import { useState } from "react";
+import { FOOTER_HEIGHT } from "../../constants";
 import { Textarea, IconButton, HStack } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import { useChat } from "../../contexts/ChatContext";
@@ -25,7 +26,18 @@ export default function ChatInput() {
   };
 
   return (
-    <HStack spacing={2} px={2} pb={2} align="end"  position="sticky" bottom={0} zIndex={10}>
+    <HStack
+      spacing={2}
+      px={2}
+      py={2}
+      align="end"
+      position="sticky"
+      bottom={FOOTER_HEIGHT}
+      bg="brand.surface"
+      borderTop="1px solid"
+      borderColor="border.default"
+      zIndex={10}
+    >
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
