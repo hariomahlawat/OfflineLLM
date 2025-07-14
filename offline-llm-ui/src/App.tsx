@@ -1,7 +1,19 @@
 // src/App.tsx
 
 import { useState } from "react";
-import { Box, Text, useBreakpointValue, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  HStack,
+  Tooltip,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  useBreakpointValue,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import { InfoOutlineIcon } from "@chakra-ui/icons";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
@@ -65,9 +77,23 @@ export default function App() {
               borderBottom="1px solid"
               borderColor="border.default"
             >
-              <Text fontWeight="bold" color="brand.primary">
-                PDF & Knowledgebase Query
-              </Text>
+              <HStack spacing={2}>
+                <Text fontWeight="bold" color="brand.primary">
+                  PDF & Knowledgebase Query
+                </Text>
+                <Popover placement="right-start">
+                  <PopoverTrigger>
+                    <Box as="button" aria-label="Info">
+                      <InfoOutlineIcon color="text.muted" />
+                    </Box>
+                  </PopoverTrigger>
+                  <PopoverContent w="xs" fontSize="sm">
+                    <PopoverBody>
+                      Upload a PDF or query the organisation's knowledge base. Self-hosted RAG: PDF ingestion → Chroma vector store → cross-encoder re-rank → Ollama LLM.
+                    </PopoverBody>
+                  </PopoverContent>
+                </Popover>
+              </HStack>
             </Box>
             <Box flex="1" minH={0} overflowY="auto">
               <DocQaPanel />
@@ -104,9 +130,21 @@ export default function App() {
               borderBottom="1px solid"
               borderColor="border.default"
             >
-              <Text fontWeight="bold" color="brand.primary">
-                Chat
-              </Text>
+              <HStack spacing={2}>
+                <Text fontWeight="bold" color="brand.primary">
+                  Chat
+                </Text>
+                <Tooltip
+                  label="Free-form conversation with memory using the selected model."
+                  fontSize="sm"
+                  placement="right"
+                  hasArrow
+                >
+                  <span>
+                    <InfoOutlineIcon color="text.muted" />
+                  </span>
+                </Tooltip>
+              </HStack>
             </Box>
 
             <Box flex="1" minH={0} overflowY="auto">
