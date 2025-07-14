@@ -33,18 +33,62 @@ import { FiMoreVertical } from "react-icons/fi";
 import { ModelSelector } from "../ModelSelector/ModelSelector";
 
 /* ────────────────────────── static cheat-sheets ─────────────────────────── */
-const modelTable = [
-  ["Mistral-7B v0.3", "Feb 2025", "32 K", "Highest accuracy & citations"],
-  ["Phi-3 3.8 B", "Oct 2024", "128 K", "Fast, low RAM"],
-  ["Llama-3 8 B", "Jan 2024", "128 K", "Very long docs, creative"],
-  ["Llama-3 70 B*", "Jan 2024", "128 K", "Deep reasoning (≈45 GB)"], // new row
+// src/constants.ts
+
+export const modelTable = [
+  [
+    "llama3:8b-instruct-q3_K_L",
+    "4.3 GB (8 B params, Q3)",
+    "≥ 7 GB VRAM",
+    "Lightweight instruction following and chat on low-RAM GPUs"
+  ],
+  [
+    "llama3:8b-instruct-q4_K_M",
+    "4.9 GB (8 B params, Q4)",
+    "≥ 9 GB VRAM",
+    "Higher-fidelity summarization & reasoning with modest memory cost"
+  ],
+  [
+    "codellama:7b",
+    "3.8 GB (7 B code-fine-tuned)",
+    "≥ 6 GB VRAM",
+    "Python/JS completion, refactoring, and code explanations"
+  ],
+  [
+    "deepseek-r1:latest",
+    "5.2 GB (retrieval-aware)",
+    "≥ 8 GB VRAM",
+    "Fast semantic search & Q-A over large document collections"
+  ],
+  [
+    "mistral:latest",
+    "4.1 GB (7 B)",
+    "≥ 7 GB VRAM",
+    "General chat, compact reasoning, and multilingual dialogue"
+  ],
+  [
+    "qwen2.5-coder:7b",
+    "4.7 GB (7 B code-specialized)",
+    "≥ 8 GB VRAM",
+    "Multilingual code generation and comment synthesis"
+  ],
 ];
 
-const promptTips = [
-  ["System", 'You are a factual assistant. If unsure, say “I don’t know.”'],
-  ["RAG ask", "Answer from CONTEXT only and cite file+page."],
-  ["Long docs", "Summarise each section in ≤ 120 words before full answer."],
+export const promptTips = [
+  [
+    "Grammar / Clarity Pass",
+    `“Please act as an editor. Rewrite the following text to improve grammar, brevity, and flow while preserving its meaning.”`
+  ],
+  [
+    "Draft a Technical Paper",
+    `“You are a technical writer. Structure your response as a paper with Abstract, Introduction, Methodology, Results, and Conclusion. Use IEEE citation style where sources are provided.”`
+  ],
+  [
+    "Govt Ruling / Guideline Search",
+    `“Search only official government gazettes, circulars, or statutory guidelines. Answer with the exact clause number and publication date. If no authoritative source is found, respond with ‘No official ruling found.’”`
+  ],
 ];
+
 
 export function AppHeader() {
   const { colorMode, toggleColorMode } = useColorMode()
@@ -163,7 +207,7 @@ export function AppHeader() {
       </Flex>
 
       {/* ═══════════ Model Guide modal ═══════════ */}
-      <Modal isOpen={modelModal.isOpen} onClose={modelModal.onClose} size="lg">
+      <Modal isOpen={modelModal.isOpen} onClose={modelModal.onClose} size="xlg">
         <ModalOverlay />
         <ModalContent bg="brand.surface" color="text.secondary">
           <ModalHeader>Model selection guide</ModalHeader>
@@ -198,7 +242,7 @@ export function AppHeader() {
       </Modal>
 
       {/* ═══════════ Prompt Tips modal ═══════════ */}
-      <Modal isOpen={promptModal.isOpen} onClose={promptModal.onClose} size="md">
+      <Modal isOpen={promptModal.isOpen} onClose={promptModal.onClose} size="xlg">
         <ModalOverlay />
         <ModalContent bg="brand.surface" color="text.secondary">
           <ModalHeader>Prompt quick-reference</ModalHeader>
@@ -225,70 +269,109 @@ export function AppHeader() {
       </Modal>
 
       {/* ═══════════ About modal ═══════════ */}
-      <Modal isOpen={aboutModal.isOpen} onClose={aboutModal.onClose} size="lg">
-        <ModalOverlay />
-        <ModalContent bg="brand.surface" color="text.secondary">
-          <ModalHeader>About EklavyaAI Chat</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody fontSize="sm" lineHeight={1.55}>
-            <Text mb={4}>
-              <strong>EklavyaAI</strong> is an offline, retrieval‑augmented
-              conversational assistant purpose‑built for the Simulator
-              Development Division (SDD). It is fully air‑gapped: <strong>all</strong> large‑language‑model inference, vector retrieval and document processing run on local infrastructure—no cloud calls, telemetry, or external connectivity.
-              <br />
-              <br />
-              <em>Developed &amp; designed by </em>
-              <Link href="https://github.com/hariomahlawat" isExternal color="link.color">
-                @hariomahlawat
-              </Link>
-              .
-            </Text>
+<Modal isOpen={aboutModal.isOpen} onClose={aboutModal.onClose} size="xlg">
+  <ModalOverlay />
+  <ModalContent bg="brand.surface" color="text.secondary">
+    <ModalHeader>About EklavyaAI</ModalHeader>
+    <ModalCloseButton />
+    <ModalBody fontSize="sm" lineHeight={1.6}>
 
-            <Table variant="simple" size="xs" mb={4}>
-              <Thead>
-                <Tr>
-                  <Th w="34%">Layer</Th>
-                  <Th>Stack</Th>
-                  <Th w="34%">Role</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                <Tr>
-                  <Td>LLM runtime</Td>
-                  <Td>
-                    Ollama<br />
-                    &nbsp;• Mistral‑7B v0.3 (default)<br />
-                    &nbsp;• Phi‑3 3.8 B<br />
-                    &nbsp;• Llama‑3 8 B<br />
-                    &nbsp;• Llama‑3 70 B (≈ 45 GB)
-                  </Td>
-                  <Td>On‑prem model inference</Td>
-                </Tr>
-                <Tr>
-                  <Td>RAG engine</Td>
-                  <Td>FastAPI · Chroma · MiniLM reranker</Td>
-                  <Td>Chunk retrieve + citation</Td>
-                </Tr>
-                <Tr>
-                  <Td>Ingestion</Td>
-                  <Td>PyMuPDF · Nomic‑Embed‑Text</Td>
-                  <Td>PDF split &amp; vectorise</Td>
-                </Tr>
-                <Tr>
-                  <Td>Frontend</Td>
-                  <Td>React 18 · Chakra UI</Td>
-                  <Td>Chat UI, uploads, model switch</Td>
-                </Tr>
-              </Tbody>
-            </Table>
+      <Text mb={4}>
+        <strong>EklavyaAI</strong> is a fully-air-gapped, retrieval-augmented LLM assistant.
+        All components, from PDF ingestion to vector search and inference, run locally.
+      </Text>
 
-            <Text>
-              Supports <strong>128 K‑token</strong> context windows for very
-              long documents while remaining memory‑efficient. The 70 B‑parameter configuration targets high‑end deployments that demand deeper reasoning at the cost of ~45 GB RAM.
-            </Text>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      <Table variant="simple" size="xs" mb={4}>
+        <Thead>
+          <Tr>
+            <Th w="20%">Layer</Th>
+            <Th w="45%">Technology</Th>
+            <Th w="35%">Role & Capabilities</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          <Tr>
+            <Td>LLM Inference</Td>
+            <Td>
+              Transformer-based models quantized to 3–4 bits (7B–8B parameters); optional 70 B model for deep reasoning (~45 GB RAM).
+            </Td>
+            <Td>
+              Generates responses, summaries, and code; selectable precision vs. fidelity trade-offs.
+            </Td>
+          </Tr>
+          <Tr>
+            <Td>Vanilla Chat</Td>
+            <Td>
+              Direct chat mode using the default Ollama model (e.g. llama3:8b-instruct-q4_K_M).  
+              Maintains rolling conversation history in-prompt up to 128 K tokens.
+            </Td>
+            <Td>
+              Pure conversational AI without retrieval augment; ideal for free-form dialogue and brainstorming.
+            </Td>
+          </Tr>
+          <Tr>
+            <Td>PDF Ingestion & Embedding</Td>
+            <Td>
+              Page-level text extraction → tokenized & chunked (800 token windows, 100 token overlap).  
+              Dense embeddings via on-device transformer encoder into 768+ dim vectors.
+            </Td>
+            <Td>
+              Prepares document fragments for semantically grounded retrieval.
+            </Td>
+          </Tr>
+          <Tr>
+            <Td>Vector Search</Td>
+            <Td>
+              Approximate Nearest Neighbor (HNSW) index over embeddings in a SQLite backend.  
+              Configurable top-k & dynamic-k retrieval with optional Max-Marginal-Relevance.
+            </Td>
+            <Td>
+              Retrieves the most semantically similar chunks to the user’s query.
+            </Td>
+          </Tr>
+          <Tr>
+            <Td>Re-Ranking</Td>
+            <Td>
+              Deep cross-encoder ranks retrieved candidates with a distilled transformer.  
+              Runs locally from `offline_llm_models/cross_encoder`.
+            </Td>
+            <Td>
+              Ensures highest-quality context is passed into the LLM prompt.
+            </Td>
+          </Tr>
+          <Tr>
+            <Td>RAG Orchestration</Td>
+            <Td>
+              FastAPI + Uvicorn coordinate:  
+              1) Retrieve & rerank → 2) Assemble system+user prompt → 3) Invoke LLM via python-ollama.  
+              Asynchronous I/O for concurrency.
+            </Td>
+            <Td>
+              Manages context assembly, prompt injection, and streaming or batch inference.
+            </Td>
+          </Tr>
+          <Tr>
+            <Td>Frontend & UX</Td>
+            <Td>
+              React 18 SPA with Chakra UI theming & Vite builds.  
+              Dynamic pane layout, model selector, PDF upload drag-and-drop, prompt presets.
+            </Td>
+            <Td>
+              Interactive chat UI with session persistence and panel resizing.
+            </Td>
+          </Tr>
+        </Tbody>
+      </Table>
+
+      <Text>
+        <em>Developed &amp; designed by </em>
+          @hariomahlawat.
+      </Text>
+
+    </ModalBody>
+  </ModalContent>
+</Modal>
+
     </>
   );
 }
