@@ -49,26 +49,33 @@ export default function App() {
         </Box>
 
         {/* MAIN PANELS */}
-        <Box flex="1" minH={0} display="flex" overflow="hidden">
+        <Box flex="1" minH={0} display="flex" overflow="hidden" position="relative">
 
           {/* Restore Left Button */}
           {!showLeft && (
-            <Box
-              w="20px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              bg="bg.muted"
-              borderRightWidth={1}
-              borderColor="border.default"
-            >
-              <IconButton
-                aria-label="Show left panel"
-                size="xs"
-                variant="ghost"
-                icon={<ChevronRightIcon />}
-                onClick={() => setShowLeft(true)}
-              />
+            <Box position="absolute" left={0} top={0} bottom={0} w={0}>
+              <Box
+                position="absolute"
+                left={0}
+                top="50%"
+                transform="translateY(-50%)"
+                w="20px"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                bg="bg.muted"
+                borderRightWidth={1}
+                borderColor="border.default"
+                zIndex={1}
+              >
+                <IconButton
+                  aria-label="Show left panel"
+                  size="xs"
+                  variant="ghost"
+                  icon={<ChevronRightIcon />}
+                  onClick={() => setShowLeft(true)}
+                />
+              </Box>
             </Box>
           )}
 
@@ -130,7 +137,7 @@ export default function App() {
           {/* RIGHT PANE */}
           {showRight && (
             <Box
-              flex="1"
+              flex={showLeft ? '1' : '1 0 100%'}
               minW="240px"
               display="flex"
               flexDirection="column"
@@ -183,22 +190,29 @@ export default function App() {
 
           {/* Restore Right Button */}
           {!showRight && (
-            <Box
-              w="20px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              bg="bg.muted"
-              borderLeftWidth={1}
-              borderColor="border.default"
-            >
-              <IconButton
-                aria-label="Show right panel"
-                size="xs"
-                variant="ghost"
-                icon={<ChevronLeftIcon />}
-                onClick={() => setShowRight(true)}
-              />
+            <Box position="absolute" right={0} top={0} bottom={0} w={0}>
+              <Box
+                position="absolute"
+                right={0}
+                top="50%"
+                transform="translateY(-50%)"
+                w="20px"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                bg="bg.muted"
+                borderLeftWidth={1}
+                borderColor="border.default"
+                zIndex={1}
+              >
+                <IconButton
+                  aria-label="Show right panel"
+                  size="xs"
+                  variant="ghost"
+                  icon={<ChevronLeftIcon />}
+                  onClick={() => setShowRight(true)}
+                />
+              </Box>
             </Box>
           )}
         </Box>
