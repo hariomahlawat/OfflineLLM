@@ -115,6 +115,18 @@ to build the React frontend with `npm run build` so that the compiled
 `/admin` will display a blank page. Running the `frontend` container handles the
 build automatically.
 
+## 🔎 Dynamic retrieval depth
+
+Set `RAG_DYNAMIC_K_FACTOR` in the backend service to automatically increase the
+number of retrieved chunks for longer questions. The value represents the number
+of words per extra chunk. For example:
+
+```bash
+RAG_DYNAMIC_K_FACTOR=20  # adds one result for every 20 words
+```
+
+The default is `0`, which disables this behavior entirely.
+
 ---
 
 ## 📚 Docs

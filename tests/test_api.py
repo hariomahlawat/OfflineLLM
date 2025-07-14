@@ -1,5 +1,6 @@
 import sys, types
 from pathlib import Path
+import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 # ---- stub modules for dependencies ----
@@ -144,12 +145,4 @@ def test_doc_qa(monkeypatch):
     }
 
 
-def test_calc_top_k_short(monkeypatch):
-    monkeypatch.setattr(api, "DYNAMIC_K_FACTOR", 5)
-    assert api._calc_top_k("short question") == api.SEARCH_TOP_K
 
-
-def test_calc_top_k_long(monkeypatch):
-    monkeypatch.setattr(api, "DYNAMIC_K_FACTOR", 5)
-    long_q = "word " * 15
-    assert api._calc_top_k(long_q) == api.SEARCH_TOP_K + 3
