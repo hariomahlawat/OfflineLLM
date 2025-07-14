@@ -161,7 +161,7 @@ Use `VITE_API_URL=http://localhost:8000` while developing and keep
 | `RERANK_TOP_K`    | `3` | number of chunks sent to the LLM |
 | `RAG_SEARCH_TOP_K` | `10` | how many vectors to retrieve |
 | `RAG_USE_MMR`     | `0` | use Max Marginal Relevance retrieval |
-| `RAG_DYNAMIC_K_FACTOR` | `0` | words per extra retrieved chunk |
+| `RAG_DYNAMIC_K_FACTOR` | `0` | tokens per extra retrieved chunk |
 | `PERSIST_CHROMA_DIR` | `data/chroma_persist` | permanent embeddings |
 | `SESSION_CHROMA_DIR` | `data/chroma_sessions` | per-chat embeddings |
 | `ADMIN_PASSWORD` | `None` | protects `/admin/*` endpoints |

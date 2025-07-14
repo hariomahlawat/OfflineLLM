@@ -16,6 +16,7 @@
 - **Cross‑platform** – Develop on Windows 11, deploy on Linux server or WSL2.
 - **Model listing** – `/models` enumerates available local LLMs.
 - **Session‑based uploads + QA** – Upload a PDF via `/upload_pdf`, then query it with `/session_qa`.
+- **Dynamic retrieval** – Number of retrieved chunks scales with question length (token based).
 
 ---
 

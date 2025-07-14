@@ -133,6 +133,7 @@ from app.vector_store   import (
 from app.rerank         import rerank
 from app.chat           import chat as chat_fn, new_session_id, safe_chat
 from app.ollama_utils   import finalize_ollama_chat
+from app.tokenizer      import count_tokens
 
 _SESSIONS       : Dict[str, object]   = {}
 _SESSIONS_TOUCH : Dict[str, datetime] = {}
@@ -142,7 +143,7 @@ def _calc_top_k(question: str) -> int:
     """Return retrieval K, optionally increased for longer questions."""
     base = SEARCH_TOP_K
     if DYNAMIC_K_FACTOR:
-        base += len(question.split()) // DYNAMIC_K_FACTOR
+        base += count_tokens(question) // DYNAMIC_K_FACTOR
     return base
 
 async def _touch_sid(sid: str) -> None:
