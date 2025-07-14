@@ -119,10 +119,10 @@ build automatically.
 
 Set `RAG_DYNAMIC_K_FACTOR` in the backend service to automatically increase the
 number of retrieved chunks for longer questions. The value represents the number
-of words per extra chunk. For example:
+of **tokens** per extra retrieved chunk. For example:
 
 ```bash
-RAG_DYNAMIC_K_FACTOR=20  # adds one result for every 20 words
+RAG_DYNAMIC_K_FACTOR=20  # adds one result for every 20 tokens
 ```
 
 The default is `0`, which disables this behavior entirely.
