@@ -23,7 +23,7 @@ import {
 } from "@chakra-ui/icons";
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../contexts/ChatContext";
-import { uploadPdf, sessionQA, docQa } from "../../api";
+import { uploadPdf, sessionQA, docQa, SourceChunk } from "../../api";
 import { AssistantBubble } from "../AssistantBubble/AssistantBubble";
 
 export function DocQaPanel() {
@@ -47,7 +47,7 @@ export function DocQaPanel() {
     {
       question: string;
       answer?: string;
-      sources?: string[];
+      sources?: SourceChunk[];
       showSources?: boolean;
       pending?: boolean;
     }[]
@@ -291,7 +291,7 @@ export function DocQaPanel() {
                             <UnorderedList spacing={1} pl={4}>
                               {item.sources?.map((s, i) => (
                                 <ListItem key={i} fontSize="xs" color="brand.accent">
-                                  <AttachmentIcon boxSize={3} mb={-0.5} /> {s}
+                                  <AttachmentIcon boxSize={3} mb={-0.5} /> p.{s.page_number ?? "?"}: {s.snippet}
                                 </ListItem>
                               ))}
                             </UnorderedList>

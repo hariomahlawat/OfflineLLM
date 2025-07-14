@@ -172,9 +172,14 @@ class QARequest(BaseModel):
     session_id: Optional[str] = None
     model:      Optional[str] = None
 
+class SourceChunk(BaseModel):
+    page_number: Optional[int] = None
+    snippet: str
+
+
 class QAResponse(BaseModel):
     answer: str
-    sources: List[str]
+    sources: List[SourceChunk]
 
 @app.post("/doc_qa", response_model=QAResponse)
 async def doc_qa(req: QARequest):
@@ -200,6 +205,16 @@ async def doc_qa(req: QARequest):
         raise HTTPException(503, detail=str(e))
     ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
+    sources: List[SourceChunk] = []
+    for chunk in top_chunks:
+        try:
+            idx = chunks.index(chunk)
+            doc = docs[idx]
+            pg = doc.metadata.get("page_number") or doc.metadata.get("page")
+        except ValueError:
+            pg = None
+        sources.append(SourceChunk(page_number=pg, snippet=chunk))
+
     prompt = (
         "You are EklavyaAI Mentor, a helpful assistant that answers by combining your knowledge with the provided document snippets.\n"
         "Always reference facts only if they appear in the context.\n"
@@ -215,7 +230,7 @@ async def doc_qa(req: QARequest):
     raw    = safe_chat(model=model, messages=[{"role":"system","content":prompt}], stream=False)
     answer = finalize_ollama_chat(raw)["message"]["content"]
 
-    return QAResponse(answer=answer, sources=top_chunks)
+    return QAResponse(answer=answer, sources=sources)
 
 
 # ───────────────────────── Chat w/ memory ──────────────────────────────
@@ -292,7 +307,7 @@ class SessionQARequest(BaseModel):
 
 class SessionQAResponse(BaseModel):
     answer: str
-    sources: List[str]
+    sources: List[SourceChunk]
 
 @app.post("/session_qa", response_model=SessionQAResponse)
 async def session_qa(req: SessionQARequest):
@@ -320,6 +335,16 @@ async def session_qa(req: SessionQARequest):
         raise HTTPException(503, detail=str(e))
     ctx        = "\n---\n".join(top_chunks)[:TOK_TRUNCATE]
 
+    sources: List[SourceChunk] = []
+    for chunk in top_chunks:
+        try:
+            idx = chunks.index(chunk)
+            doc = all_docs[idx]
+            pg = doc.metadata.get("page_number") or doc.metadata.get("page")
+        except ValueError:
+            pg = None
+        sources.append(SourceChunk(page_number=pg, snippet=chunk))
+
     prompt = (
         "You are EklavyaAI Mentor, a helpful assistant that answers by combining your knowledge with the provided document snippets.\n"
         "Always reference facts only if they appear in the context.\n"
@@ -336,7 +361,7 @@ async def session_qa(req: SessionQARequest):
     answer = finalize_ollama_chat(raw)["message"]["content"]
     await _touch_sid(req.session_id)
 
-    return SessionQAResponse(answer=answer, sources=top_chunks)
+    return SessionQAResponse(answer=answer, sources=sources)
 
 
 # ───────────────────────── Admin: upload persistent PDF ───────────────────
