@@ -5,6 +5,7 @@ import {
   Box,
   Text,
   IconButton,
+  Tooltip,
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
@@ -62,13 +63,17 @@ export default function App() {
               borderRightWidth={1}
               borderColor="border.default"
             >
-              <IconButton
-                aria-label="Show left panel"
-                size="xs"
-                variant="ghost"
-                icon={<ChevronRightIcon />}
-                onClick={() => setShowLeft(true)}
-              />
+              <Tooltip label="Show left panel">
+                <IconButton
+                  aria-label="Show left panel"
+                  size="sm"
+                  variant="outline"
+                  colorScheme="brand"
+                  fontSize="lg"
+                  icon={<ChevronRightIcon />}
+                  onClick={() => setShowLeft(true)}
+                />
+              </Tooltip>
             </Box>
           )}
 
@@ -101,13 +106,17 @@ export default function App() {
                 <Text fontWeight="bold" color="brand.primary">
                   PDF & Knowledgebase Query
                 </Text>
-                <IconButton
-                  aria-label="Hide left panel"
-                  icon={<ChevronLeftIcon />}
-                  size="xs"
-                  variant="ghost"
-                  onClick={() => setShowLeft(false)}
-                />
+                <Tooltip label="Hide left panel">
+                  <IconButton
+                    aria-label="Hide left panel"
+                    icon={<ChevronLeftIcon />}
+                    size="sm"
+                    variant="outline"
+                    colorScheme="brand"
+                    fontSize="lg"
+                    onClick={() => setShowLeft(false)}
+                  />
+                </Tooltip>
               </Box>
               <Box flex="1" minH={0} overflowY="auto">
                 <DocQaPanel />
@@ -152,13 +161,17 @@ export default function App() {
                 <Text fontWeight="bold" color="brand.primary">
                   Chat
                 </Text>
-                <IconButton
-                  aria-label="Hide right panel"
-                  icon={<ChevronRightIcon />}
-                  size="xs"
-                  variant="ghost"
-                  onClick={() => setShowRight(false)}
-                />
+                <Tooltip label="Hide right panel">
+                  <IconButton
+                    aria-label="Hide right panel"
+                    icon={<ChevronRightIcon />}
+                    size="sm"
+                    variant="outline"
+                    colorScheme="brand"
+                    fontSize="lg"
+                    onClick={() => setShowRight(false)}
+                  />
+                </Tooltip>
               </Box>
 
               <Box flex="1" minH={0} overflowY="auto">
@@ -192,13 +205,17 @@ export default function App() {
               borderLeftWidth={1}
               borderColor="border.default"
             >
-              <IconButton
-                aria-label="Show right panel"
-                size="xs"
-                variant="ghost"
-                icon={<ChevronLeftIcon />}
-                onClick={() => setShowRight(true)}
-              />
+              <Tooltip label="Show right panel">
+                <IconButton
+                  aria-label="Show right panel"
+                  size="sm"
+                  variant="outline"
+                  colorScheme="brand"
+                  fontSize="lg"
+                  icon={<ChevronLeftIcon />}
+                  onClick={() => setShowRight(true)}
+                />
+              </Tooltip>
             </Box>
           )}
         </Box>
