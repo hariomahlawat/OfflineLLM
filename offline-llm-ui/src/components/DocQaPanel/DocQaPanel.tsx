@@ -23,7 +23,7 @@ import {
 } from "@chakra-ui/icons";
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../contexts/ChatContext";
-import { uploadPdf, sessionQA, docQa, SourceChunk } from "../../api";
+import { uploadPdf, sessionQA, docQa, type SourceChunk } from "../../api";
 import { AssistantBubble } from "../AssistantBubble/AssistantBubble";
 
 export function DocQaPanel() {
