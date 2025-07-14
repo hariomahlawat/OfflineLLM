@@ -1,6 +1,6 @@
 // src/App.tsx
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Box,
   Text,
@@ -21,6 +21,29 @@ export default function App() {
   const [showLeft, setShowLeft] = useState(true);
   const [showRight, setShowRight] = useState(true);
   const isStacked = useBreakpointValue({ base: true, md: false });
+
+  // track latest panel visibility to avoid race conditions
+  const showLeftRef = useRef(showLeft);
+  const showRightRef = useRef(showRight);
+  useEffect(() => { showLeftRef.current = showLeft; }, [showLeft]);
+  useEffect(() => { showRightRef.current = showRight; }, [showRight]);
+
+  // ensure at least one panel stays visible
+  useEffect(() => {
+    if (!showLeftRef.current && !showRightRef.current) {
+      setShowRight(true);
+    }
+  }, [showLeft, showRight]);
+
+  function hideLeftPanel() {
+    if (!showRightRef.current) return;
+    setShowLeft(false);
+  }
+
+  function hideRightPanel() {
+    if (!showLeftRef.current) return;
+    setShowRight(false);
+  }
 
   function startDrag(e: React.MouseEvent) {
     if (isStacked || !showLeft || !showRight) return;
@@ -116,7 +139,7 @@ export default function App() {
                     variant="outline"
                     colorScheme="brand"
                     fontSize="lg"
-                    onClick={() => setShowLeft(false)}
+                    onClick={hideLeftPanel}
                   />
                 </Tooltip>
               </Box>
@@ -172,7 +195,7 @@ export default function App() {
                     variant="outline"
                     colorScheme="brand"
                     fontSize="lg"
-                    onClick={() => setShowRight(false)}
+                    onClick={hideRightPanel}
                   />
                 </Tooltip>
               </Box>
