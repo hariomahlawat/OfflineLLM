@@ -1,7 +1,13 @@
 // src/App.tsx
 
 import { useState } from "react";
-import { Box, Text, useBreakpointValue, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  IconButton,
+  useBreakpointValue,
+} from "@chakra-ui/react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
@@ -11,10 +17,12 @@ import { AppFooter } from "./components/AppFooter/AppFooter";
 
 export default function App() {
   const [leftPct, setLeftPct] = useState(40);
+  const [showLeft, setShowLeft] = useState(true);
+  const [showRight, setShowRight] = useState(true);
   const isStacked = useBreakpointValue({ base: true, md: false });
 
   function startDrag(e: React.MouseEvent) {
-    if (isStacked) return;
+    if (isStacked || !showLeft || !showRight) return;
     e.preventDefault();
     document.body.style.cursor = "col-resize";
 
@@ -42,40 +50,73 @@ export default function App() {
 
         {/* MAIN PANELS */}
         <Box flex="1" minH={0} display="flex" overflow="hidden">
-          
-          {/* LEFT PANE */}
-          <Box
-            flex={`0 0 ${leftPct}%`}
-            minW="240px"
-            maxW="82vw"
-            display="flex"
-            flexDirection="column"
-            minH={0}
-            overflow="hidden"
-            bg="bg.surface"
-            borderRightWidth={isStacked ? 0 : 1}
-            borderColor="border.default"
-            boxShadow="md"
-          >
+
+          {/* Restore Left Button */}
+          {!showLeft && (
             <Box
-              px={5}
-              py={0}
+              w="20px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
               bg="bg.muted"
-              flexShrink={0}
-              borderBottom="1px solid"
+              borderRightWidth={1}
               borderColor="border.default"
             >
-              <Text fontWeight="bold" color="brand.primary">
-                PDF & Knowledgebase Query
-              </Text>
+              <IconButton
+                aria-label="Show left panel"
+                size="xs"
+                variant="ghost"
+                icon={<ChevronRightIcon />}
+                onClick={() => setShowLeft(true)}
+              />
             </Box>
-            <Box flex="1" minH={0} overflowY="auto">
-              <DocQaPanel />
+          )}
+
+          {/* LEFT PANE */}
+          {showLeft && (
+            <Box
+              flex={showRight ? `0 0 ${leftPct}%` : '1'}
+              minW="240px"
+              maxW="82vw"
+              display="flex"
+              flexDirection="column"
+              minH={0}
+              overflow="hidden"
+              bg="bg.surface"
+              borderRightWidth={isStacked || !showRight ? 0 : 1}
+              borderColor="border.default"
+              boxShadow="md"
+            >
+              <Box
+                px={5}
+                py={0}
+                bg="bg.muted"
+                flexShrink={0}
+                borderBottom="1px solid"
+                borderColor="border.default"
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Text fontWeight="bold" color="brand.primary">
+                  PDF & Knowledgebase Query
+                </Text>
+                <IconButton
+                  aria-label="Hide left panel"
+                  icon={<ChevronLeftIcon />}
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => setShowLeft(false)}
+                />
+              </Box>
+              <Box flex="1" minH={0} overflowY="auto">
+                <DocQaPanel />
+              </Box>
             </Box>
-          </Box>
+          )}
 
           {/* GUTTER */}
-          {!isStacked && (
+          {showLeft && showRight && !isStacked && (
             <Box
               w="4px"
               cursor="col-resize"
@@ -87,46 +128,79 @@ export default function App() {
           )}
 
           {/* RIGHT PANE */}
-          <Box
-            flex="1"
-            minW="240px"
-            display="flex"
-            flexDirection="column"
-            minH={0}
-            overflow="hidden"
-            bg="brand.surface"
-          >
+          {showRight && (
             <Box
-              px={5}
-              py={0}
-              bg="bg.muted"
-              flexShrink={0}
-              borderBottom="1px solid"
-              borderColor="border.default"
-            >
-              <Text fontWeight="bold" color="brand.primary">
-                Chat
-              </Text>
-            </Box>
-
-            <Box flex="1" minH={0} overflowY="auto">
-              <ChatWindow />
-            </Box>
-
-            <Box
-              position="sticky"
-              zIndex={100} flexShrink={0}
-              bottom={0}
+              flex="1"
+              minW="240px"
+              display="flex"
+              flexDirection="column"
+              minH={0}
+              overflow="hidden"
               bg="brand.surface"
-              borderTop="1px solid"
-              borderColor="border.default"
-              px={4}
-              py={2}
             >
-              <ChatInput />
-            </Box>
+              <Box
+                px={5}
+                py={0}
+                bg="bg.muted"
+                flexShrink={0}
+                borderBottom="1px solid"
+                borderColor="border.default"
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Text fontWeight="bold" color="brand.primary">
+                  Chat
+                </Text>
+                <IconButton
+                  aria-label="Hide right panel"
+                  icon={<ChevronRightIcon />}
+                  size="xs"
+                  variant="ghost"
+                  onClick={() => setShowRight(false)}
+                />
+              </Box>
 
-          </Box>
+              <Box flex="1" minH={0} overflowY="auto">
+                <ChatWindow />
+              </Box>
+
+              <Box
+                position="sticky"
+                zIndex={100} flexShrink={0}
+                bottom={0}
+                bg="brand.surface"
+                borderTop="1px solid"
+                borderColor="border.default"
+                px={4}
+                py={2}
+              >
+                <ChatInput />
+              </Box>
+
+            </Box>
+          )}
+
+          {/* Restore Right Button */}
+          {!showRight && (
+            <Box
+              w="20px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              bg="bg.muted"
+              borderLeftWidth={1}
+              borderColor="border.default"
+            >
+              <IconButton
+                aria-label="Show right panel"
+                size="xs"
+                variant="ghost"
+                icon={<ChevronLeftIcon />}
+                onClick={() => setShowRight(true)}
+              />
+            </Box>
+          )}
         </Box>
 
         {/* FOOTER */}
