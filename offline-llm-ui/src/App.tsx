@@ -73,20 +73,22 @@ export default function App() {
           )}
 
           {/* LEFT PANE */}
-          {showLeft && (
-            <Box
-              flex={showRight ? `0 0 ${leftPct}%` : '1'}
-              minW="240px"
-              maxW="82vw"
-              display="flex"
-              flexDirection="column"
-              minH={0}
-              overflow="hidden"
-              bg="bg.surface"
-              borderRightWidth={isStacked || !showRight ? 0 : 1}
-              borderColor="border.default"
-              boxShadow="md"
-            >
+          <Box
+            transition="width 0.2s ease"
+            width={showLeft ? (showRight ? `${leftPct}%` : '100%') : '0%'}
+            flex={showLeft ? (showRight ? '0 0 auto' : '1') : '0 0 0%'}
+            minW={showLeft ? '240px' : '0'}
+            maxW="82vw"
+            display="flex"
+            flexDirection="column"
+            minH={0}
+            overflow="hidden"
+            bg="bg.surface"
+            borderRightWidth={isStacked || !showRight ? 0 : 1}
+            borderColor="border.default"
+            boxShadow="md"
+            visibility={showLeft ? 'visible' : 'hidden'}
+          >
               <Box
                 px={5}
                 py={0}
@@ -109,11 +111,10 @@ export default function App() {
                   onClick={() => setShowLeft(false)}
                 />
               </Box>
-              <Box flex="1" minH={0} overflowY="auto">
-                <DocQaPanel />
-              </Box>
+            <Box flex="1" minH={0} overflowY="auto">
+              <DocQaPanel />
             </Box>
-          )}
+          </Box>
 
           {/* GUTTER */}
           {showLeft && showRight && !isStacked && (
@@ -128,27 +129,29 @@ export default function App() {
           )}
 
           {/* RIGHT PANE */}
-          {showRight && (
+          <Box
+            transition="width 0.2s ease"
+            width={showRight ? (showLeft ? `calc(${100 - leftPct}% - ${showLeft && showRight && !isStacked ? 4 : 0}px)` : '100%') : '0%'}
+            flex={showRight ? '1' : '0 0 0%'}
+            minW={showRight ? '240px' : '0'}
+            display="flex"
+            flexDirection="column"
+            minH={0}
+            overflow="hidden"
+            bg="brand.surface"
+            visibility={showRight ? 'visible' : 'hidden'}
+          >
             <Box
-              flex="1"
-              minW="240px"
+              px={5}
+              py={0}
+              bg="bg.muted"
+              flexShrink={0}
+              borderBottom="1px solid"
+              borderColor="border.default"
               display="flex"
-              flexDirection="column"
-              minH={0}
-              overflow="hidden"
-              bg="brand.surface"
+              alignItems="center"
+              justifyContent="space-between"
             >
-              <Box
-                px={5}
-                py={0}
-                bg="bg.muted"
-                flexShrink={0}
-                borderBottom="1px solid"
-                borderColor="border.default"
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-              >
                 <Text fontWeight="bold" color="brand.primary">
                   Chat
                 </Text>
@@ -175,11 +178,9 @@ export default function App() {
                 px={4}
                 py={2}
               >
-                <ChatInput />
-              </Box>
-
+              <ChatInput />
             </Box>
-          )}
+          </Box>
 
           {/* Restore Right Button */}
           {!showRight && (
