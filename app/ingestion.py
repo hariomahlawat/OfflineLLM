@@ -43,11 +43,21 @@ def load_and_split(
     Each Document has .page_content (text) and .metadata (page number, file).
     """
     pages = PyPDFLoader(file_path).load()  # one Document per page
+    for p in pages:
+        # Ensure page number survives the splitting step
+        if "page_number" not in p.metadata:
+            if "page" in p.metadata:
+                p.metadata["page_number"] = p.metadata["page"]
+            else:
+                p.metadata["page_number"] = None
+
     chunks = _split(pages, chunk_size=chunk_size, overlap=overlap)
 
     # augment metadata for easier tracing later
     for c in chunks:
         c.metadata["source_file"] = file_path
+        if "page_number" not in c.metadata and "page" in c.metadata:
+            c.metadata["page_number"] = c.metadata["page"]
     return chunks
 
 
@@ -65,6 +75,12 @@ def load_and_split_bytes(
     """
     try:
         pages = PyPDFLoader(BytesIO(data)).load()
+        for p in pages:
+            if "page_number" not in p.metadata:
+                if "page" in p.metadata:
+                    p.metadata["page_number"] = p.metadata["page"]
+                else:
+                    p.metadata["page_number"] = None
     except Exception as e:
         raise ValueError(f"Pdf load failed: {e}") from e
 
@@ -73,4 +89,6 @@ def load_and_split_bytes(
     # metadata: mark these as “memory” so we can recognise the source later
     for c in chunks:
         c.metadata["source_file"] = "<uploaded-pdf>"
+        if "page_number" not in c.metadata and "page" in c.metadata:
+            c.metadata["page_number"] = c.metadata["page"]
     return chunks

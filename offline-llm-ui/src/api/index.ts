@@ -15,9 +15,14 @@ export interface ChatResponse {
   answer: string
 }
 
+export interface SourceChunk {
+  page_number?: number
+  snippet: string
+}
+
 export interface QAResponse {
   answer: string
-  sources: string[]
+  sources: SourceChunk[]
 }
 
 export interface UploadPDFResponse {
@@ -75,7 +80,7 @@ export async function docQa(
     body: JSON.stringify({ question, session_id: sessionId, model }),
   })
   if (!res.ok) throw new Error(await res.text())
-  return res.json() as Promise<{ answer: string; sources: string[] }>
+  return res.json() as Promise<QAResponse>
 }
 
 
