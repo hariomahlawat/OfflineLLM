@@ -1,14 +1,20 @@
 // src/App.tsx
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Text,
   IconButton,
   Tooltip,
   useBreakpointValue,
+  Collapse,
+  HStack,
 } from "@chakra-ui/react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  RepeatIcon,
+} from "@chakra-ui/icons";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
@@ -22,34 +28,16 @@ export default function App() {
   const [showRight, setShowRight] = useState(true);
   const isStacked = useBreakpointValue({ base: true, md: false });
 
-  // track latest panel visibility to avoid race conditions
-  const showLeftRef = useRef(showLeft);
-  const showRightRef = useRef(showRight);
-  useEffect(() => { showLeftRef.current = showLeft; }, [showLeft]);
-  useEffect(() => { showRightRef.current = showRight; }, [showRight]);
-
-  // ensure at least one panel stays visible
+  // guard so both can't be hidden
   useEffect(() => {
-    if (!showLeftRef.current && !showRightRef.current) {
-      setShowRight(true);
-    }
+    if (!showLeft && !showRight) setShowRight(true);
   }, [showLeft, showRight]);
 
-  function hideLeftPanel() {
-    if (!showRightRef.current) return;
-    setShowLeft(false);
-  }
-
-  function hideRightPanel() {
-    if (!showLeftRef.current) return;
-    setShowRight(false);
-  }
-
+  // drag gutter
   function startDrag(e: React.MouseEvent) {
     if (isStacked || !showLeft || !showRight) return;
     e.preventDefault();
-    document.body.style.cursor = "col-resize";
-
+    document.body.style.cursor = "ew-resize";
     function onMouseMove(ev: MouseEvent) {
       const pct = (ev.clientX / window.innerWidth) * 100;
       setLeftPct(Math.max(18, Math.min(82, pct)));
@@ -59,189 +47,231 @@ export default function App() {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     }
-
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
   }
 
+  const gutter = showLeft && showRight && !isStacked ? 4 : 0;
+  const leftWidth = showLeft
+    ? showRight
+      ? `${leftPct}%`
+      : `calc(100% - ${gutter}px)`
+    : `0px`;
+  const rightWidth = showRight
+    ? showLeft
+      ? `calc(${100 - leftPct}% - ${gutter}px)`
+      : `calc(100% - ${gutter}px)`
+    : `0px`;
+
   return (
     <ChatProvider>
-      <Box h="100vh" w="100vw" display="flex" flexDirection="column" overflow="hidden">
-        {/* HEADER */}
-        <Box as="header" position="sticky" top={0} zIndex={100} flexShrink={0}>
-          <AppHeader />
+      <Box h="100vh" w="100vw" display="flex" flexDirection="column">
+        {/* HEADER with Reset Layout */}
+        <Box as="header" position="sticky" top={0} zIndex={100}>
+          <HStack px={4} py={2} bg="bg.muted" justify="space-between">
+            <AppHeader />
+            <Tooltip label="Reset split to show both panels">
+              <IconButton
+                aria-label="Reset layout"
+                icon={<RepeatIcon />}
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setShowLeft(true);
+                  setShowRight(true);
+                  setLeftPct(40);
+                }}
+              />
+            </Tooltip>
+          </HStack>
         </Box>
 
-        {/* MAIN PANELS */}
-        <Box flex="1" minH={0} display="flex" overflow="hidden">
-
-          {/* Restore Left Button */}
+        {/* MAIN */}
+        <Box flex="1" display="flex" overflow="hidden" minH={0}>
+          {/* Left-side restore button (always visible when left hidden) */}
           {!showLeft && (
             <Box
-              w="20px"
+              w="24px"
               display="flex"
               alignItems="center"
               justifyContent="center"
               bg="bg.muted"
-              borderRightWidth={1}
+              borderRight="1px solid"
               borderColor="border.default"
+              zIndex={10}
             >
               <Tooltip label="Show left panel">
                 <IconButton
                   aria-label="Show left panel"
+                  icon={
+                    <ChevronRightIcon
+                      boxSize={5}
+                      fontWeight="bold"
+                    />
+                  }
+                  variant="ghost"
                   size="sm"
-                  variant="outline"
-                  colorScheme="brand"
-                  fontSize="lg"
-                  icon={<ChevronRightIcon />}
                   onClick={() => setShowLeft(true)}
                 />
               </Tooltip>
             </Box>
           )}
 
-          {/* LEFT PANE */}
+          {/* LEFT PANEL */}
           <Box
-            transition="width 0.2s ease"
-            width={showLeft ? (showRight ? `${leftPct}%` : '100%') : '0%'}
-            flex={showLeft ? (showRight ? '0 0 auto' : '1') : '0 0 0%'}
-            minW={showLeft ? '240px' : '0'}
-            maxW={showRight ? "82vw" : "100vw"}
+            width={leftWidth}
+            minW="0"
+            transition="width 0.25s ease"
             display="flex"
             flexDirection="column"
-            minH={0}
-            overflow="hidden"
-            bg="bg.surface"
-            borderRightWidth={isStacked || !showRight ? 0 : 1}
+            borderRight={gutter ? "1px solid" : undefined}
             borderColor="border.default"
-            boxShadow="md"
-            visibility={showLeft ? 'visible' : 'hidden'}
           >
-              <Box
-                px={5}
-                py={0}
-                bg="bg.muted"
-                flexShrink={0}
-                borderBottom="1px solid"
-                borderColor="border.default"
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Text fontWeight="bold" color="brand.primary">
-                  PDF & Knowledgebase Query
-                </Text>
-                <Tooltip label="Hide left panel">
-                  <IconButton
-                    aria-label="Hide left panel"
-                    icon={<ChevronLeftIcon />}
-                    size="sm"
-                    variant="outline"
-                    colorScheme="brand"
-                    fontSize="lg"
-                    onClick={hideLeftPanel}
-                  />
-                </Tooltip>
-              </Box>
-            <Box flex="1" minH={0} overflowY="auto">
-              <DocQaPanel />
-            </Box>
-          </Box>
-
-          {/* GUTTER */}
-          {showLeft && showRight && !isStacked && (
-            <Box
-              w="4px"
-              cursor="col-resize"
-              onMouseDown={startDrag}
-              userSelect="none"
-              bg="border.default"
-              _hover={{ bg: 'gray.300' }}
-            />
-          )}
-
-          {/* RIGHT PANE */}
-          <Box
-            transition="width 0.2s ease"
-            width={showRight ? (showLeft ? `calc(${100 - leftPct}% - ${showLeft && showRight && !isStacked ? 4 : 0}px)` : '100%') : '0%'}
-            flex={showRight ? '1' : '0 0 0%'}
-            minW={showRight ? '240px' : '0'}
-            display="flex"
-            flexDirection="column"
-            minH={0}
-            overflow="hidden"
-            bg="brand.surface"
-            visibility={showRight ? 'visible' : 'hidden'}
-          >
+            {/* header always rendered so toggle available */}
             <Box
               px={5}
-              py={0}
+              py={2}
               bg="bg.muted"
-              flexShrink={0}
-              borderBottom="1px solid"
-              borderColor="border.default"
               display="flex"
               alignItems="center"
               justifyContent="space-between"
+              borderBottom="1px solid"
+              borderColor="border.default"
             >
-                <Text fontWeight="bold" color="brand.primary">
-                  Chat
-                </Text>
-                <Tooltip label="Hide right panel">
-                  <IconButton
-                    aria-label="Hide right panel"
-                    icon={<ChevronRightIcon />}
-                    size="sm"
-                    variant="outline"
-                    colorScheme="brand"
-                    fontSize="lg"
-                    onClick={hideRightPanel}
-                  />
-                </Tooltip>
-              </Box>
-
-              <Box flex="1" minH={0} overflowY="auto">
-                <ChatWindow />
-              </Box>
-
-              <Box
-                position="sticky"
-                zIndex={100} flexShrink={0}
-                bottom={0}
-                bg="brand.surface"
-                borderTop="1px solid"
-                borderColor="border.default"
-                px={4}
-                py={2}
-              >
-              <ChatInput />
+              <Text fontWeight="bold" color="brand.primary">
+                PDF & Knowledgebase Query
+              </Text>
+              <Tooltip label={showLeft ? "Hide panel" : "Show panel"}>
+                <IconButton
+                  aria-label="Toggle left panel"
+                  icon={
+                    <ChevronLeftIcon
+                      boxSize={5}
+                      fontWeight="bold"
+                      transform={showLeft ? "rotate(0deg)" : "rotate(180deg)"}
+                      transition="transform 0.2s"
+                    />
+                  }
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowLeft(!showLeft)}
+                />
+              </Tooltip>
             </Box>
+
+            {/* content fades */}
+            <Collapse in={showLeft} animateOpacity>
+              <Box flex="1" overflowY="auto">
+                <DocQaPanel />
+              </Box>
+            </Collapse>
           </Box>
 
-          {/* Restore Right Button */}
+          {/* GUTTER */}
+          {gutter > 0 && (
+            <Box
+              w="4px"
+              _hover={{ w: "8px", bg: "border.default" }}
+              cursor="ew-resize"
+              onMouseDown={startDrag}
+              transition="width 0.1s"
+            />
+          )}
+
+          {/* RIGHT-side restore button */}
           {!showRight && (
             <Box
-              w="20px"
+              w="24px"
               display="flex"
               alignItems="center"
               justifyContent="center"
               bg="bg.muted"
-              borderLeftWidth={1}
+              borderLeft="1px solid"
               borderColor="border.default"
+              zIndex={10}
             >
               <Tooltip label="Show right panel">
                 <IconButton
                   aria-label="Show right panel"
+                  icon={
+                    <ChevronLeftIcon
+                      boxSize={5}
+                      fontWeight="bold"
+                      transform="rotate(180deg)"
+                    />
+                  }
+                  variant="ghost"
                   size="sm"
-                  variant="outline"
-                  colorScheme="brand"
-                  fontSize="lg"
-                  icon={<ChevronLeftIcon />}
                   onClick={() => setShowRight(true)}
                 />
               </Tooltip>
             </Box>
           )}
+
+          {/* RIGHT PANEL */}
+          <Box
+            width={rightWidth}
+            minW="0"
+            transition="width 0.25s ease"
+            display="flex"
+            flexDirection="column"
+            borderLeft={gutter ? "1px solid" : undefined}
+            borderColor="border.default"
+          >
+            {/* header always rendered */}
+            <Box
+              px={5}
+              py={2}
+              bg="bg.muted"
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+              borderBottom="1px solid"
+              borderColor="border.default"
+            >
+              <Text fontWeight="bold" color="brand.primary">
+                Chat
+              </Text>
+              <Tooltip label={showRight ? "Hide panel" : "Show panel"}>
+                <IconButton
+                  aria-label="Toggle right panel"
+                  icon={
+                    <ChevronRightIcon
+                      boxSize={5}
+                      fontWeight="bold"
+                      transform={showRight ? "rotate(0deg)" : "rotate(180deg)"}
+                      transition="transform 0.2s"
+                    />
+                  }
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRight(!showRight)}
+                />
+              </Tooltip>
+            </Box>
+
+            {/* message list */}
+            <Collapse in={showRight} animateOpacity>
+              <Box flex="1" overflowY="auto">
+                <ChatWindow />
+              </Box>
+            </Collapse>
+
+            {/* pinned chat input */}
+            {showRight && (
+              <Box
+                flexShrink={0}
+                bg="brand.surface"
+                borderTop="1px solid"
+                borderColor="border.default"
+                px={4}
+                py={2}
+                zIndex={1}
+              >
+                <ChatInput />
+              </Box>
+            )}
+          </Box>
         </Box>
 
         {/* FOOTER */}
