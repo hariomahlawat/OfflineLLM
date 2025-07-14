@@ -146,4 +146,31 @@ def test_doc_qa(monkeypatch):
     }
 
 
+def test_calc_top_k(monkeypatch):
+    monkeypatch.setattr(api, "DYNAMIC_K_FACTOR", 5)
+    monkeypatch.setattr(api, "SEARCH_TOP_K", 2)
+    q = "one two three four five six"
+    k = api._calc_top_k(q)
+    expected = 2 + api.count_tokens(q) // 5
+    assert k == expected
+
+
+@pytest.mark.parametrize(
+    "val,expected,raises",
+    [
+        (None, 0, False),
+        ("", 0, False),
+        ("10", 10, False),
+        ("-3", 0, False),
+        ("abc", None, True),
+    ],
+)
+def test_parse_dynamic_k_factor(val, expected, raises):
+    if raises:
+        with pytest.raises(ValueError):
+            api._parse_dynamic_k_factor(val)
+    else:
+        assert api._parse_dynamic_k_factor(val) == expected
+
+
 
