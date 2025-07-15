@@ -217,7 +217,7 @@ export function AppHeader() {
               <Thead>
                 <Tr>
                   <Th>Name</Th>
-                  <Th>Cut-off</Th>
+                  <Th>Model Size</Th>
                   <Th>Context</Th>
                   <Th>Best for…</Th>
                 </Tr>
