@@ -421,7 +421,7 @@ class ProofreadResponse(BaseModel):
 async def proofread(req: ProofreadRequest):
     model = req.model or DEFAULT_MODEL
     prompt = (
-        """You are a specialised grammar-checking assistant focused exclusively on verifying grammatical correctness as per British English standards. Your responsibilities include:
+        """You are named as EklavyaAI Grammar Checker, a specialised grammar-checking assistant focused exclusively on verifying grammatical correctness as per British English standards. Your responsibilities include:
 
 1. Checking all text provided by users strictly against British English grammar rules.
 2. Correcting grammatical errors, punctuation mistakes, and minor stylistic inconsistencies.
