@@ -4,7 +4,7 @@ import { useRewrite } from "../../contexts/RewriteContext";
 import { AssistantBubble } from "../AssistantBubble/AssistantBubble";
 
 export function RewriteWindow() {
-  const { messages, sending } = useRewrite();
+  const { messages, sending, error } = useRewrite();
   const userBg = 'brand.primary';
   const userText = 'white';
   const aiBg = 'bg.muted';
@@ -13,7 +13,7 @@ export function RewriteWindow() {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, sending]);
+  }, [messages, sending, error]);
 
   return (
     <Box
@@ -132,6 +132,33 @@ export function RewriteWindow() {
                     Working…
                   </Text>
                 </HStack>
+              </Box>
+            </HStack>
+          )}
+          {error && (
+            <HStack justify="flex-start" mb={1.5} spacing={2} align="start">
+              <Avatar
+                size="xs"
+                name="AI"
+                bg="brand.accent"
+                color="white"
+                icon={<span style={{ fontSize: 18 }}>🤖</span>}
+              />
+              <Box
+                bg={aiBg}
+                color="red.500"
+                px={4}
+                py={2}
+                borderRadius="2xl"
+                maxW="70%"
+                boxShadow="sm"
+              >
+                <Text fontSize="xs" fontWeight="bold" opacity={0.8} mb={1}>
+                  Error
+                </Text>
+                <Text fontSize="sm" wordBreak="break-word">
+                  {error}
+                </Text>
               </Box>
             </HStack>
           )}
