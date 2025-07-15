@@ -177,3 +177,20 @@ export async function sessionQA(
   return (await res.json()) as QAResponse
 }
 
+
+/**
+ * POST /proofread
+ */
+export interface GrammarResponse {
+  corrected: string
+}
+
+export async function grammarCheck(text: string): Promise<GrammarResponse> {
+  const res = await fetch(`${BASE}/proofread`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
+  if (!res.ok) throw new Error(`grammarCheck failed: ${res.statusText}`)
+  return (await res.json()) as GrammarResponse
+}

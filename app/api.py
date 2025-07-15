@@ -406,3 +406,25 @@ async def admin_upload_pdf(
 
     return AdminUploadResponse(status="ok", filename=file.filename)
 
+
+# ───────────────────────── Proofread / Grammar check ────────────────────
+class ProofreadRequest(BaseModel):
+    text: str
+    model: Optional[str] = None
+
+
+class ProofreadResponse(BaseModel):
+    corrected: str
+
+
+@app.post("/proofread", response_model=ProofreadResponse)
+async def proofread(req: ProofreadRequest):
+    model = req.model or DEFAULT_MODEL
+    prompt = (
+        "You are a helpful editor. Correct grammar and improve clarity of the following text without changing its meaning. "
+        "Return only the corrected text."
+    )
+    raw = safe_chat(model=model, messages=[{"role": "system", "content": prompt}, {"role": "user", "content": req.text}], stream=False)
+    corrected = finalize_ollama_chat(raw)["message"]["content"].strip()
+    return ProofreadResponse(corrected=corrected)
+

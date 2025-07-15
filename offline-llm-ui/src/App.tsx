@@ -5,6 +5,7 @@ import { Box } from "@chakra-ui/react";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
+import { GrammarPanel } from "./components/GrammarPanel/GrammarPanel";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import ChatInput from "./components/ChatInput/ChatInput";
 import { AppFooter } from "./components/AppFooter/AppFooter";
@@ -25,7 +26,7 @@ export default function App() {
         <Box flex="1" minH={0} display="flex" overflow="hidden">
           <NavBar active={mode} onChange={setMode} />
           <Box flex="1" display="flex" flexDirection="column" bg="brand.surface">
-            {mode === "chat" ? (
+            {mode === "chat" && (
               <>
                 <Box flex="1" minH={0} overflowY="auto">
                   <ChatWindow />
@@ -43,9 +44,9 @@ export default function App() {
                   <ChatInput />
                 </Box>
               </>
-            ) : (
-              <DocQaPanel />
             )}
+            {mode === "docqa" && <DocQaPanel />}
+            {mode === "grammar" && <GrammarPanel />}
           </Box>
         </Box>
 
