@@ -8,7 +8,7 @@ import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import ChatInput from "./components/ChatInput/ChatInput";
 import { AppFooter } from "./components/AppFooter/AppFooter";
-import { NavBar, NavMode } from "./components/NavBar/NavBar";
+import { NavBar, type NavMode } from "./components/NavBar/NavBar";
 
 export default function App() {
   const [mode, setMode] = useState<NavMode>("chat");
