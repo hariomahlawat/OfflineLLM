@@ -117,32 +117,46 @@ export default function App() {
             boxShadow="md"
             visibility={showLeft ? 'visible' : 'hidden'}
           >
-              <Box
-                px={5}
-                py={0}
-                bg="bg.muted"
-                flexShrink={0}
-                borderBottom="1px solid"
-                borderColor="border.default"
-                display="flex"
-                alignItems="center"
-                justifyContent="space-between"
-              >
+            <Box
+              px={5}
+              py={0}
+              bg="bg.muted"
+              flexShrink={0}
+              borderBottom="1px solid"
+              borderColor="border.default"
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <HStack spacing={2}>
                 <Text fontWeight="bold" color="brand.primary">
                   PDF & Knowledgebase Query
                 </Text>
-                <Tooltip label="Hide left panel">
-                  <IconButton
-                    aria-label="Hide left panel"
-                    icon={<ChevronLeftIcon />}
-                    size="sm"
-                    variant="outline"
-                    colorScheme="brand"
-                    fontSize="lg"
-                    onClick={hideLeftPanel}
-                  />
+                <Tooltip
+                  label="Uploaded PDFs and knowledge articles are converted to vectors for semantic search. Relevant segments are retrieved and re-ranked before being passed to the model so answers stay grounded in the source material."
+                  fontSize="sm"
+                  placement="right"
+                  hasArrow
+                  maxW="260px"
+                  whiteSpace="normal"
+                >
+                  <span>
+                    <InfoOutlineIcon color="text.muted" />
+                  </span>
                 </Tooltip>
-              </Box>
+              </HStack>
+              <Tooltip label="Hide left panel">
+                <IconButton
+                  aria-label="Hide left panel"
+                  icon={<ChevronLeftIcon />}
+                  size="sm"
+                  variant="outline"
+                  colorScheme="brand"
+                  fontSize="lg"
+                  onClick={hideLeftPanel}
+                />
+              </Tooltip>
+            </Box>
             <Box flex="1" minH={0} overflowY="auto">
               <DocQaPanel />
             </Box>
@@ -184,21 +198,35 @@ export default function App() {
               alignItems="center"
               justifyContent="space-between"
             >
+              <HStack spacing={2}>
                 <Text fontWeight="bold" color="brand.primary">
                   Chat
                 </Text>
-                <Tooltip label="Hide right panel">
-                  <IconButton
-                    aria-label="Hide right panel"
-                    icon={<ChevronRightIcon />}
-                    size="sm"
-                    variant="outline"
-                    colorScheme="brand"
-                    fontSize="lg"
-                    onClick={hideRightPanel}
-                  />
+                <Tooltip
+                  label="Direct conversation with the selected model. Messages are kept in context with no document retrieval, making this mode ideal for free-form dialogue and brainstorming."
+                  fontSize="sm"
+                  placement="right"
+                  hasArrow
+                  maxW="260px"
+                  whiteSpace="normal"
+                >
+                  <span>
+                    <InfoOutlineIcon color="text.muted" />
+                  </span>
                 </Tooltip>
-              </Box>
+              </HStack>
+              <Tooltip label="Hide right panel">
+                <IconButton
+                  aria-label="Hide right panel"
+                  icon={<ChevronRightIcon />}
+                  size="sm"
+                  variant="outline"
+                  colorScheme="brand"
+                  fontSize="lg"
+                  onClick={hideRightPanel}
+                />
+              </Tooltip>
+            </Box>
 
               <Box flex="1" minH={0} overflowY="auto">
                 <ChatWindow />
