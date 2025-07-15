@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { grammarCheck } from "../api";
+import { redraftText } from "../api";
 
 interface Message {
   from: "user" | "assistant";
@@ -22,7 +22,7 @@ export function RewriteProvider({ children }: { children: ReactNode }) {
     setMessages((m) => [...m, { from: "user", text }]);
     setSending(true);
     try {
-      const { corrected } = await grammarCheck(text);
+      const { corrected } = await redraftText(text);
       setMessages((m) => [...m, { from: "assistant", text: corrected }]);
     } finally {
       setSending(false);
