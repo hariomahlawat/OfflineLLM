@@ -1,7 +1,7 @@
 import { VStack, IconButton, Tooltip } from "@chakra-ui/react";
-import { ChatIcon, AttachmentIcon, EditIcon, RepeatIcon } from "@chakra-ui/icons";
+import { ChatIcon, AttachmentIcon, EditIcon, RepeatIcon, InfoOutlineIcon } from "@chakra-ui/icons";
 
-export type NavMode = "chat" | "docqa" | "grammar" | "rewrite";
+export type NavMode = "chat" | "kb" | "pdf" | "grammar" | "rewrite";
 
 interface NavBarProps {
   active: NavMode;
@@ -29,13 +29,23 @@ export function NavBar({ active, onChange }: NavBarProps) {
           isRound
         />
       </Tooltip>
-      <Tooltip label="PDF & KB" placement="right">
+      <Tooltip label="Knowledge Base" placement="right">
         <IconButton
-          aria-label="PDF and KB"
-          icon={<AttachmentIcon />}
-          variant={active === "docqa" ? "solid" : "ghost"}
+          aria-label="Knowledge Base"
+          icon={<InfoOutlineIcon />}
+          variant={active === "kb" ? "solid" : "ghost"}
           colorScheme="brand"
-          onClick={() => onChange("docqa")}
+          onClick={() => onChange("kb")}
+          isRound
+        />
+      </Tooltip>
+      <Tooltip label="Talk to PDF" placement="right">
+        <IconButton
+          aria-label="Talk to PDF"
+          icon={<AttachmentIcon />}
+          variant={active === "pdf" ? "solid" : "ghost"}
+          colorScheme="brand"
+          onClick={() => onChange("pdf")}
           isRound
         />
       </Tooltip>

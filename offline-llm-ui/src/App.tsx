@@ -5,7 +5,8 @@ import { Box } from "@chakra-ui/react";
 import { ChatProvider } from "./contexts/ChatContext";
 import { RewriteProvider } from "./contexts/RewriteContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
-import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
+import { KnowledgeBasePanel } from "./components/KnowledgeBasePanel/KnowledgeBasePanel";
+import { PdfSessionPanel } from "./components/PdfSessionPanel/PdfSessionPanel";
 import { GrammarPanel } from "./components/GrammarPanel/GrammarPanel";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import ChatInput from "./components/ChatInput/ChatInput";
@@ -49,7 +50,8 @@ export default function App() {
                 </Box>
               </>
             )}
-            {mode === "docqa" && <DocQaPanel />}
+            {mode === "kb" && <KnowledgeBasePanel />}
+            {mode === "pdf" && <PdfSessionPanel />}
             {mode === "grammar" && <GrammarPanel />}
             {mode === "rewrite" && (
               <>
