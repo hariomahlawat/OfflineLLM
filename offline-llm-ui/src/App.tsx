@@ -1,69 +1,17 @@
 // src/App.tsx
 
-import { useState, useEffect, useRef } from "react";
-import {
-  Box,
-  Text,
-  IconButton,
-  Tooltip,
-  useBreakpointValue,
-  HStack,
-} from "@chakra-ui/react";
-import { ChevronLeftIcon, ChevronRightIcon, InfoOutlineIcon } from "@chakra-ui/icons";
+import { useState } from "react";
+import { Box } from "@chakra-ui/react";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import ChatInput from "./components/ChatInput/ChatInput";
 import { AppFooter } from "./components/AppFooter/AppFooter";
+import { NavBar, NavMode } from "./components/NavBar/NavBar";
 
 export default function App() {
-  const [leftPct, setLeftPct] = useState(40);
-  const [showLeft, setShowLeft] = useState(true);
-  const [showRight, setShowRight] = useState(true);
-  const isStacked = useBreakpointValue({ base: true, md: false });
-
-  // track latest panel visibility to avoid race conditions
-  const showLeftRef = useRef(showLeft);
-  const showRightRef = useRef(showRight);
-  useEffect(() => { showLeftRef.current = showLeft; }, [showLeft]);
-  useEffect(() => { showRightRef.current = showRight; }, [showRight]);
-
-  // ensure at least one panel stays visible
-  useEffect(() => {
-    if (!showLeftRef.current && !showRightRef.current) {
-      setShowRight(true);
-    }
-  }, [showLeft, showRight]);
-
-  function hideLeftPanel() {
-    if (!showRightRef.current) return;
-    setShowLeft(false);
-  }
-
-  function hideRightPanel() {
-    if (!showLeftRef.current) return;
-    setShowRight(false);
-  }
-
-  function startDrag(e: React.MouseEvent) {
-    if (isStacked || !showLeft || !showRight) return;
-    e.preventDefault();
-    document.body.style.cursor = "col-resize";
-
-    function onMouseMove(ev: MouseEvent) {
-      const pct = (ev.clientX / window.innerWidth) * 100;
-      setLeftPct(Math.max(18, Math.min(82, pct)));
-    }
-    function onMouseUp() {
-      document.body.style.cursor = "";
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    }
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  }
+  const [mode, setMode] = useState<NavMode>("chat");
 
   return (
     <ChatProvider>
@@ -73,204 +21,32 @@ export default function App() {
           <AppHeader />
         </Box>
 
-        {/* MAIN PANELS */}
+        {/* MAIN AREA */}
         <Box flex="1" minH={0} display="flex" overflow="hidden">
-
-          {/* Restore Left Button */}
-          {!showLeft && (
-            <Box
-              w="20px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              bg="bg.muted"
-              borderRightWidth={1}
-              borderColor="border.default"
-            >
-              <Tooltip label="Show left panel">
-                <IconButton
-                  aria-label="Show left panel"
-                  size="sm"
-                  variant="outline"
-                  colorScheme="brand"
-                  fontSize="lg"
-                  icon={<ChevronRightIcon />}
-                  onClick={() => setShowLeft(true)}
-                />
-              </Tooltip>
-            </Box>
-          )}
-
-          {/* LEFT PANE */}
-          <Box
-            transition="width 0.2s ease"
-            width={showLeft ? (showRight ? `${leftPct}%` : '100%') : '0%'}
-            flex={showLeft ? (showRight ? '0 0 auto' : '1') : '0 0 0%'}
-            minW={showLeft ? '240px' : '0'}
-            maxW={showRight ? "82vw" : "99vw"}
-            display="flex"
-            flexDirection="column"
-            minH={0}
-            overflow="hidden"
-            bg="bg.surface"
-            borderRightWidth={isStacked || !showRight ? 0 : 1}
-            borderColor="border.default"
-            boxShadow="md"
-            visibility={showLeft ? 'visible' : 'hidden'}
-          >
-            <Box
-              px={5}
-              py={0}
-              bg="bg.muted"
-              flexShrink={0}
-              borderBottom="1px solid"
-              borderColor="border.default"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <HStack spacing={2}>
-                <Text fontWeight="bold" color="brand.primary">
-                  PDF & Knowledgebase Query
-                </Text>
-                <Tooltip
-                  label="Uploaded PDFs and knowledge articles are converted to vectors for semantic search. Relevant segments are retrieved and re-ranked before being passed to the model so answers stay grounded in the source material."
-                  fontSize="sm"
-                  placement="right"
-                  hasArrow
-                  maxW="260px"
-                  whiteSpace="normal"
+          <NavBar active={mode} onChange={setMode} />
+          <Box flex="1" display="flex" flexDirection="column" bg="brand.surface">
+            {mode === "chat" ? (
+              <>
+                <Box flex="1" minH={0} overflowY="auto">
+                  <ChatWindow />
+                </Box>
+                <Box
+                  position="sticky"
+                  bottom={0}
+                  zIndex={100}
+                  bg="brand.surface"
+                  borderTop="1px solid"
+                  borderColor="border.default"
+                  px={4}
+                  py={2}
                 >
-                  <span>
-                    <InfoOutlineIcon color="text.muted" />
-                  </span>
-                </Tooltip>
-              </HStack>
-              <Tooltip label="Hide left panel">
-                <IconButton
-                  aria-label="Hide left panel"
-                  icon={<ChevronLeftIcon />}
-                  size="sm"
-                  variant="outline"
-                  colorScheme="brand"
-                  fontSize="lg"
-                  onClick={hideLeftPanel}
-                />
-              </Tooltip>
-            </Box>
-            <Box flex="1" minH={0} overflowY="auto">
+                  <ChatInput />
+                </Box>
+              </>
+            ) : (
               <DocQaPanel />
-            </Box>
+            )}
           </Box>
-
-          {/* GUTTER */}
-          {showLeft && showRight && !isStacked && (
-            <Box
-              w="4px"
-              cursor="col-resize"
-              onMouseDown={startDrag}
-              userSelect="none"
-              bg="border.default"
-              _hover={{ bg: 'gray.300' }}
-            />
-          )}
-
-          {/* RIGHT PANE */}
-          <Box
-            transition="width 0.2s ease"
-            width={showRight ? (showLeft ? `calc(${100 - leftPct}% - ${showLeft && showRight && !isStacked ? 4 : 0}px)` : '100%') : '0%'}
-            flex={showRight ? '1' : '0 0 0%'}
-            minW={showRight ? '240px' : '0'}
-            display="flex"
-            flexDirection="column"
-            minH={0}
-            overflow="hidden"
-            bg="brand.surface"
-            visibility={showRight ? 'visible' : 'hidden'}
-          >
-            <Box
-              px={5}
-              py={0}
-              bg="bg.muted"
-              flexShrink={0}
-              borderBottom="1px solid"
-              borderColor="border.default"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <HStack spacing={2}>
-                <Text fontWeight="bold" color="brand.primary">
-                  Chat
-                </Text>
-                <Tooltip
-                  label="Direct conversation with the selected model. Messages are kept in context with no document retrieval, making this mode ideal for free-form dialogue and brainstorming."
-                  fontSize="sm"
-                  placement="right"
-                  hasArrow
-                  maxW="260px"
-                  whiteSpace="normal"
-                >
-                  <span>
-                    <InfoOutlineIcon color="text.muted" />
-                  </span>
-                </Tooltip>
-              </HStack>
-              <Tooltip label="Hide right panel">
-                <IconButton
-                  aria-label="Hide right panel"
-                  icon={<ChevronRightIcon />}
-                  size="sm"
-                  variant="outline"
-                  colorScheme="brand"
-                  fontSize="lg"
-                  onClick={hideRightPanel}
-                />
-              </Tooltip>
-            </Box>
-
-              <Box flex="1" minH={0} overflowY="auto">
-                <ChatWindow />
-              </Box>
-
-              <Box
-                position="sticky"
-                zIndex={100} flexShrink={0}
-                bottom={0}
-                bg="brand.surface"
-                borderTop="1px solid"
-                borderColor="border.default"
-                px={4}
-                py={2}
-              >
-              <ChatInput />
-            </Box>
-          </Box>
-
-          {/* Restore Right Button */}
-          {!showRight && (
-            <Box
-              w="20px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              bg="bg.muted"
-              borderLeftWidth={1}
-              borderColor="border.default"
-            >
-              <Tooltip label="Show right panel">
-                <IconButton
-                  aria-label="Show right panel"
-                  size="sm"
-                  variant="outline"
-                  colorScheme="brand"
-                  fontSize="lg"
-                  icon={<ChevronLeftIcon />}
-                  onClick={() => setShowRight(true)}
-                />
-              </Tooltip>
-            </Box>
-          )}
         </Box>
 
         {/* FOOTER */}
