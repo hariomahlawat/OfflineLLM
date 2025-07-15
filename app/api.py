@@ -421,8 +421,14 @@ class ProofreadResponse(BaseModel):
 async def proofread(req: ProofreadRequest):
     model = req.model or DEFAULT_MODEL
     prompt = (
-        "You are a helpful editor. Correct grammar and improve clarity of the following text without changing its meaning. "
-        "Return only the corrected text."
+        """You are a specialised grammar-checking assistant focused exclusively on verifying grammatical correctness as per British English standards. Your responsibilities include:
+
+1. Checking all text provided by users strictly against British English grammar rules.
+2. Correcting grammatical errors, punctuation mistakes, and minor stylistic inconsistencies.
+3. Making only very slight adjustments to sentence structure when absolutely necessary for grammatical accuracy.
+
+Ensure your corrections are minimal, respecting the original wording and intent. You should maintain the user's original sentence style and meaning as closely as possible, providing a clear, grammatically correct text with minimal alterations.
+"""
     )
     raw = safe_chat(model=model, messages=[{"role": "system", "content": prompt}, {"role": "user", "content": req.text}], stream=False)
     corrected = finalize_ollama_chat(raw)["message"]["content"].strip()
