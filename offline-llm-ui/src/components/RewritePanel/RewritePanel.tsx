@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Box, Textarea, IconButton, HStack, Spinner, Text } from "@chakra-ui/react";
 import { CheckIcon } from "@chakra-ui/icons";
-import { grammarCheck } from "../../api";
+import { redraftText } from "../../api";
 
-export function GrammarPanel() {
+export function RewritePanel() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
   const [checking, setChecking] = useState(false);
@@ -12,7 +12,7 @@ export function GrammarPanel() {
     if (!input.trim()) return;
     setChecking(true);
     try {
-      const { corrected } = await grammarCheck(input.trim());
+      const { corrected } = await redraftText(input.trim());
       setResult(corrected);
     } catch (err: any) {
       setResult(`Error: ${err.message}`);
@@ -31,10 +31,10 @@ export function GrammarPanel() {
   return (
     <Box flex="1" display="flex" flexDirection="column" p={2} gap={2} bg="brand.surface">
       <Text fontSize="sm" color="text.muted">
-        Paste your text here for grammar check
+        Paste your text here for re-drafting
       </Text>
       <Textarea
-        placeholder="Paste text to check…"
+        placeholder="Paste text to rewrite…"
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={onKeyDown}
@@ -48,7 +48,7 @@ export function GrammarPanel() {
       />
       <HStack justify="flex-end">
         <IconButton
-          aria-label="Check grammar"
+          aria-label="Rewrite text"
           icon={checking ? <Spinner size="sm" /> : <CheckIcon />}
           colorScheme="brand"
           borderRadius="full"
