@@ -69,10 +69,17 @@ fastapi
 uvicorn[standard]
 langchain-community
 chromadb==0.5.23
-sentence-transformers
-pydantic
+pydantic>=2.0.0
+pydantic-core>=2.0.0
 pymupdf
 pypdf
+ollama==0.3.3
+sentence-transformers[onnx]
+python-multipart
+python-ollama>=0.2,<0.3
+onnxruntime>=1.15.1
+langchain-core>=0.2.0
+openai-whisper
 ```
 </details>
 

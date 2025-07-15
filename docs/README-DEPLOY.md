@@ -2,6 +2,10 @@
 
 This document walks through setting up and running OfflineLLM using Docker, Nginx, and HTTPS, serving a React frontend and FastAPI backend.
 
+The backend now includes optional speech-to-text via OpenAI Whisper. Install
+`ffmpeg` and the `openai-whisper` Python package if you plan to use the
+`/speech_to_text` endpoint.
+
 ---
 
 ## 1. Directory Structure (relative to repo root)
