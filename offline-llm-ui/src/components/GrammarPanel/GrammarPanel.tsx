@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Box, Textarea, IconButton, HStack, Spinner, Text } from "@chakra-ui/react";
+import { SpeechButton } from "../SpeechButton";
 import { CheckIcon } from "@chakra-ui/icons";
 import { grammarCheck } from "../../api";
 
@@ -47,6 +48,7 @@ export function GrammarPanel() {
         isDisabled={checking}
       />
       <HStack justify="flex-end">
+        <SpeechButton onResult={(t) => setInput((p) => p + (p ? ' ' : '') + t)} size="sm" />
         <IconButton
           aria-label="Check grammar"
           icon={checking ? <Spinner size="sm" /> : <CheckIcon />}

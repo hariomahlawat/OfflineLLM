@@ -22,6 +22,7 @@ import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../contexts/ChatContext";
 import { uploadPdf, sessionQA, type SourceChunk } from "../../api";
 import { AssistantBubble } from "../AssistantBubble/AssistantBubble";
+import { SpeechButton } from "../SpeechButton";
 
 export function PdfSessionPanel() {
   const toast = useToast();
@@ -331,6 +332,7 @@ export function PdfSessionPanel() {
           isLoading={uploading}
           alignSelf="end"
         />
+        <SpeechButton onResult={(t) => setQuestion((q) => q + (q ? ' ' : '') + t)} size="sm" />
         <IconButton
           aria-label="Send"
           icon={asking ? <Spinner size="sm" /> : <ArrowRightIcon />}

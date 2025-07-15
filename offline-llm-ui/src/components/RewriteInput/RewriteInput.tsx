@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Textarea, IconButton, HStack } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
 import { useRewrite } from "../../contexts/RewriteContext";
+import { SpeechButton } from "../SpeechButton";
 
 export default function RewriteInput() {
   const { sendMessage, sending } = useRewrite();
@@ -38,6 +39,7 @@ export default function RewriteInput() {
         maxH="120px"
         resize="vertical"
       />
+      <SpeechButton onResult={(t) => setText((p) => p + (p ? ' ' : '') + t)} />
       <IconButton
         aria-label="Send"
         icon={<ArrowRightIcon />}
