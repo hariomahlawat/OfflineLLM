@@ -54,7 +54,7 @@ export function ChatWindow() {
       {messages.length === 0 && !sending ? (
         <Box flex="1" display="flex" alignItems="center" justifyContent="center" minH={300}>
           <Text color="text.muted" fontSize="lg" fontWeight="medium" textAlign="center">
-            No messages yet. Ask anything to start a conversation!
+            Type your message below to start a conversation.
           </Text>
         </Box>
       ) : (
