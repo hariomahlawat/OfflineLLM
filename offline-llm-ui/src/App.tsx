@@ -7,8 +7,9 @@ import {
   IconButton,
   Tooltip,
   useBreakpointValue,
+  HStack,
 } from "@chakra-ui/react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { ChevronLeftIcon, ChevronRightIcon, InfoOutlineIcon } from "@chakra-ui/icons";
 import { ChatProvider } from "./contexts/ChatContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";

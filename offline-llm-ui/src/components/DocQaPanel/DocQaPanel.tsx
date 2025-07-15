@@ -166,7 +166,7 @@ export function DocQaPanel() {
       overflow="hidden"
       px={{ base: 0, md: 0 }}
       py={0}
-      borderLeftWidth="5px"
+      borderLeftWidth="0px"
       borderLeftStyle="solid"
       borderLeftColor="brand.accent"
     >
