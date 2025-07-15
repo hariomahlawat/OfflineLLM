@@ -57,6 +57,8 @@ python -m venv .venv
 python -m pip install --upgrade pip pip-tools
 pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
+winget install ffmpeg   # for speech-to-text
+pip install openai-whisper
 python -m uvicorn app.api:app --reload
 ```
 

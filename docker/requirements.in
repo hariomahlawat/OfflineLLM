@@ -12,3 +12,4 @@ python-multipart
 python-ollama>=0.2,<0.3
 onnxruntime>=1.15.1
 langchain-core>=0.2.0
+openai-whisper
