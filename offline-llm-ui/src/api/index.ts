@@ -194,3 +194,20 @@ export async function grammarCheck(text: string): Promise<GrammarResponse> {
   if (!res.ok) throw new Error(`grammarCheck failed: ${res.statusText}`)
   return (await res.json()) as GrammarResponse
 }
+
+/**
+ * POST /redraft
+ */
+export interface RedraftResponse {
+  corrected: string
+}
+
+export async function redraftText(text: string): Promise<RedraftResponse> {
+  const res = await fetch(`${BASE}/redraft`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
+  if (!res.ok) throw new Error(`redraftText failed: ${res.statusText}`)
+  return (await res.json()) as RedraftResponse
+}
