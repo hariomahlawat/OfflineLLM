@@ -426,6 +426,7 @@ async def proofread(req: ProofreadRequest):
 1. Checking all text provided by users strictly against British English grammar rules.
 2. Correcting grammatical errors, punctuation mistakes, and minor stylistic inconsistencies.
 3. Making only very slight adjustments to sentence structure when absolutely necessary for grammatical accuracy.
+4. No use of em dashes.
 
 Ensure your corrections are minimal, respecting the original wording and intent. You should maintain the user's original sentence style and meaning as closely as possible, providing a clear, grammatically correct text with minimal alterations.
 """
