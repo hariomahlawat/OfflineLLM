@@ -31,6 +31,7 @@ import {
 import { SunIcon, MoonIcon } from "@chakra-ui/icons";
 import { FiMoreVertical } from "react-icons/fi";
 import { ModelSelector } from "../ModelSelector/ModelSelector";
+import AdminModal from "../AdminModal/AdminModal";
 
 /* ────────────────────────── static cheat-sheets ─────────────────────────── */
 // src/constants.ts
@@ -104,6 +105,7 @@ export function AppHeader() {
   const modelModal = useDisclosure();
   const promptModal = useDisclosure();
   const aboutModal = useDisclosure();
+  const adminModal = useDisclosure();
 
   return (
     <>
@@ -199,7 +201,7 @@ export function AppHeader() {
               <MenuItem onClick={modelModal.onOpen}>Model guide</MenuItem>
               <MenuItem onClick={promptModal.onOpen}>Prompt tips</MenuItem>
               <MenuItem onClick={aboutModal.onOpen}>About this app</MenuItem>
-              <MenuItem as={Link} href="/admin">Admin Panel</MenuItem>
+              <MenuItem onClick={adminModal.onOpen}>Admin Panel</MenuItem>
 
             </MenuList>
           </Menu>
@@ -371,6 +373,8 @@ export function AppHeader() {
     </ModalBody>
   </ModalContent>
 </Modal>
+
+      <AdminModal isOpen={adminModal.isOpen} onClose={adminModal.onClose} />
 
     </>
   );
