@@ -16,6 +16,7 @@ import secrets
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from app import vector_store
 from app.speech import transcribe_audio
 from app import boot
 
