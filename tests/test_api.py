@@ -173,4 +173,21 @@ def test_parse_dynamic_k_factor(val, expected, raises):
         assert api._parse_dynamic_k_factor(val) == expected
 
 
+def test_no_session_expiration(monkeypatch):
+    from datetime import datetime, timedelta
+
+    sid = "s1"
+    api._SESSIONS.clear()
+    api._SESSIONS_TOUCH.clear()
+    api._SESSIONS[sid] = object()
+    api._SESSIONS_TOUCH[sid] = datetime.utcnow() - timedelta(minutes=120)
+
+    monkeypatch.setattr(api, "SESSION_TTL_MIN", 0)
+
+    import asyncio
+    asyncio.get_event_loop().run_until_complete(api._purge_expired_sessions())
+
+    assert sid in api._SESSIONS
+
+
 

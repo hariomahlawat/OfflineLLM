@@ -167,7 +167,7 @@ Use `VITE_API_URL=http://localhost:8000` while developing and keep
 | `ADMIN_PASSWORD` | `None` | protects `/admin/*` endpoints |
 | `OLLAMA_DEFAULT_MODEL` | `llama3:8b-instruct-q3_K_L` | default chat model |
 | `SYSTEM_PROMPT` | `You are a helpful assistant.` | system prompt sent on first turn |
-| `SESSION_TTL_MIN` | `60` | delete idle sessions after *N* minutes |
+| `SESSION_TTL_MIN` | `60` | delete idle sessions after *N* minutes (0 = never) |
 | `RAG_TOK_LIMIT` | `2000` | truncate history to this many tokens |
 | `CORS_ALLOW` | `""` | comma-separated allowed origins |
 ---

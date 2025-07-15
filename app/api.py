@@ -168,6 +168,8 @@ async def _touch_sid(sid: str) -> None:
         _SESSIONS_TOUCH[sid] = datetime.utcnow()
 
 async def _purge_expired_sessions() -> None:
+    if SESSION_TTL_MIN <= 0:
+        return
     cutoff = datetime.utcnow() - timedelta(minutes=SESSION_TTL_MIN)
     async with _SESSIONS_LOCK:
         for sid, ts in list(_SESSIONS_TOUCH.items()):
