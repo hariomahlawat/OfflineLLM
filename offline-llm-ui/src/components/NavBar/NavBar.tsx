@@ -13,11 +13,11 @@ export function NavBar({ active, onChange }: NavBarProps) {
     <VStack
       spacing={3}
       py={2}
-      px={1}
+      px={0}
       bg="bg.muted"
       borderRightWidth={1}
       borderColor="border.default"
-      w="80px"
+      w="60px"
     >
       <Tooltip label="Chat" placement="right">
         <HStack w="full" justify="center">
@@ -36,7 +36,7 @@ export function NavBar({ active, onChange }: NavBarProps) {
         <HStack w="full" justify="center">
           <IconButton
             aria-label="Knowledge Base"
-            icon={<Image src="/rag.png" boxSize="1.5em" alt="RAG" />}
+            icon={<Image src="/rag.png" boxSize="2em" alt="RAG" />}
             variant={active === "kb" ? "solid" : "ghost"}
             colorScheme="brand"
             onClick={() => onChange("kb")}
@@ -49,7 +49,7 @@ export function NavBar({ active, onChange }: NavBarProps) {
         <HStack w="full" justify="center">
           <IconButton
             aria-label="Talk to PDF"
-            icon={<Image src="/pdf-icon.png" boxSize="1.5em" alt="PDF" />}
+            icon={<Image src="/pdf-icon.png" boxSize="2em" alt="PDF" />}
             variant={active === "pdf" ? "solid" : "ghost"}
             colorScheme="brand"
             onClick={() => onChange("pdf")}
@@ -62,7 +62,7 @@ export function NavBar({ active, onChange }: NavBarProps) {
         <HStack w="full" justify="center">
           <IconButton
             aria-label="Grammar check"
-            icon={<Image src="/grammarly.png" boxSize="1.5em" alt="Grammar" />}
+            icon={<Image src="/grammarly.png" boxSize="2em" alt="Grammar" />}
             variant={active === "grammar" ? "solid" : "ghost"}
             colorScheme="brand"
             onClick={() => onChange("grammar")}
@@ -75,7 +75,7 @@ export function NavBar({ active, onChange }: NavBarProps) {
         <HStack w="full" justify="center">
           <IconButton
             aria-label="Rewrite"
-            icon={<Image src="/redraft.png" boxSize="1.5em" alt="Redraft" />}
+            icon={<Image src="/redraft.png" boxSize="2em" alt="Redraft" />}
             variant={active === "rewrite" ? "solid" : "ghost"}
             colorScheme="brand"
             onClick={() => onChange("rewrite")}
