@@ -67,9 +67,22 @@ def new_persistent_store() -> Chroma:
 
 
 def persist_has_source(src: str) -> bool:
-    """Return *True* if the given PDF (metadata 'source_file') is already in the
-    permanent collection – used during boot to avoid double-ingest."""
-    return any(m.get("source_file") == src for m in persistent_store.get()["metadatas"])
+    """Return *True* if the given PDF is already indexed."""
+    metas = persistent_store.get()["metadatas"]
+    return any(
+        m.get("source_file") == src or m.get("source") == src for m in metas
+    )
+
+
+def delete_source(src: str) -> None:
+    """Remove all embeddings for *src* from the persistent store."""
+    try:
+        persistent_store.delete(where={"source": src})
+        persistent_store.delete(where={"source_file": src})
+    except Exception:
+        logging.getLogger("vector_store").warning(
+            "failed to delete embeddings for %s", src
+        )
 
 
 # ────────────────────────────────────────────────────────────────────────────────

@@ -156,6 +156,36 @@ export function adminUploadPdfWithProgress(
   });
 }
 
+export interface AdminFilesResponse {
+  ingested: string[]
+  failed: string[]
+}
+
+export async function adminListFiles(password: string): Promise<AdminFilesResponse> {
+  const res = await fetch(`${BASE}/admin/files`, {
+    headers: { Authorization: 'Basic ' + btoa(`admin:${password}`) },
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return (await res.json()) as AdminFilesResponse
+}
+
+export interface DeleteFileResponse {
+  status: string
+  filename: string
+}
+
+export async function adminDeleteFile(
+  filename: string,
+  password: string,
+): Promise<DeleteFileResponse> {
+  const res = await fetch(`${BASE}/admin/file/${encodeURIComponent(filename)}`, {
+    method: 'DELETE',
+    headers: { Authorization: 'Basic ' + btoa(`admin:${password}`) },
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return (await res.json()) as DeleteFileResponse
+}
+
 /**
  * POST /session_qa
  */

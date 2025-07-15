@@ -409,6 +409,44 @@ async def admin_upload_pdf(
     return AdminUploadResponse(status="ok", filename=file.filename)
 
 
+class AdminFilesResponse(BaseModel):
+    ingested: List[str]
+    failed: List[str]
+
+
+@app.get("/admin/files", response_model=AdminFilesResponse)
+async def admin_list_files(_: None = Depends(_verify_admin)):
+    dest_dir = boot.PERSIST_PDF_DIR
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    pdfs = sorted(dest_dir.glob("*.pdf"))
+    metas = vector_store.persistent_store.get()["metadatas"]
+    indexed = {
+        m.get("source") or Path(m.get("source_file", "")).name for m in metas
+    }
+    ingested = []
+    failed = []
+    for pdf in pdfs:
+        if pdf.name in indexed:
+            ingested.append(pdf.name)
+        else:
+            failed.append(pdf.name)
+    return AdminFilesResponse(ingested=ingested, failed=failed)
+
+
+class DeleteFileResponse(BaseModel):
+    status: str
+    filename: str
+
+
+@app.delete("/admin/file/{filename}", response_model=DeleteFileResponse)
+async def admin_delete_file(filename: str, _: None = Depends(_verify_admin)):
+    path = boot.PERSIST_PDF_DIR / filename
+    if path.exists():
+        path.unlink()
+    vector_store.delete_source(filename)
+    return DeleteFileResponse(status="deleted", filename=filename)
+
+
 # ───────────────────────── Proofread / Grammar check ────────────────────
 class ProofreadRequest(BaseModel):
     text: str
