@@ -246,6 +246,8 @@ opentelemetry-util-http==0.55b1
     #   opentelemetry-instrumentation-fastapi
 optimum[onnxruntime]==1.26.1
     # via sentence-transformers
+openai-whisper==20231106
+    # via -r docker/requirements.in
 orjson==3.10.18
     # via
     #   chromadb

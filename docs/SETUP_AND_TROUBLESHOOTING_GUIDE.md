@@ -27,6 +27,7 @@ A comprehensive step-by-step guide to reproducing, troubleshooting, and verifyin
 - **Git** (to clone the repository)
 - **Windows PowerShell** (tested syntax)
 - Sufficient disk space for model downloads (~5 GB+)
+- **ffmpeg** and the `openai-whisper` Python package for speech-to-text
 
 ---
 
