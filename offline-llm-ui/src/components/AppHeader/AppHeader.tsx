@@ -130,7 +130,7 @@ export function AppHeader() {
           <Image
             src="/sdd.png"
             alt="Logo"
-            boxSize={isMobile ? "26px" : "32px"}
+            boxSize={isMobile ? "36px" : "40px"}
             mr={2}
             borderRadius="md"
             bg="brand.surface"
