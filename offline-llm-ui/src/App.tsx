@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { Box } from "@chakra-ui/react";
 import { ChatProvider } from "./contexts/ChatContext";
+import { RewriteProvider } from "./contexts/RewriteContext";
 import { AppHeader } from "./components/AppHeader/AppHeader";
 import { DocQaPanel } from "./components/DocQaPanel/DocQaPanel";
 import { GrammarPanel } from "./components/GrammarPanel/GrammarPanel";
 import { ChatWindow } from "./components/ChatWindow/ChatWindow";
 import ChatInput from "./components/ChatInput/ChatInput";
+import { RewriteWindow } from "./components/RewriteWindow/RewriteWindow";
+import RewriteInput from "./components/RewriteInput/RewriteInput";
 import { AppFooter } from "./components/AppFooter/AppFooter";
 import { NavBar, type NavMode } from "./components/NavBar/NavBar";
 
@@ -16,6 +19,7 @@ export default function App() {
 
   return (
     <ChatProvider>
+      <RewriteProvider>
       <Box h="100vh" w="100vw" display="flex" flexDirection="column" overflow="hidden">
         {/* HEADER */}
         <Box as="header" position="sticky" top={0} zIndex={100} flexShrink={0}>
@@ -47,6 +51,25 @@ export default function App() {
             )}
             {mode === "docqa" && <DocQaPanel />}
             {mode === "grammar" && <GrammarPanel />}
+            {mode === "rewrite" && (
+              <>
+                <Box flex="1" minH={0} overflowY="auto">
+                  <RewriteWindow />
+                </Box>
+                <Box
+                  position="sticky"
+                  bottom={0}
+                  zIndex={100}
+                  bg="brand.surface"
+                  borderTop="1px solid"
+                  borderColor="border.default"
+                  px={4}
+                  py={2}
+                >
+                  <RewriteInput />
+                </Box>
+              </>
+            )}
           </Box>
         </Box>
 
@@ -55,6 +78,7 @@ export default function App() {
           <AppFooter />
         </Box>
       </Box>
+      </RewriteProvider>
     </ChatProvider>
   );
 }

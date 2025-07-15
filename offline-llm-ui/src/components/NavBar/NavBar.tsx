@@ -1,7 +1,7 @@
 import { VStack, IconButton, Tooltip } from "@chakra-ui/react";
-import { ChatIcon, AttachmentIcon, EditIcon } from "@chakra-ui/icons";
+import { ChatIcon, AttachmentIcon, EditIcon, RepeatIcon } from "@chakra-ui/icons";
 
-export type NavMode = "chat" | "docqa" | "grammar";
+export type NavMode = "chat" | "docqa" | "grammar" | "rewrite";
 
 interface NavBarProps {
   active: NavMode;
@@ -46,6 +46,16 @@ export function NavBar({ active, onChange }: NavBarProps) {
           variant={active === "grammar" ? "solid" : "ghost"}
           colorScheme="brand"
           onClick={() => onChange("grammar")}
+          isRound
+        />
+      </Tooltip>
+      <Tooltip label="Rewrite" placement="right">
+        <IconButton
+          aria-label="Rewrite"
+          icon={<RepeatIcon />}
+          variant={active === "rewrite" ? "solid" : "ghost"}
+          colorScheme="brand"
+          onClick={() => onChange("rewrite")}
           isRound
         />
       </Tooltip>

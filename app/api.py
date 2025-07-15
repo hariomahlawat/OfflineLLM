@@ -428,3 +428,35 @@ async def proofread(req: ProofreadRequest):
     corrected = finalize_ollama_chat(raw)["message"]["content"].strip()
     return ProofreadResponse(corrected=corrected)
 
+
+# ───────────────────────── Redraft text ─────────────────────────
+class RedraftRequest(BaseModel):
+    text: str
+    model: Optional[str] = None
+
+
+class RedraftResponse(BaseModel):
+    corrected: str
+
+
+@app.post("/redraft", response_model=RedraftResponse)
+async def redraft(req: RedraftRequest):
+    model = req.model or DEFAULT_MODEL
+    prompt = (
+        "You are a highly specialised assistant tasked strictly with proofreading and re-drafting text inputs provided by users. Your role is to:\n"
+        "\t1.\tCheck all text rigorously for grammatical correctness, strictly adhering to British English grammar rules.\n"
+        "\t2.\tEvaluate and ensure compliance with the ABC principles of effective English communication:\n"
+        "\t\u2022\tAccuracy\n"
+        "\t\u2022\tBrevity\n"
+        "\t\u2022\tClarity\n"
+        "\t3.\tMake necessary corrections or improvements without altering the intended meaning or significantly changing the user’s original phrasing.\n"
+        "\t4.\tAdhere strictly to British Army terminology and linguistic style (British Army lingo)."
+    )
+    raw = safe_chat(
+        model=model,
+        messages=[{"role": "system", "content": prompt}, {"role": "user", "content": req.text}],
+        stream=False,
+    )
+    corrected = finalize_ollama_chat(raw)["message"]["content"].strip()
+    return RedraftResponse(corrected=corrected)
+
