@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Textarea, IconButton, HStack } from "@chakra-ui/react";
 import { ArrowRightIcon } from "@chakra-ui/icons";
+import { SpeechButton } from "../SpeechButton";
 import { useChat } from "../../contexts/ChatContext";
 
 export default function ChatInput() {
@@ -42,6 +43,7 @@ export default function ChatInput() {
         maxH="120px"
         resize="vertical"
       />
+      <SpeechButton onResult={(t) => setText((prev) => prev + (prev ? ' ' : '') + t)} />
       <IconButton
         aria-label="Send"
         icon={<ArrowRightIcon />}

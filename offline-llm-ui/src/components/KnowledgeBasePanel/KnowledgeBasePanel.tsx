@@ -20,6 +20,7 @@ import { useState, useRef, useEffect } from "react";
 import { useChat } from "../../contexts/ChatContext";
 import { docQa, adminUploadPdf, type SourceChunk } from "../../api";
 import { AssistantBubble } from "../AssistantBubble/AssistantBubble";
+import { SpeechButton } from "../SpeechButton";
 
 export function KnowledgeBasePanel() {
   const toast = useToast();
@@ -317,6 +318,7 @@ export function KnowledgeBasePanel() {
           isLoading={uploading}
           alignSelf="end"
         />
+        <SpeechButton onResult={(t) => setQuestion((q) => q + (q ? ' ' : '') + t)} size="sm" />
         <IconButton
           aria-label="Send"
           icon={asking ? <Spinner size="sm" /> : <ArrowRightIcon />}

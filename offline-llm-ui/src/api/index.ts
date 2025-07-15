@@ -241,3 +241,18 @@ export async function redraftText(text: string): Promise<RedraftResponse> {
   if (!res.ok) throw new Error(`redraftText failed: ${res.statusText}`)
   return (await res.json()) as RedraftResponse
 }
+
+/**
+ * POST /speech_to_text
+ */
+export interface SpeechResponse {
+  text: string
+}
+
+export async function speechToText(file: File): Promise<SpeechResponse> {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await fetch(`${BASE}/speech_to_text`, { method: 'POST', body: form })
+  if (!res.ok) throw new Error(await res.text())
+  return (await res.json()) as SpeechResponse
+}

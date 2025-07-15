@@ -54,6 +54,13 @@ pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
 ```
 
+For speech-to-text support install **ffmpeg** and the `whisper` Python package:
+
+```powershell
+winget install ffmpeg
+pip install openai-whisper
+```
+
 <details>
 <summary>Current <code>docker/requirements.in</code></summary>
 
