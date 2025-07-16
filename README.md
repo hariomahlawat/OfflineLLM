@@ -88,14 +88,10 @@ logs a message if none are found.
 
 ### Air‑gap deployment
 
-```bash
-# on build machine
-docker save -o offline_stack.tar offlinellm-rag-app:latest ollama-offline:latest
-
-# copy to server
-docker load -i offline_stack.tar
-docker compose up -d
-```
+See **docs/OFFLINE_DEPLOY.md** for the full offline workflow. In short,
+build/pull the images on a machine with internet access, export them to a
+`offline_stack.tar` archive along with the `offline_llm_models/` and `data/`
+directories, then load the archive on the server and run `docker compose up -d`.
 ## 🔒 Admin mode
 
 Set an `ADMIN_PASSWORD` environment variable in the backend service. When defined, requests to any `/admin/*` endpoint must authenticate using HTTP Basic credentials with the `admin` username.
@@ -135,6 +131,7 @@ The default is `0`, which disables this behavior entirely.
 ## 📚 Docs
 
 * **docs/DEV_SETUP.md** – full developer setup
+* **docs/OFFLINE_DEPLOY.md** – deploy in an offline environment
 * API usage examples coming soon
 
 ---
