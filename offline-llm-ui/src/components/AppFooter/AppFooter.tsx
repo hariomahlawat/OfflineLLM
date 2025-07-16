@@ -1,4 +1,4 @@
-import { Flex, useColorModeValue } from "@chakra-ui/react";
+import { Flex, Text } from "@chakra-ui/react";
 
 export function AppFooter() {
   return (
@@ -18,7 +18,12 @@ export function AppFooter() {
       bottom={0}
       zIndex={10} // keep above any content scrollbars
     >
-      © {new Date().getFullYear()} EklavyaAI · Simulator Development Division (Devp and Designed by @hariomahlawat)
+      <Text>
+        © {new Date().getFullYear()} EklavyaAI ·{' '}
+        <Text as="span" color="brand.accent" fontWeight="medium">
+          Designed &amp; delivered by Hari Om Ahlawat
+        </Text>
+      </Text>
     </Flex>
   );
 }
