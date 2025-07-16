@@ -54,6 +54,8 @@ pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
 ```
 
+The lock file is generated using **Python 3.11**. Run `pip-compile` with the same version to avoid mismatched hashes.
+
 For speech-to-text support install **ffmpeg** and the `whisper` Python package:
 
 ```powershell
@@ -194,6 +196,9 @@ pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
 docker compose build rag-app
 ```
+
+Run the locking step with **Python 3.11** so dependency hashes match the
+published `requirements.lock`.
 
 ---
 
