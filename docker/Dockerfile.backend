@@ -42,7 +42,8 @@ RUN set -eux; \
 ENV OLLAMA_HOST=http://ollama:11434 \
     CHROMA_TELEMETRY=FALSE \
     PERSIST_CHROMA_DIR=/app/data/chroma_persist \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    LANGCHAIN_TELEMETRY_ENABLED=false
 
 RUN mkdir -p /app/data/chroma_persist && chown -R llm:llm /app/data
 
