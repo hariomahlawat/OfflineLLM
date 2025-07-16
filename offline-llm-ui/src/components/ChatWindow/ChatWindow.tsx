@@ -72,8 +72,7 @@ export function ChatWindow() {
                   size="xs"
                   name="AI"
                   bg="brand.accent"
-                  color="white"
-                  icon={<span style={{ fontSize: 18 }}>🤖</span>}
+                  src="/sdd.png"
                 />
               )}
 
@@ -124,8 +123,7 @@ export function ChatWindow() {
                 size="xs"
                 name="AI"
                 bg="brand.accent"
-                color="white"
-                icon={<span style={{ fontSize: 18 }}>🤖</span>}
+                src="/sdd.png"
               />
               <Box
                 bg={aiBg}

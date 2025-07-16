@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Box, Text, Collapse, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Text,
+  Collapse,
+  useColorModeValue,
+  IconButton,
+  Tooltip,
+} from "@chakra-ui/react";
+import { CopyIcon } from "@chakra-ui/icons";
 import ReactMarkdown from "react-markdown";
 import { parseThink } from "../../utils/parseThink";
 
@@ -11,10 +19,21 @@ interface Props {
 export function AssistantBubble({ text, color }: Props) {
   const { answer, think } = parseThink(text);
   const [show, setShow] = useState(false);
+  const [copied, setCopied] = useState(false);
   const gray = useColorModeValue("gray.600", "gray.400");
 
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(answer);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1000);
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
-    <Box fontSize="sm" color={color}
+    <Box fontSize="sm" color={color} position="relative"
       sx={{
         ul: { pl: 4, mb: 2 },
         ol: { pl: 4, mb: 2 },
@@ -41,6 +60,18 @@ export function AssistantBubble({ text, color }: Props) {
         p: { mb: 2 },
       }}
     >
+      <Tooltip label={copied ? "Copied" : "Copy"} openDelay={300}>
+        <IconButton
+          aria-label="Copy answer"
+          icon={<CopyIcon />}
+          size="xs"
+          variant="ghost"
+          position="absolute"
+          top={0}
+          right={0}
+          onClick={onCopy}
+        />
+      </Tooltip>
       {think && (
         <>
           <Text
