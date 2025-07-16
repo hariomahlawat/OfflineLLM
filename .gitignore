@@ -23,4 +23,6 @@ package-lock.json
 
 # Misc
 *.pdf
+certs/server.key
+
 
