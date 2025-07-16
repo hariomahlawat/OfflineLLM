@@ -21,7 +21,7 @@ services:
     volumes:
       - chroma_data:/app/data/chroma
       - chroma_persist:/app/data/chroma_persist
-      - ./data/persist:/app/data/persist:ro
+      - ./data/persist:/app/data/persist
       - ./offline_llm_models/cross_encoder:/app/models/cross_encoder:ro
     ports:
       - "8000:8000"
