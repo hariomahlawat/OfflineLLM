@@ -158,9 +158,11 @@ export function AppHeader() {
           <Heading
             fontSize={isMobile ? "md" : "xl"}
             fontWeight={700}
-            color={orgColor}
             letterSpacing="wide"
             textAlign="center"
+            fontFamily="'DejaVu Serif', 'Times New Roman', serif"
+            bgGradient="linear(to-r, brand.700, secondary.500)"
+            bgClip="text"
           >
             Simulator&nbsp;Development&nbsp;Division
           </Heading>
