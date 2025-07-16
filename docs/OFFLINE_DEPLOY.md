@@ -1,6 +1,6 @@
 # Offline Deployment Guide
 
-This guide walks through preparing the Docker images on a machine with internet access and transferring them to an air‑gapped Ubuntu server.
+This guide walks through preparing the Docker images on a machine with internet access and transferring them to an air‑gapped server (Ubuntu, Windows 11 or Windows Server).
 
 ## 1 Build images online
 
@@ -19,12 +19,21 @@ docker save -o offline_stack.tar \
   offline-llm-frontend:latest
 ```
 
-Copy `offline_stack.tar`, the `offline_llm_models/` directory and the `data/` directory to the target Ubuntu server.
+Copy `offline_stack.tar`, the `offline_llm_models/` directory and the `data/` directory to the target server.
 
 ## 3 Load on server & run
 
+### Ubuntu
+
 ```bash
 docker load -i offline_stack.tar
+docker compose up -d
+```
+
+### Windows 11 / Windows Server
+
+```powershell
+docker load -i .\offline_stack.tar
 docker compose up -d
 ```
 
@@ -38,7 +47,12 @@ docker exec ollama ollama list
 
 - Set the `ADMIN_PASSWORD` environment variable in `compose.yaml` before
   running `docker compose up -d` if you want to enable the admin endpoints.
-- The backend performs a boot indexing step if PDFs exist in
-  `./data/persist`. Remove the mount or clear the directory to skip this.
+- PDFs placed under `./data/persist` are **not** indexed automatically.
+  Upload via the admin API or run `python -m app.boot` inside the backend
+  container to index them manually.
 - Ensure the copied `data/` and `offline_llm_models/` directories are
   readable by Docker (e.g. `chown -R $USER:$USER data offline_llm_models`).
+- Windows hosts need Docker Desktop installed ahead of time. Download the
+  installer on an internet-connected machine and copy it over.
+- For speech-to-text, manually install `ffmpeg` and the `openai-whisper`
+  Python package.
