@@ -63,8 +63,7 @@ export function RewriteWindow() {
                   size="xs"
                   name="AI"
                   bg="brand.accent"
-                  color="white"
-                  icon={<span style={{ fontSize: 18 }}>🤖</span>}
+                  src="/sdd.png"
                 />
               )}
 
@@ -114,8 +113,7 @@ export function RewriteWindow() {
                 size="xs"
                 name="AI"
                 bg="brand.accent"
-                color="white"
-                icon={<span style={{ fontSize: 18 }}>🤖</span>}
+                src="/sdd.png"
               />
               <Box
                 bg={aiBg}
@@ -141,8 +139,7 @@ export function RewriteWindow() {
                 size="xs"
                 name="AI"
                 bg="brand.accent"
-                color="white"
-                icon={<span style={{ fontSize: 18 }}>🤖</span>}
+                src="/sdd.png"
               />
               <Box
                 bg={aiBg}
