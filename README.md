@@ -150,7 +150,7 @@ pytest -q
 
 ## 📝 License
 
-MIT … TBD before public release.
+MIT License – see [LICENSE](LICENSE) for details.
 
 ---
 
