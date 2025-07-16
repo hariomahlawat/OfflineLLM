@@ -1,6 +1,10 @@
-import { Flex, useColorModeValue } from "@chakra-ui/react";
+import { Flex, Text, useColorModeValue } from "@chakra-ui/react";
 
 export function AppFooter() {
+  const footerGradient = useColorModeValue(
+    "linear(to-r, purple.600, blue.600)",
+    "linear(to-r, purple.300, cyan.300)"
+  );
   return (
     <Flex
       as="footer"
@@ -18,7 +22,17 @@ export function AppFooter() {
       bottom={0}
       zIndex={10} // keep above any content scrollbars
     >
-      © {new Date().getFullYear()} EklavyaAI · Simulator Development Division (Devp and Designed by @hariomahlawat)
+      © {new Date().getFullYear()} EklavyaAI ·
+      <Text
+        as="span"
+        bgGradient={footerGradient}
+        bgClip="text"
+        fontFamily="'Trebuchet MS','Segoe UI','Helvetica Neue',Arial,sans-serif"
+        fontWeight={700}
+      >
+        Simulator Development Division
+      </Text>{" "}
+      (Devp and Designed by @hariomahlawat)
     </Flex>
   );
 }

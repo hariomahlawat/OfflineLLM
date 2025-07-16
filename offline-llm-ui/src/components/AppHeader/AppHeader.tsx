@@ -97,6 +97,10 @@ export function AppHeader() {
   const matteBg = useColorModeValue("gray.100", "#22232b");
   const orgColor = useColorModeValue("gray.700", "#e8eaf3");
   const mainHeadingColor = useColorModeValue("blue.600", "#ffe3a3");
+  const orgGradient = useColorModeValue(
+    "linear(to-r, purple.600, blue.600)",
+    "linear(to-r, purple.300, cyan.300)"
+  );
   const subtitleColor = useColorModeValue("gray.500", "#b8bdc9");
 
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -158,9 +162,12 @@ export function AppHeader() {
           <Heading
             fontSize={isMobile ? "md" : "xl"}
             fontWeight={700}
-            color={orgColor}
             letterSpacing="wide"
             textAlign="center"
+            bgGradient={orgGradient}
+            bgClip="text"
+            color="transparent"
+            fontFamily="'Trebuchet MS','Segoe UI','Helvetica Neue',Arial,sans-serif"
           >
             Simulator&nbsp;Development&nbsp;Division
           </Heading>
