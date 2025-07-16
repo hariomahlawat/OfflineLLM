@@ -58,9 +58,14 @@ python -m pip install --upgrade pip pip-tools
 pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
 winget install ffmpeg   # for speech-to-text
-pip install openai-whisper
+# openai-whisper comes from requirements.lock
+## (manual install only if using a custom env)
+# pip install openai-whisper
 python -m uvicorn app.api:app --reload
 ```
+
+`openai-whisper` is pinned in `requirements.lock`, so no extra `pip install`
+is needed unless you manage dependencies differently.
 
 Open in browser:
 
