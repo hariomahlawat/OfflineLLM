@@ -84,7 +84,8 @@ docker exec ollama ollama pull llama3:8b-instruct-q3_K_L
 
 On startup the backend container runs `python -m app.boot` as the `llm`
 user. This indexes any PDFs mounted into `./data/persist` and simply
-logs a message if none are found.
+logs a message if none are found. Ensure this directory exists and is
+writable so that admin uploads can be saved.
 
 ### Air‑gap deployment
 
