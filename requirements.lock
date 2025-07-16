@@ -409,10 +409,12 @@ tokenizers==0.20.3
     # via
     #   chromadb
     #   transformers
-torch==2.7.1
+torch==2.1.2
     # via
     #   optimum
     #   sentence-transformers
+triton==2.1.0
+    # via torch
 tqdm==4.67.1
     # via
     #   chromadb
