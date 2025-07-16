@@ -21,7 +21,7 @@ export function AppFooter() {
       <Text>
         © {new Date().getFullYear()} EklavyaAI ·{' '}
         <Text as="span" color="brand.accent" fontWeight="medium">
-          Designed &amp; delivered by Hari Om Ahlawat
+          Designed &amp; developed by Hari Om Ahlawat | @hariomahlawat
         </Text>
       </Text>
     </Flex>

@@ -64,11 +64,11 @@ export function AssistantBubble({ text, color }: Props) {
         <IconButton
           aria-label="Copy answer"
           icon={<CopyIcon />}
-          size="xs"
+          size="sm"
           variant="ghost"
           position="absolute"
-          top={0}
-          right={0}
+          top={-7}
+          right={-2}
           onClick={onCopy}
         />
       </Tooltip>
