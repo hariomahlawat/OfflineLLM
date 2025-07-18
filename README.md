@@ -82,9 +82,12 @@ docker compose up -d
 docker exec ollama ollama pull llama3:8b-instruct-q3_K_L
 ```
 
-Uploaded PDFs are indexed via the admin endpoints. To index existing files
-under `./data/persist`, run `python -m app.boot` inside the backend container.
-Ensure this directory exists and is writable so that admin uploads can be saved.
+Any PDFs placed under `./data/persist` are indexed automatically when the
+backend container starts. To run the process manually, execute
+`python -m app.boot` inside the container. Set `SKIP_BOOT_INDEXING=1` in the
+backend service if you want to skip this automatic indexing step. Ensure the
+`./data/persist` directory exists and is writable so that admin uploads can be
+saved.
 
 ### Air‑gap deployment
 
