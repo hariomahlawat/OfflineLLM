@@ -273,6 +273,11 @@ Invoke-RestMethod `
   docker compose ps
   docker logs rag-app
   ```
+- Internet required during build: the backend Dockerfile uses `pip download`
+  to fetch Python wheels when you run `docker compose build`. Ensure the build
+  machine has access to PyPI, or follow
+  [docs/OFFLINE_DEPLOY.md](./OFFLINE_DEPLOY.md) to prepare the images on an
+  online host and transfer them to an offline server.
 ---
 
 *Keep this guide updated with any new findings!*
