@@ -10,6 +10,20 @@ docker pull ollama/ollama:latest
 docker compose build
 ```
 
+After the build completes edit `compose.yaml` so the offline server uses the
+prebuilt images instead of trying to rebuild them. Replace each `build:` section
+with the matching `image:` tag:
+
+```yaml
+rag-app:
+  image: offlinellm-rag-app:latest
+  # ...
+
+frontend:
+  image: offline-llm-frontend:latest
+  # ...
+```
+
 ## 2 Save images & copy assets
 
 ```bash

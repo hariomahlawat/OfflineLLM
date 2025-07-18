@@ -184,6 +184,10 @@ docker compose -f compose.yaml build --no-cache
 docker compose -f compose.yaml up -d
 ```
 
+If you built the images on another machine (for an offline install), edit
+`compose.yaml` and replace the `build:` sections with `image:` tags as shown in
+[OFFLINE_DEPLOY.md](OFFLINE_DEPLOY.md).
+
 ---
 
 ## 7. Verify
