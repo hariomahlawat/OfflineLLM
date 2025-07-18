@@ -37,6 +37,22 @@ docker load -i .\offline_stack.tar
 docker compose up -d
 ```
 
+### Use pre-built images
+
+`compose.yaml` contains `build:` directives for the backend and frontend. On an offline machine you can skip rebuilding them by changing those entries to use the pre-built images or by running `docker compose up --no-build`.
+
+```yaml
+services:
+  rag-app:
+    image: offlinellm-rag-app:latest
+  frontend:
+    image: offline-llm-frontend:latest
+```
+
+```bash
+docker compose up --no-build
+```
+
 ## 4 Verify models
 
 ```bash
