@@ -2,7 +2,7 @@
 # This Dockerfile builds the Python backend, installs dependencies, and sets up the environment for running the application
 
 ########################  builder  ########################
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 ARG LANGCHAIN_TELEMETRY_ENABLED=false
 ENV LANGCHAIN_TELEMETRY_ENABLED=${LANGCHAIN_TELEMETRY_ENABLED}
@@ -18,7 +18,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # ───────────────────────────  runtime  ────────────────────────────
-FROM python:3.11-slim
+FROM python:3.13-slim
 WORKDIR /app
 
 # Python deps

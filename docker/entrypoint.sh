@@ -20,12 +20,16 @@ done
 echo "✅ Ollama is up!"
 
 # ------------------------------------------------------------------
-# index PDFs (if any) before launching the app
+# optional boot indexing
 # ------------------------------------------------------------------
-# (errors are caught inside app/boot.py, so this always returns zero)
-#gosu llm python -m app.boot
-
-echo "📚  boot indexing skipped for testing, now starting Uvicorn"
+SKIP_BOOT_INDEXING="${SKIP_BOOT_INDEXING:-0}"
+if [ "$SKIP_BOOT_INDEXING" != "1" ]; then
+  echo "📚  running boot indexing"
+  # errors are caught inside app/boot.py, so this always returns zero
+  gosu llm python -m app.boot
+else
+  echo "📚  boot indexing skipped via SKIP_BOOT_INDEXING=1"
+fi
 
 # ------------------------------------------------------------------
 # drop privileges and launch Uvicorn
