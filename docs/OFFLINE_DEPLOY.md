@@ -8,6 +8,11 @@ This guide walks through preparing the Docker images on a machine with internet 
 docker pull ollama/ollama:latest
 # build backend and frontend images
 docker compose build
+
+# start Ollama so models can be pulled
+docker compose up -d ollama
+ollama pull llama3:8b-instruct-q3_K_L
+ollama pull nomic-embed-text
 ```
 
 ## 2 Save images & copy assets
@@ -17,9 +22,12 @@ docker save -o offline_stack.tar \
   ollama/ollama:latest \
   offlinellm-rag-app:latest \
   offline-llm-frontend:latest
-```
 
-Copy `offline_stack.tar`, the `offline_llm_models/` directory and the `data/` directory to the target server.
+# export pulled Ollama models
+docker run --rm -v ollama_models:/models -v $PWD:/backup \
+  busybox tar cf /backup/ollama_models.tar /models
+```
+Copy `offline_stack.tar`, `ollama_models.tar`, the `offline_llm_models/` directory and the `data/` directory to the target server.
 
 ## 3 Load on server & run
 
@@ -27,6 +35,9 @@ Copy `offline_stack.tar`, the `offline_llm_models/` directory and the `data/` di
 
 ```bash
 docker load -i offline_stack.tar
+docker volume create ollama_models
+docker run --rm -v ollama_models:/models -v $PWD:/backup \
+  busybox tar xf /backup/ollama_models.tar -C /
 docker compose up -d
 ```
 
@@ -34,6 +45,9 @@ docker compose up -d
 
 ```powershell
 docker load -i .\offline_stack.tar
+docker volume create ollama_models
+docker run --rm -v ollama_models:/models -v $PWD:/backup busybox tar xf \
+  /backup/ollama_models.tar -C /
 docker compose up -d
 ```
 
