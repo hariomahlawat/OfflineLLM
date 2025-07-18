@@ -15,6 +15,7 @@ class Settings:
 config.Settings = Settings
 sys.modules['chromadb.config'] = config
 
+langchain_community = types.ModuleType("langchain_community")
 emb = types.ModuleType("langchain_community.embeddings")
 emb_ollama = types.ModuleType("langchain_community.embeddings.ollama")
 class OllamaEmbeddings:
@@ -22,6 +23,8 @@ class OllamaEmbeddings:
         pass
 emb_ollama.OllamaEmbeddings = OllamaEmbeddings
 emb.ollama = emb_ollama
+langchain_community.embeddings = emb
+sys.modules['langchain_community'] = langchain_community
 sys.modules['langchain_community.embeddings'] = emb
 sys.modules['langchain_community.embeddings.ollama'] = emb_ollama
 
@@ -34,6 +37,7 @@ class Chroma:
         return []
 vec_chroma.Chroma = Chroma
 vecstores.chroma = vec_chroma
+langchain_community.vectorstores = vecstores
 sys.modules['langchain_community.vectorstores'] = vecstores
 sys.modules['langchain_community.vectorstores.chroma'] = vec_chroma
 
