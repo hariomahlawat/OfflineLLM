@@ -11,7 +11,7 @@
 | Tool | Minimum version | Install notes |
 |------|-----------------|---------------|
 | **Git** | any recent | <https://git-scm.com/download/win> – add **git.exe** to PATH |
-| **Python** | 3.11 × 64‑bit | `python --version` ⇒ *3.11.x* |
+| **Python** | 3.13 × 64‑bit | `python --version` ⇒ *3.13.x* |
 | **Docker Desktop** | 4.42 + | enable **“Use the WSL 2 based engine”** |
 | **Ollama** | 0.3.4 (inside container) | models pulled automatically |
 | **VS Code** | optional | Python + Docker extensions help |
@@ -54,7 +54,7 @@ pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
 ```
 
-The lock file is generated using **Python 3.11**. Run `pip-compile` with the same version to avoid mismatched hashes.
+The lock file is generated using **Python 3.13**. Run `pip-compile` with the same version to avoid mismatched hashes.
 
 For speech-to-text support install **ffmpeg** and the `whisper` Python package:
 
@@ -197,7 +197,7 @@ pip install -r requirements.lock
 docker compose build rag-app
 ```
 
-Run the locking step with **Python 3.11** so dependency hashes match the
+Run the locking step with **Python 3.13** so dependency hashes match the
 published `requirements.lock`.
 
 ---
