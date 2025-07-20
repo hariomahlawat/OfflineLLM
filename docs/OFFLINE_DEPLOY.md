@@ -91,6 +91,8 @@ docker exec ollama ollama list
 
 - Set the `ADMIN_PASSWORD` environment variable in `compose.yaml` before
   running `docker compose up -d` if you want to enable the admin endpoints.
+- Set `SKIP_BOOT_INDEXING=1` if you do **not** want PDFs under `./data/persist`
+  indexed automatically at startup.
 - PDFs placed under `./data/persist` are **not** indexed automatically.
   Upload via the admin API or run `python -m app.boot` inside the backend
   container to index them manually.
