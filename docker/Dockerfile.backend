@@ -11,8 +11,8 @@ WORKDIR /build
 COPY requirements.lock .   
 RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential \
- && pip install --upgrade pip \
- && pip download --dest wheelhouse -r requirements.lock \
+ && pip install --upgrade pip wheel setuptools \
+ && pip wheel -w wheelhouse -r requirements.lock \
  && apt-get purge -y build-essential \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
