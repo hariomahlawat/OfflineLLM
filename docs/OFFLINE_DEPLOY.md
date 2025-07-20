@@ -91,6 +91,11 @@ docker compose up --no-build
 docker exec ollama ollama list
 ```
 
+The re-ranking **cross-encoder** model is stored under
+`offline_llm_models/cross_encoder` and mounted directly into the
+`rag-app` container. It will **not** appear in `ollama list` – the command
+only shows LLM weights managed by Ollama.
+
 ## 5 Notes
 
 - Set the `ADMIN_PASSWORD` environment variable in `compose.yaml` before
