@@ -186,6 +186,7 @@ Use `VITE_API_URL=http://localhost:8000` while developing and keep
 | `SESSION_TTL_MIN` | `60` | delete idle sessions after *N* minutes |
 | `RAG_TOK_LIMIT` | `2000` | truncate history to this many tokens |
 | `CORS_ALLOW` | `""` | comma-separated allowed origins |
+| `UVICORN_WORKERS` | `1` | number of Uvicorn workers |
 ---
 
 ## 8 Updating dependencies
@@ -207,7 +208,7 @@ published `requirements.lock`.
 | Symptom | Fix |
 |---------|-----|
 | `winget` missing | install Git manually & ensure PATH |
-| **400 – model requires more memory** | keep using quantised tag (`q3_K_L`) or set uvicorn workers to **1** |
+| **400 – model requires more memory** | keep using quantised tag (`q3_K_L`) or set `UVICORN_WORKERS=1` |
 | *Container name conflict* | `docker compose down` or `docker rm -f $(docker ps -aq)` |
 | First chat call ≈ 40 s | model loading; subsequent calls ≈ 2 s |
 
