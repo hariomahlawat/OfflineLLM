@@ -14,11 +14,22 @@ from fastapi import FastAPI, File, HTTPException, Query, UploadFile, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from app import vector_store
-from app.speech import transcribe_audio
 from app import boot
+from app import vector_store
+from app.vector_store import (
+    SESSIONS_ROOT,
+    get_session_store,
+    new_session_store,
+    purge_session_store,
+    similarity_search,
+)
+from app.chat import chat as chat_fn, new_session_id, safe_chat
+from app.ingestion import load_and_split
+from app.ollama_utils import finalize_ollama_chat
+from app.rerank import rerank
+from app.speech import transcribe_audio
+from app.tokenizer import count_tokens
 
 # ───────────────────────── Environment / Ollama client ───────────────────────
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
@@ -141,18 +152,7 @@ async def ping():
     return PingResponse()
 
 # ───────────────────────── Session store & RAG helpers ────────────────────
-from app.ingestion      import load_and_split
-from app.vector_store   import (
-    SESSIONS_ROOT,
-    get_session_store,
-    new_session_store,
-    purge_session_store,
-    similarity_search,
-)
-from app.rerank         import rerank
-from app.chat           import chat as chat_fn, new_session_id, safe_chat
-from app.ollama_utils   import finalize_ollama_chat
-from app.tokenizer      import count_tokens
+
 
 _SESSIONS       : Dict[str, object]   = {}
 _SESSIONS_TOUCH : Dict[str, datetime] = {}
