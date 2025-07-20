@@ -39,7 +39,7 @@ services:
       - RAG_DYNAMIC_K_FACTOR=0
       - PERSIST_CHROMA_DIR=/app/data/chroma_persist
       - ADMIN_PASSWORD=changeme
-      - SKIP_BOOT_INDEXING=0   # set to 1 to skip boot-time indexing
+      - SKIP_BOOT_INDEXING=1   # set to 1 to skip boot-time indexing
       - UVICORN_WORKERS=3
     networks:
       - rag-net
