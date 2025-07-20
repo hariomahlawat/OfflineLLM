@@ -18,12 +18,12 @@ class Settings:
 config.Settings = Settings
 sys.modules['chromadb.config'] = config
 
-emb = types.ModuleType("langchain_ollama")
+emb = types.ModuleType("langchain_community.embeddings")
 class OllamaEmbeddings:
     def __init__(self, *a, **k):
         pass
 emb.OllamaEmbeddings = OllamaEmbeddings
-sys.modules['langchain_ollama'] = emb
+sys.modules['langchain_community.embeddings'] = emb
 
 vecstores = types.ModuleType("langchain_chroma")
 class Chroma:
