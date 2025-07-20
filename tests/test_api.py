@@ -16,21 +16,21 @@ class Settings:
 config.Settings = Settings
 sys.modules['chromadb.config'] = config
 
-emb = types.ModuleType("langchain_community.embeddings")
+emb = types.ModuleType("langchain_ollama")
 class OllamaEmbeddings:
     def __init__(self, *a, **k):
         pass
 emb.OllamaEmbeddings = OllamaEmbeddings
-sys.modules['langchain_community.embeddings'] = emb
+sys.modules['langchain_ollama'] = emb
 
-vecstores = types.ModuleType("langchain_community.vectorstores")
+vecstores = types.ModuleType("langchain_chroma")
 class Chroma:
     def __init__(self, *a, **k):
         pass
     def similarity_search(self, *a, **k):
         return []
 vecstores.Chroma = Chroma
-sys.modules['langchain_community.vectorstores'] = vecstores
+sys.modules['langchain_chroma'] = vecstores
 
 langcore = types.ModuleType("langchain_core.documents")
 class Document:
