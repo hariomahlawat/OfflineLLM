@@ -67,24 +67,21 @@ pip install openai-whisper
 <summary>Current <code>docker/requirements.in</code></summary>
 
 ```
-fastapi
-uvicorn[standard]
-langchain-community
-chromadb==0.4.24
+fastapi==0.115.5
+uvicorn[standard]==0.30.6
 langchain==0.1.17
-langchain-chroma==0.1.0
-pydantic>=2.0.0
-pydantic-core>=2.0.0
-pymupdf
-pypdf
+langchain-community==0.0.38
+langchain-chroma==0.1.4
+chromadb==0.4.24
+sentence-transformers[onnx]==2.7.0
+onnxruntime==1.18.1
+torch==2.4.1
+pydantic==2.9.2
+pymupdf==1.24.10
+pypdf==5.0.1
 ollama==0.3.3
-sentence-transformers[onnx]
-python-multipart
-python-ollama>=0.2,<0.3
-onnxruntime>=1.15.1
-langchain-core==0.1.17
-torch==2.1.2
-triton==2.1.0
+langchain-ollama==0.0.7
+python-multipart==0.0.9
 ```
 </details>
 
