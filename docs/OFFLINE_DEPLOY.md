@@ -15,6 +15,10 @@ ollama pull llama3:8b-instruct-q3_K_L
 ollama pull nomic-embed-text
 ```
 
+`compose.yaml` uses `llama3:8b-instruct-q3_K_L` as the default chat model. Make
+sure it is pulled (or change `OLLAMA_DEFAULT_MODEL`) before running the full
+stack.
+
 After the build completes edit `compose.yaml` so the offline server uses the
 prebuilt images instead of trying to rebuild them. Replace each `build:` section
 with the matching `image:` tag:

@@ -30,7 +30,7 @@ SYSTEM_PROMPTS: Dict[str, str] = {
 # configuration
 # ------------------------------------------------------------------
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-DEFAULT_MODEL    = "llama3:8b-instruct-q3_K_L"
+DEFAULT_MODEL    = os.getenv("OLLAMA_DEFAULT_MODEL", "llama3:8b-instruct-q3_K_L")
 
 # in-memory map session_id → ConversationBufferMemory
 _sessions: Dict[str, ConversationBufferMemory] = {}

@@ -83,6 +83,11 @@ docker compose up -d
 docker exec ollama ollama pull llama3:8b-instruct-q3_K_L
 ```
 
+The backend uses this model as its default. If it isn't pulled (or if you set
+`OLLAMA_DEFAULT_MODEL` to something else), `/chat` will return **500 Internal
+Server Error** and the frontend dropdown will be empty. Adjust the model via
+`compose.yaml` or pull it ahead of time.
+
 Uploaded PDFs are indexed via the admin endpoints. To index existing files
 under `./data/persist`, run `python -m app.boot` inside the backend container.
 Ensure this directory exists and is writable so that admin uploads can be saved.
