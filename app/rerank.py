@@ -5,7 +5,7 @@ import os
 import logging
 from sentence_transformers import CrossEncoder
 
-MODEL_DIR = "/app/models/cross_encoder"
+MODEL_DIR = os.getenv("CROSS_ENCODER_DIR", "/app/models/cross_encoder")
 
 DEFAULT_TOP_K = int(os.getenv("RERANK_TOP_K", "3"))
 
