@@ -167,6 +167,10 @@ docker exec -it ollama bash -lc "ollama pull nomic-embed-text && ollama pull lla
 docker exec -it ollama bash -lc "ollama list"
 ```
 
+`compose.yaml` sets `OLLAMA_DEFAULT_MODEL=llama3:8b-instruct-q3_K_L`. This model
+must exist locally or `/chat` requests will fail with `500` and the UI dropdown
+will be empty. Either pull it or change the variable to one you have.
+
 Missing models will lead to empty embeddings and indexing failures during ingestion.
 
 ---
