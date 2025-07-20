@@ -142,13 +142,13 @@ jsonpointer==3.0.0
     # via jsonpatch
 kubernetes==33.1.0
     # via chromadb
-langchain==0.3.26
+langchain==0.1.17
     # via langchain-community
 langchain-chroma==0.1.0
     # via -r docker/requirements.in
 langchain-community==0.3.27
     # via -r docker/requirements.in
-langchain-core==0.3.68
+langchain-core==0.1.17
     # via
     #   langchain
     #   langchain-community
