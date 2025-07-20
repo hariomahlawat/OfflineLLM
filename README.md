@@ -46,7 +46,8 @@ OfflineLLM/
 
 ## 🚀 Quick‑start (local dev)
 
-See **docs/DEV_SETUP.md** for the step‑by‑step guide.  
+See **docs/DEV_SETUP.md** for the step‑by‑step guide.
+Make sure **Git LFS** is installed before cloning (run `git lfs install` once after).
 TL;DR:
 
 ```powershell

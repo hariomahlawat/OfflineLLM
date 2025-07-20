@@ -11,6 +11,7 @@
 | Tool | Minimum version | Install notes |
 |------|-----------------|---------------|
 | **Git** | any recent | <https://git-scm.com/download/win> – add **git.exe** to PATH |
+| **Git LFS** | latest | <https://git-lfs.com/> – run `git lfs install` after cloning |
 | **Python** | 3.11 × 64‑bit | `python --version` ⇒ *3.11.x* |
 | **Docker Desktop** | 4.42 + | enable **“Use the WSL 2 based engine”** |
 | **Ollama** | 0.3.4 (inside container) | models pulled automatically |
