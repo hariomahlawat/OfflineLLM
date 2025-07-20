@@ -71,6 +71,7 @@ fastapi
 uvicorn[standard]
 langchain-community
 chromadb==0.4.24
+langchain==0.1.17
 langchain-chroma==0.1.0
 pydantic>=2.0.0
 pydantic-core>=2.0.0
@@ -81,7 +82,7 @@ sentence-transformers[onnx]
 python-multipart
 python-ollama>=0.2,<0.3
 onnxruntime>=1.15.1
-langchain-core>=0.2.0
+langchain-core==0.1.17
 torch==2.1.2
 triton==2.1.0
 ```
