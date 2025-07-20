@@ -26,6 +26,7 @@ pypdf==5.0.1
 
 # Ollama interface
 ollama==0.3.3
+langchain-ollama==0.0.7
 
 # File uploads
 python-multipart==0.0.9
