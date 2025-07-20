@@ -124,7 +124,13 @@ of **tokens** per extra retrieved chunk. For example:
 RAG_DYNAMIC_K_FACTOR=20  # adds one result for every 20 tokens
 ```
 
+
 The default is `0`, which disables this behavior entirely.
+
+## 🔧 Cross-encoder directory
+
+The re-ranking model is loaded from `/app/models/cross_encoder` by default.
+Set `CROSS_ENCODER_DIR` in the backend service to override this location.
 
 ---
 
