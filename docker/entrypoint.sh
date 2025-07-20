@@ -30,4 +30,5 @@ echo "📚  boot indexing skipped for testing, now starting Uvicorn"
 # ------------------------------------------------------------------
 # drop privileges and launch Uvicorn
 # ------------------------------------------------------------------
-exec gosu llm uvicorn app.api:app --host 0.0.0.0 --port 8000 --workers 1
+workers=${UVICORN_WORKERS:-1}
+exec gosu llm uvicorn app.api:app --host 0.0.0.0 --port 8000 --workers "$workers"
