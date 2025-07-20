@@ -246,6 +246,9 @@ Invoke-RestMethod `
 - **IsADirectoryError on DELETE**: use `shutil.rmtree()` for `purge_session_store`.
 - **Invalid collection name**: use valid prefix (alphanumeric, underscores, hyphens).
 - **Chroma settings mismatch**: `allow_reset` flags must align.
+- **`sqlite3.OperationalError: no such column: collections.topic`**: remove the
+  `chroma_persist` Docker volume (old schema) then start the stack again:
+  `docker compose down -v && docker compose up -d rag-app`.
 
 ---
 
