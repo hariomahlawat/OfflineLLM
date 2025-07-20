@@ -39,7 +39,7 @@ certifi==2025.6.15
     #   requests
 charset-normalizer==3.4.2
     # via requests
-chroma-hnswlib==0.7.6
+chroma-hnswlib==0.7.3
     # via chromadb
 chromadb==0.4.24
     # via -r docker/requirements.in
