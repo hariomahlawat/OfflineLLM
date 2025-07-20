@@ -1,4 +1,5 @@
-import sys, types
+import sys
+import types
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -111,8 +112,8 @@ ollama.Client = lambda: None
 ollama.chat = lambda *a, **k: {"message": {"content": "dummy"}}
 sys.modules['ollama'] = ollama
 
-import app.api as api
-from fastapi.testclient import TestClient
+import app.api as api  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 
 
 def test_redraft_endpoint(monkeypatch):

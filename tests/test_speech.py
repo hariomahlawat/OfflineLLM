@@ -1,4 +1,5 @@
-import sys, types
+import sys
+import types
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -10,7 +11,7 @@ class DummyModel:
 whisper_mod.load_model = lambda name='base': DummyModel()
 sys.modules['whisper'] = whisper_mod
 
-import app.speech as speech
+import app.speech as speech  # noqa: E402
 speech.whisper = whisper_mod
 speech._MODEL = None
 

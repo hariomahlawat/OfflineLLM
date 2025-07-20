@@ -1,4 +1,5 @@
-import sys, types
+import sys
+import types
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -39,7 +40,7 @@ class Document:
 langcore.Document = Document
 sys.modules['langchain_core.documents'] = langcore
 
-import app.vector_store as vs
+import app.vector_store as vs  # noqa: E402
 
 class DummyStore:
     def __init__(self, metas):

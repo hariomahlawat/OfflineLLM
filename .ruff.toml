@@ -1,0 +1,5 @@
+line-length = 88
+exclude = ["node_modules", "offline-llm-ui", "offline_llm_models"]
+[lint]
+select = ["E", "F"]
+ignore = ["E501"]

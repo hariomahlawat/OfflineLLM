@@ -1,4 +1,5 @@
-import sys, types
+import sys
+import types
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -32,7 +33,7 @@ class DummyDoc:
 lc_schema_mod.Document = DummyDoc
 sys.modules['langchain.schema'] = lc_schema_mod
 
-import app.ingestion as ingestion
+import app.ingestion as ingestion  # noqa: E402
 
 
 def test_load_and_split(tmp_path):
