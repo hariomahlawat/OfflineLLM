@@ -42,3 +42,12 @@ def test_load_and_split(tmp_path):
     chunks = ingestion.load_and_split(str(pdf))
     assert [c.page_content for c in chunks] == ["page1", "page2"]
     assert all(c.metadata["source_file"] == str(pdf) for c in chunks)
+
+
+def test_load_and_split_bytes():
+    data = b"%PDF-1.1"
+
+    chunks = ingestion.load_and_split_bytes(data)
+    assert [c.page_content for c in chunks] == ["page1", "page2"]
+    expected_meta = {"page_number": None, "source_file": "<uploaded-pdf>"}
+    assert [c.metadata for c in chunks] == [expected_meta, expected_meta]
