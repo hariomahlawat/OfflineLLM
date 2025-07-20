@@ -80,7 +80,7 @@ torch==2.4.1
 pydantic==2.9.2
 pymupdf==1.24.10
 pypdf==5.0.1
-ollama==0.3.3
+ollama==0.5.1
 langchain-ollama==0.3.5
 python-multipart==0.0.9
 ```
