@@ -11,7 +11,7 @@
 | Tool | Minimum version | Install notes |
 |------|-----------------|---------------|
 | **Git** | any recent | <https://git-scm.com/download/win> – add **git.exe** to PATH |
-| **Python** | 3.11 × 64‑bit | `python --version` ⇒ *3.11.x* |
+| **Python** | 3.13 × 64‑bit | `python --version` ⇒ *3.13.x* |
 | **Docker Desktop** | 4.42 + | enable **“Use the WSL 2 based engine”** |
 | **Ollama** | 0.3.4 (inside container) | models pulled automatically |
 | **VS Code** | optional | Python + Docker extensions help |
@@ -31,9 +31,9 @@ code .         # optional: open folder in VS Code
 ## 2 Local virtual‑env
 
 ```powershell
-python -m venv .venv
+py -3.13 -m venv .venv
 & ".venv\Scripts\Activate.ps1"     # prompt shows (.venv)
-python -m pip install --upgrade pip
+py -3.13 -m pip install --upgrade pip
 ```
 
 > **Activation blocked?**  
@@ -45,16 +45,16 @@ python -m pip install --upgrade pip
 
 ```powershell
 # 1 – one‑time install
-pip install pip-tools
+py -3.13 -m pip install pip-tools
 
 # 2 – (re)generate lock file
-pip-compile docker\requirements.in -o requirements.lock
+py -3.13 -m pip-compile docker\requirements.in -o requirements.lock
 
 # 3 – install everything
-pip install -r requirements.lock
+py -3.13 -m pip install -r requirements.lock
 ```
 
-The lock file is generated using **Python 3.11**. Run `pip-compile` with the same version to avoid mismatched hashes.
+The lock file is generated using **Python 3.13**. Run `pip-compile` with the same version to avoid mismatched hashes.
 
 For speech-to-text support install **ffmpeg** and the `whisper` Python package:
 
@@ -192,12 +192,12 @@ Use `VITE_API_URL=http://localhost:8000` while developing and keep
 
 ```powershell
 # edit docker/requirements.in
-pip-compile docker\requirements.in -o requirements.lock
-pip install -r requirements.lock
+py -3.13 -m pip-compile docker\requirements.in -o requirements.lock
+py -3.13 -m pip install -r requirements.lock
 docker compose build rag-app
 ```
 
-Run the locking step with **Python 3.11** so dependency hashes match the
+Run the locking step with **Python 3.13** so dependency hashes match the
 published `requirements.lock`.
 
 ---
