@@ -167,6 +167,11 @@ docker exec -it ollama bash -lc "ollama pull nomic-embed-text && ollama pull lla
 docker exec -it ollama bash -lc "ollama list"
 ```
 
+Only LLM weights managed by **Ollama** show up in the list above. The
+cross-encoder used for re-ranking lives in the
+`offline_llm_models/cross_encoder` directory and mounts directly into the
+`rag-app` container, so you won’t see it in `ollama list`.
+
 `compose.yaml` sets `OLLAMA_DEFAULT_MODEL=llama3:8b-instruct-q3_K_L`. This model
 must exist locally or `/chat` requests will fail with `500` and the UI dropdown
 will be empty. Either pull it or change the variable to one you have.
