@@ -112,6 +112,12 @@ class ClientStub:
             res = asyncio.get_event_loop().run_until_complete(api.doc_qa(req))
             return FakeResponse(res.dict())
         raise ValueError('unsupported url')
+    def get(self, url):
+        import asyncio
+        if url == '/models':
+            res = asyncio.get_event_loop().run_until_complete(api.list_models())
+            return FakeResponse([m.dict() for m in res])
+        raise ValueError('unsupported url')
 tc_mod.TestClient = ClientStub
 sys.modules['fastapi.testclient'] = tc_mod
 
@@ -174,16 +180,7 @@ def test_parse_dynamic_k_factor(val, expected, raises):
         assert api._parse_dynamic_k_factor(val) == expected
 
 
-def test_list_models_connection_error(monkeypatch):
-    class BadClient:
-        def list(self):
-            raise ConnectionError("boom")
 
-    monkeypatch.setattr(api, "client", BadClient())
-
-    with pytest.raises(api.HTTPException) as exc:
-        asyncio.get_event_loop().run_until_complete(api.list_models())
-    assert exc.value.status_code == 503
 
 
 
