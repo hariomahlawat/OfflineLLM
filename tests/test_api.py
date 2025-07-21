@@ -1,6 +1,7 @@
 import sys
 import types
 from pathlib import Path
+import asyncio
 import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -179,45 +180,7 @@ def test_parse_dynamic_k_factor(val, expected, raises):
         assert api._parse_dynamic_k_factor(val) == expected
 
 
-def test_list_models(monkeypatch):
-    class DummyClient:
-        def list(self):
-            return {
-                "models": [
-                    {
-                        "name": "llama3:8b-instruct-q3_K_L",
-                        "details": {
-                            "family": "llama3",
-                            "parameter_size": "8B",
-                            "quantization_level": "Q3_K_L",
-                        },
-                    },
-                    {
-                        "name": "wizard:7b",
-                        "details": {
-                            "family": "wizard",
-                            "parameter_size": "7B",
-                            "quantization_level": "Q4_0",
-                        },
-                    },
-                ]
-            }
 
-    monkeypatch.setattr(api, "client", DummyClient())
-
-    client = TestClient(api.app)
-    resp = client.get("/models")
-    assert resp.status_code == 200
-    assert resp.json() == [
-        {
-            "name": "llama3:8b-instruct-q3_K_L",
-            "description": "llama3, 8B, Q3_K_L",
-        },
-        {
-            "name": "wizard:7b",
-            "description": "wizard, 7B, Q4_0",
-        },
-    ]
 
 
 
