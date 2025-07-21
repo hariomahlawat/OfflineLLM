@@ -113,13 +113,14 @@ class ModelInfo(BaseModel):
 async def list_models():
     """
     List all locally-pulled Ollama models.
-    Returns [] if the daemon isn’t ready yet.
+
+    Raises 503 if the Ollama daemon isn't reachable.
     """
     try:
         raw = client.list()
     except Exception as exc:
-        log.warning("ollama.list failed: %s", exc)
-        return []
+        log.error("ollama.list failed: %s", exc)
+        raise HTTPException(status_code=503, detail=str(exc))
 
     out: List[ModelInfo] = []
     seen = set()

@@ -1,6 +1,7 @@
 import sys
 import types
 from pathlib import Path
+import asyncio
 import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -171,6 +172,18 @@ def test_parse_dynamic_k_factor(val, expected, raises):
             api._parse_dynamic_k_factor(val)
     else:
         assert api._parse_dynamic_k_factor(val) == expected
+
+
+def test_list_models_connection_error(monkeypatch):
+    class BadClient:
+        def list(self):
+            raise ConnectionError("boom")
+
+    monkeypatch.setattr(api, "client", BadClient())
+
+    with pytest.raises(api.HTTPException) as exc:
+        asyncio.get_event_loop().run_until_complete(api.list_models())
+    assert exc.value.status_code == 503
 
 
 
