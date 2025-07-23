@@ -22,10 +22,8 @@ This guide explains how to deploy **OfflineLLM** on a Windows Server machine wit
    ```
 4. Save the images and models for transfer:
    ```powershell
-   docker save -o offline_stack.tar \
-     ollama/ollama:latest \
-     offlinellm-rag-app:latest \
-     offline-llm-frontend:latest
+   docker save ollama/ollama:latest offlinellm-rag-app:latest offlinellm-frontend:latest -o offline_stack.tar
+
    docker run --rm -v ollama_models:/models -v ${PWD}:/backup busybox tar cf /backup/ollama_models.tar /models
    ```
 5. Copy `offline_stack.tar`, `ollama_models.tar`, the `offline_llm_models` folder and the `data` folder to your offline Windows Server (USB drive, etc.).
