@@ -198,6 +198,7 @@ Missing models will lead to empty embeddings and indexing failures during ingest
 | `/ping`         | GET    | Health check                                 |
 | `/models`       | GET    | List available local LLMs                    |
 | `/chat`         | POST   | Stateful chat w/ session memory              |
+| `/api/chat`     | POST   | Direct Ollama proxy (expects `messages` list) |
 | `/doc_qa`       | POST   | RAG over permanent KB (+ optional session)   |
 | `/upload_pdf`   | POST   | Ingest PDF into ephemeral session store      |
 | `/session/{id}` | DELETE | Purge session store                          |
