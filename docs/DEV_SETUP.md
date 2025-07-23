@@ -128,18 +128,18 @@ Downloads & caches:
 * **llama3:8b-instruct-q3_K_L** (~4 GB, fits in 4 GB RAM)
 * **nomic-embed-text**
 
-Before bringing up the stack make sure the embedding model is pulled or
-ingestion will produce **empty embeddings** and indexing errors:
-
-```powershell
-docker exec ollama ollama pull nomic-embed-text
-```
+The compose file uses `pull_policy: never`, so the base image must exist
+locally. If the first `compose up` fails with `No such image`, pull it
+manually as shown in the next step.
 
 ### 6.2 Build / run the RAG API
 
 ```powershell
-docker compose build rag-app          # fast after first run
-docker compose up -d                  # starts ollama + rag-app
+docker compose down                   # stop any existing containers
+docker pull ollama/ollama:latest      # required once because pull_policy: never
+docker compose up -d ollama           # start service to load models
+docker exec ollama ollama pull nomic-embed-text  # embeddings model
+docker compose up -d --build          # starts rag-app + frontend
 ```
 
 ### 6.3 Health checks
