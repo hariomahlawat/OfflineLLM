@@ -26,17 +26,19 @@ This guide explains how to deploy **OfflineLLM** on a Windows Server machine wit
 
    docker run --rm -v ollama_models:/models -v ${PWD}:/backup busybox tar cf /backup/ollama_models.tar /models
    ```
-5. Copy the **entire `OfflineLLM` folder** to your offline server so that
-   `compose.yaml`, the `certs/` directory and all configuration files are
-   available. Along with it, transfer:
-   - `offline_stack.tar`
-   - `ollama_models.tar`
+5. Copy these items to your offline server:
+   - `compose.yaml`
+   - the `certs/` directory
    - the `offline_llm_models` folder
    - the `data` folder
-   Use a USB drive or other removable media for the copy.
+   - `offline_stack.tar`
+   - `ollama_models.tar`
+   Use a USB drive or other removable media for the copy. Copying the entire
+   repository is optional when you rely on the prebuilt images; leaving out
+   large folders such as `node_modules/` saves space.
 
-   After copying, place the folder somewhere like `C:\OfflineLLM` so you can
-   run `docker compose` from inside it.
+   Place everything in a folder like `C:\OfflineLLM` so you can run `docker
+   compose` from inside it.
 
 ---
 
