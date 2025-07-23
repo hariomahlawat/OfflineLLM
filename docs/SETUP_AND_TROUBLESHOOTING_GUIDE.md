@@ -126,7 +126,7 @@ networks:
 
 If you loaded prebuilt images from `offline_stack.tar`, update `compose.yaml`
 and replace the `build:` entries for `rag-app` and `frontend` with `image:` tags
-(`offlinellm-rag-app:latest` and `offline-llm-frontend:latest`). See
+(`offlinellm-rag-app:latest` and `offlinellm-frontend:latest`). See
 [OFFLINE_DEPLOY.md](OFFLINE_DEPLOY.md) for a snippet.
 
 ---

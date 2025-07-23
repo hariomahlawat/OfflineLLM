@@ -29,7 +29,7 @@ rag-app:
   # ...
 
 frontend:
-  image: offline-llm-frontend:latest
+  image: offlinellm-frontend:latest
   # ...
 ```
 
@@ -39,7 +39,7 @@ frontend:
 docker save -o offline_stack.tar \
   ollama/ollama:latest \
   offlinellm-rag-app:latest \
-  offline-llm-frontend:latest
+  offlinellm-frontend:latest
 
 # export pulled Ollama models
 docker run --rm -v ollama_models:/models -v $PWD:/backup \
@@ -78,7 +78,7 @@ services:
   rag-app:
     image: offlinellm-rag-app:latest
   frontend:
-    image: offline-llm-frontend:latest
+    image: offlinellm-frontend:latest
 ```
 
 ```bash
