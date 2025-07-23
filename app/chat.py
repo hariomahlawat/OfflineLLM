@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import logging
+import time
 from typing import Dict, Optional
 from uuid import uuid4
 
@@ -59,18 +60,39 @@ def _lc_to_ollama(msg) -> dict:
 
 
 def safe_chat(*, model: str, messages: list, stream: bool = False, **kwargs):
+    """Call ``ollama.chat`` with basic retry logic.
+
+    A blank response with ``done_reason == 'load'`` indicates the model is still
+    warming up. In this case the request is retried a few times with a short
+    delay before giving up. Any error on the first call falls back to
+    ``DEFAULT_MODEL`` once.
     """
-    Call ollama.chat and if it errors, retry once with the DEFAULT_MODEL.
-    """
-    try:
-        return ollama.chat(model=model, messages=messages, stream=stream, **kwargs)
-    except Exception as e:
-        if model == DEFAULT_MODEL:
-            raise
-        logging.warning(
-            "Model '%s' failed, falling back to '%s': %s", model, DEFAULT_MODEL, e
-        )
-        return ollama.chat(model=DEFAULT_MODEL, messages=messages, stream=stream, **kwargs)
+
+    attempt = 0
+    cur_model = model
+
+    while True:
+        try:
+            raw = ollama.chat(model=cur_model, messages=messages, stream=stream, **kwargs)
+            msg = finalize_ollama_chat(raw)
+        except Exception as e:
+            if cur_model == DEFAULT_MODEL or attempt > 0:
+                raise
+            logging.warning(
+                "Model '%s' failed, falling back to '%s': %s", cur_model, DEFAULT_MODEL, e
+            )
+            cur_model = DEFAULT_MODEL
+            attempt += 1
+            continue
+
+        if msg.get("done_reason") != "load":
+            return msg
+
+        # model is still loading → wait and retry
+        if attempt >= 10:
+            raise RuntimeError("model did not load in time")
+        attempt += 1
+        time.sleep(1)
 
 
 def chat(
