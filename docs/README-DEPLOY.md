@@ -177,7 +177,9 @@ From the repo root (where `compose.yaml` lives):
 
 ```bash
 # Rebuild images without cache
-docker compose -f compose.yaml build --no-cache
+docker build --no-cache -f docker/Dockerfile.backend -t offlinellm-rag-app:latest .
+docker build --no-cache -f docker/Dockerfile.frontend -t offlinellm-frontend:latest .
+
 # Start all services
 docker compose -f compose.yaml up -d
 ```
@@ -218,7 +220,7 @@ docker compose -f compose.yaml up -d
 # Build backend image
 docker build \
   -f docker/Dockerfile.backend \
-  -t offlinellm-backend:latest \
+  -t offlinellm-rag-app:latest \
   .
 
 # Build frontend image

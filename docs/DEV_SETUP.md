@@ -137,9 +137,14 @@ manually as shown in the next step.
 ```powershell
 docker compose down                   # stop any existing containers
 docker pull ollama/ollama:latest      # required once because pull_policy: never
+
+# build backend & frontend images
+docker build -f docker/Dockerfile.backend -t offlinellm-rag-app:latest .
+docker build -f docker/Dockerfile.frontend -t offlinellm-frontend:latest .
+
 docker compose up -d ollama           # start service to load models
 docker exec ollama ollama pull nomic-embed-text  # embeddings model
-docker compose up -d --build          # starts rag-app + frontend
+docker compose up -d                  # starts rag-app + frontend
 ```
 
 ### 6.3 Health checks
@@ -195,7 +200,7 @@ Use `VITE_API_URL=http://localhost:8000` while developing and keep
 # edit docker/requirements.in
 pip-compile docker\requirements.in -o requirements.lock
 pip install -r requirements.lock
-docker compose build rag-app
+docker build -f docker/Dockerfile.backend -t offlinellm-rag-app:latest .
 ```
 
 Run the locking step with **Python 3.11** so dependency hashes match the
