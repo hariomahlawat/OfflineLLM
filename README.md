@@ -106,9 +106,10 @@ Boot indexing runs by default (`SKIP_BOOT_INDEXING=0` in `compose.yaml`). Set
 ### Air‑gap deployment
 
 See **docs/OFFLINE_DEPLOY.md** for the full offline workflow. In short,
-build/pull the images on a machine with internet access, export them to a
-`offline_stack.tar` archive along with the `offline_llm_models/` and `data/`
-directories, then load the archive on the server and run `docker compose up -d`.
+run `./save_stack.ps1` on a machine with internet access to build and export
+`offline_stack.tar` and `ollama_models.tar` along with the `offline_llm_models/`
+and `data/` directories. Copy them over and run `./deploy_offline.ps1` on the
+server to load everything and start the stack.
 ## 🔒 Admin mode
 
 Set an `ADMIN_PASSWORD` environment variable in the backend service. When defined, requests to any `/admin/*` endpoint must authenticate using HTTP Basic credentials with the `admin` username.
