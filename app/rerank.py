@@ -6,6 +6,7 @@ import logging
 from sentence_transformers import CrossEncoder
 
 MODEL_DIR = os.getenv("CROSS_ENCODER_DIR", "/app/models/cross_encoder")
+DEVICE = os.getenv("CROSS_ENCODER_DEVICE", "cpu")
 
 DEFAULT_TOP_K = int(os.getenv("RERANK_TOP_K", "3"))
 
@@ -15,7 +16,8 @@ DEFAULT_TOP_K = int(os.getenv("RERANK_TOP_K", "3"))
 def _cross() -> CrossEncoder:
     """Return a cached cross-encoder instance."""
     try:
-        return CrossEncoder(MODEL_DIR, device="cpu", local_files_only=True)
+        logging.info("Loading cross-encoder from %s on %s", MODEL_DIR, DEVICE)
+        return CrossEncoder(MODEL_DIR, device=DEVICE, local_files_only=True)
     except OSError as exc:
         logging.warning("Cross-encoder model missing at %s: %s", MODEL_DIR, exc)
         raise RuntimeError(f"cross-encoder model not found in {MODEL_DIR}") from exc
