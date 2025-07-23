@@ -188,6 +188,10 @@ class APIRouter:
         def decorator(fn):
             return fn
         return decorator
+    def post(self, *a, **k):
+        def decorator(fn):
+            return fn
+        return decorator
 
 class HTTPBasic:
     pass
