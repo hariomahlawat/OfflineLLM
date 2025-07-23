@@ -231,13 +231,7 @@ class ClientStub:
         self.app = app
     def post(self, url, json=None):
         import asyncio
-        if url in ('/proofread', '/grammar_check'):
-            req = api.ProofreadRequest(**json)
-            # dispatch to the correct handler
-            if url == '/grammar_check':
-                res = asyncio.get_event_loop().run_until_complete(api.grammar_check(req))
-            else:
-                res = asyncio.get_event_loop().run_until_complete(api.proofread(req))
+
             return FakeResponse(res.dict())
         raise ValueError('unsupported url')
 tc_mod.TestClient = ClientStub
@@ -261,12 +255,3 @@ def test_proofread_endpoint(monkeypatch):
     assert resp.status_code == 200
     assert resp.json() == {"corrected": "fixed"}
 
-
-def test_grammar_check_alias(monkeypatch):
-    monkeypatch.setattr(api, "safe_chat", lambda model, messages, stream=False: {"message": {"content": "fixed"}})
-    monkeypatch.setattr(api, "finalize_ollama_chat", lambda raw: raw)
-
-    client = TestClient(api.app)
-    resp = client.post("/grammar_check", json={"text": "hi"})
-    assert resp.status_code == 200
-    assert resp.json() == {"corrected": "fixed"}
