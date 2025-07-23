@@ -4,34 +4,16 @@ This guide walks through preparing the Docker images on a machine with internet 
 
 ## 1 Build images online
 
-```bash
-docker pull ollama/ollama:latest
-# build backend and frontend images
-docker compose build
+Run the helper script to pull the base images, build the stack and export the
+tar archives:
 
-# start Ollama so models can be pulled
-docker compose up -d ollama
-ollama pull llama3:8b-instruct-q3_K_L
-ollama pull nomic-embed-text
+```bash
+./save_stack.ps1
 ```
 
 `compose.yaml` uses `llama3:8b-instruct-q3_K_L` as the default chat model. Make
 sure it is pulled (or change `OLLAMA_DEFAULT_MODEL`) before running the full
 stack.
-
-After the build completes edit `compose.yaml` so the offline server uses the
-prebuilt images instead of trying to rebuild them. Replace each `build:` section
-with the matching `image:` tag:
-
-```yaml
-rag-app:
-  image: offlinellm-rag-app:latest
-  # ...
-
-frontend:
-  image: offlinellm-frontend:latest
-  # ...
-```
 
 ## 2 Save images & copy assets
 
@@ -67,22 +49,6 @@ docker volume create ollama_models
 docker run --rm -v ollama_models:/models -v $PWD:/backup busybox tar xf \
   /backup/ollama_models.tar -C /
 docker compose up -d
-```
-
-### Use pre-built images
-
-`compose.yaml` contains `build:` directives for the backend and frontend. On an offline machine you can skip rebuilding them by changing those entries to use the pre-built images or by running `docker compose up --no-build`.
-
-```yaml
-services:
-  rag-app:
-    image: offlinellm-rag-app:latest
-  frontend:
-    image: offlinellm-frontend:latest
-```
-
-```bash
-docker compose up --no-build
 ```
 
 ## 4 Verify models
