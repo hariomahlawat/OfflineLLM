@@ -82,8 +82,12 @@ curl -k https://localhost/api/models
 ## 🐳 Docker quick‑start
 
 ```bash
+# ensure base image exists (pull_policy: never)
+docker pull ollama/ollama:latest
+
 # build images (one‑time with internet)
-docker compose build
+docker build -f docker/Dockerfile.backend -t offlinellm-rag-app:latest .
+docker build -f docker/Dockerfile.frontend -t offlinellm-frontend:latest .
 
 # run the stack
 docker compose up -d

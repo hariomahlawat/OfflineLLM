@@ -135,9 +135,14 @@ edited—the provided `compose.yaml` already references the images and sets
 ```powershell
 docker compose down
 docker pull ollama/ollama:latest
+
+# build backend & frontend images
+docker build -f docker/Dockerfile.backend -t offlinellm-rag-app:latest .
+docker build -f docker/Dockerfile.frontend -t offlinellm-frontend:latest .
+
 docker compose up -d ollama                 # start service to load models
-docker exec ollama ollama pull nomic-embed-text  # without it embeddings are empt
-docker compose up -d --build
+docker exec ollama ollama pull nomic-embed-text  # embeddings model
+docker compose up -d
 ```
 
 ---
@@ -289,7 +294,9 @@ Invoke-RestMethod `
   ```
 - Rebuild without cache:
   ```powershell
-  docker compose build --no-cache rag-app
+  docker build --no-cache \
+    -f docker/Dockerfile.backend \
+    -t offlinellm-rag-app:latest .
   ```
 - Inspect network:
   ```bash
