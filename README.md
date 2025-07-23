@@ -140,6 +140,11 @@ The default is `0`, which disables this behavior entirely.
 The re-ranking model is loaded from `/app/models/cross_encoder` by default.
 Set `CROSS_ENCODER_DIR` in the backend service to override this location.
 
+### Device selection
+
+By default the cross-encoder runs on the CPU. Set `CROSS_ENCODER_DEVICE` to
+`cuda` or another device string to enable GPU acceleration when available.
+
 ---
 
 ## 📚 Docs
