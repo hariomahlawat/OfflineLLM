@@ -14,6 +14,7 @@ from fastapi import FastAPI, File, HTTPException, Query, UploadFile, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes.models import router as models_router
 from pydantic import BaseModel
 from app import boot
 from app import vector_store
@@ -90,6 +91,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(models_router)
 
 def _verify_admin(creds: HTTPBasicCredentials = Depends(security)) -> None:
     """Simple HTTP Basic password check."""
