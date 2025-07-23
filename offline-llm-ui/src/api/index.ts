@@ -42,7 +42,9 @@ export interface AdminUploadResponse {
 export async function listModels(): Promise<ModelInfo[]> {
   const res = await fetch(`${BASE}/models`)
   if (!res.ok) throw new Error(`listModels failed: ${res.statusText}`)
-  return (await res.json()) as ModelInfo[]
+  const data = await res.json()
+  const models = Array.isArray(data) ? data : data.models ?? []
+  return models as ModelInfo[]
 }
 
 /**

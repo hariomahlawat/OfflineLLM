@@ -1,6 +1,7 @@
 services:
   ollama:
     image: ollama/ollama:latest
+    pull_policy: never
     container_name: ollama
     ports:
       - "11434:11434"
@@ -12,9 +13,8 @@ services:
           - ollama
 
   rag-app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.backend
+    image: offlinellm-rag-app:latest
+    pull_policy: never
     container_name: rag-app
     depends_on:
       - ollama
@@ -47,11 +47,8 @@ services:
       - rag-net
 
   frontend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend
-      args:
-        - VITE_API_URL=/api
+    image: offlinellm-frontend:latest
+    pull_policy: never
     environment:
       - VITE_API_URL=/api   # runtime fallback
     container_name: offline-llm-frontend
