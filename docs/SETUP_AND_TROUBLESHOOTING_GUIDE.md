@@ -124,10 +124,9 @@ networks:
 
 ```
 
-If you loaded prebuilt images from `offline_stack.tar`, update `compose.yaml`
-and replace the `build:` entries for `rag-app` and `frontend` with `image:` tags
-(`offlinellm-rag-app:latest` and `offlinellm-frontend:latest`). See
-[OFFLINE_DEPLOY.md](OFFLINE_DEPLOY.md) for a snippet.
+If you loaded prebuilt images from `offline_stack.tar` nothing needs to be
+edited—the provided `compose.yaml` already references the images and sets
+`pull_policy: never` so Docker won't try to pull them.
 
 ---
 
