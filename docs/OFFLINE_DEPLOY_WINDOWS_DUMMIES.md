@@ -63,7 +63,7 @@ In the `compose.yaml` file replace each `build:` section with the prebuilt image
 rag-app:
   image: offlinellm-rag-app:latest
 frontend:
-  image: offline-llm-frontend:latest
+  image: offlinellm-frontend:latest
 ```
 This avoids rebuilding images on the offline server.
 
