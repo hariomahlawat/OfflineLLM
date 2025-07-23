@@ -1,5 +1,6 @@
 from typing import Any, Dict
 import types
+import dataclasses
 
 def finalize_ollama_chat(raw: Any) -> Dict:
     """
@@ -12,8 +13,18 @@ def finalize_ollama_chat(raw: Any) -> Dict:
             last = chunk
         if last is None:
             raise ValueError("No messages received from Ollama")
-        return last
-    elif isinstance(raw, dict):
+        raw = last
+
+    if isinstance(raw, dict):
         return raw
-    else:
-        raise ValueError(f"Unexpected Ollama.chat return type: {type(raw)}")
+
+    if dataclasses.is_dataclass(raw):
+        return dataclasses.asdict(raw)
+
+    if hasattr(raw, "dict") and callable(getattr(raw, "dict")):
+        return raw.dict()
+
+    if hasattr(raw, "model_dump") and callable(getattr(raw, "model_dump")):
+        return raw.model_dump()
+
+    raise ValueError(f"Unexpected Ollama.chat return type: {type(raw)}")
