@@ -85,6 +85,130 @@ sub.parse_options_header = parse_options_header
 sys.modules['multipart'] = mp
 sys.modules['multipart.multipart'] = sub
 
+# stub httpx.AsyncClient used in app.routes.models
+httpx_mod = types.ModuleType('httpx')
+
+class AsyncClient:
+    def __init__(self, *a, **k):
+        pass
+    async def __aenter__(self):
+        return self
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+    async def get(self, url):
+        class R:
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return {}
+        return R()
+
+httpx_mod.AsyncClient = AsyncClient
+sys.modules['httpx'] = httpx_mod
+
+# minimal pydantic BaseModel stub
+pydantic_mod = types.ModuleType('pydantic')
+class BaseModel:
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+    def dict(self):
+        def conv(val):
+            if isinstance(val, BaseModel):
+                return val.dict()
+            if isinstance(val, list):
+                return [conv(v) for v in val]
+            if isinstance(val, dict):
+                return {k: conv(v) for k, v in val.items()}
+            return val
+        return {k: conv(v) for k, v in self.__dict__.items()}
+    model_dump = dict
+pydantic_mod.BaseModel = BaseModel
+sys.modules['pydantic'] = pydantic_mod
+
+# Minimal fastapi stubs so app.api can be imported without FastAPI installed
+fastapi_stub = types.ModuleType('fastapi')
+
+class FastAPI:
+    def __init__(self, *a, **k):
+        pass
+    def add_middleware(self, *a, **k):
+        pass
+    def include_router(self, *a, **k):
+        pass
+    def on_event(self, *a, **k):
+        def decorator(fn):
+            return fn
+        return decorator
+    def get(self, *a, **k):
+        def decorator(fn):
+            return fn
+        return decorator
+    def post(self, *a, **k):
+        def decorator(fn):
+            return fn
+        return decorator
+    def delete(self, *a, **k):
+        def decorator(fn):
+            return fn
+        return decorator
+
+def File(*a, **k):
+    return None
+
+class HTTPException(Exception):
+    def __init__(self, status_code: int, detail: str | None = None, headers=None):
+        self.status_code = status_code
+        self.detail = detail
+        self.headers = headers
+
+class Query:
+    def __init__(self, default=None, description: str | None = None):
+        self.default = default
+        self.description = description
+
+class UploadFile:
+    def __init__(self, filename: str = ''):
+        self.filename = filename
+        self.file = types.SimpleNamespace(close=lambda: None)
+
+class Depends:
+    def __init__(self, dependency):
+        self.dependency = dependency
+
+class APIRouter:
+    def get(self, *a, **k):
+        def decorator(fn):
+            return fn
+        return decorator
+
+class HTTPBasic:
+    pass
+
+class HTTPBasicCredentials:
+    def __init__(self, username: str = '', password: str = ''):
+        self.username = username
+        self.password = password
+
+class CORSMiddleware:
+    pass
+
+fastapi_stub.FastAPI = FastAPI
+fastapi_stub.File = File
+fastapi_stub.HTTPException = HTTPException
+fastapi_stub.Query = Query
+fastapi_stub.UploadFile = UploadFile
+fastapi_stub.Depends = Depends
+fastapi_stub.APIRouter = APIRouter
+cors_mod = types.ModuleType('fastapi.middleware.cors')
+cors_mod.CORSMiddleware = CORSMiddleware
+security_mod = types.ModuleType('fastapi.security')
+security_mod.HTTPBasic = HTTPBasic
+security_mod.HTTPBasicCredentials = HTTPBasicCredentials
+sys.modules['fastapi'] = fastapi_stub
+sys.modules['fastapi.middleware.cors'] = cors_mod
+sys.modules['fastapi.security'] = security_mod
+
 tc_mod = types.ModuleType('fastapi.testclient')
 class FakeResponse:
     def __init__(self, data):
