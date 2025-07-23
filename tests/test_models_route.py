@@ -20,7 +20,20 @@ class AsyncClient:
             def raise_for_status(self):
                 pass
             def json(self):
-                return {"models": [{"name": "a"}]}
+                return {
+                    "models": [
+                        {"name": "nomic-embed-text"},
+                        {
+                            "name": "m1",
+                            "details": {
+                                "family": "f",
+                                "parameter_size": "7B",
+                                "quantization_level": "q3",
+                            },
+                        },
+                        {"name": "m1"},
+                    ]
+                }
         return R()
 httpx_mod.AsyncClient = AsyncClient
 sys.modules['httpx'] = httpx_mod
@@ -30,4 +43,6 @@ models.httpx = httpx_mod
 
 def test_list_models_route():
     res = asyncio.get_event_loop().run_until_complete(models.list_models())
-    assert res == {"models": [{"name": "a"}]}
+    assert res == [
+        {"name": "m1", "description": "f, 7B, q3"}
+    ]
