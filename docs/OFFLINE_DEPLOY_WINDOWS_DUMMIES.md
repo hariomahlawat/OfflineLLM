@@ -12,21 +12,11 @@ This guide explains how to deploy **OfflineLLM** on a Windows Server machine wit
    git clone https://github.com/your-org/OfflineLLM.git
    cd OfflineLLM
    ```
-3. Build all Docker images and pull models:
+3. Run the helper script to build the images and archive everything for transfer:
    ```powershell
-   docker compose build
-   docker compose up -d ollama
-   ollama pull llama3:8b-instruct-q3_K_L
-   ollama pull nomic-embed-text
-   docker compose down
+   .\save_stack.ps1
    ```
-4. Save the images and models for transfer:
-   ```powershell
-   docker save ollama/ollama:latest offlinellm-rag-app:latest offlinellm-frontend:latest -o offline_stack.tar
-
-   docker run --rm -v ollama_models:/models -v ${PWD}:/backup busybox tar cf /backup/ollama_models.tar /models
-   ```
-5. Copy these items to your offline server:
+4. Copy these items to your offline server:
    - `compose.yaml`
    - the `certs/` directory
    - the `offline_llm_models` folder
@@ -68,16 +58,11 @@ This imports the Docker images and the pulled Ollama models.
 
 ---
 
-## 4. Adjust `compose.yaml`
+## 4. `compose.yaml`
 
-In the `compose.yaml` file replace each `build:` section with the prebuilt image names:
-```yaml
-rag-app:
-  image: offlinellm-rag-app:latest
-frontend:
-  image: offlinellm-frontend:latest
-```
-This avoids rebuilding images on the offline server.
+The provided `compose.yaml` already references the prebuilt images and sets
+`pull_policy: never` so Docker won't attempt to pull anything. No edits are
+required.
 
 ---
 

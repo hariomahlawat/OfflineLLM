@@ -114,9 +114,8 @@ services:
           - ollama
 
   rag-app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.backend
+    image: offlinellm-rag-app:latest
+    pull_policy: never
     container_name: rag-app
     depends_on:
       - ollama
@@ -146,11 +145,8 @@ services:
       - rag-net
 
   frontend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend
-      args:
-        - VITE_API_URL=/api
+    image: offlinellm-frontend:latest
+    pull_policy: never
     environment:
       - VITE_API_URL=/api   # runtime fallback
     container_name: offline-llm-frontend
@@ -186,9 +182,9 @@ docker compose -f compose.yaml build --no-cache
 docker compose -f compose.yaml up -d
 ```
 
-If you built the images on another machine (for an offline install), edit
-`compose.yaml` and replace the `build:` sections with `image:` tags as shown in
-[OFFLINE_DEPLOY.md](OFFLINE_DEPLOY.md).
+If you built the images on another machine, simply copy `offline_stack.tar` and
+`ollama_models.tar` along with the `data` and `offline_llm_models` directories.
+`compose.yaml` already references the prebuilt images so no edits are required.
 
 ---
 
