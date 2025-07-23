@@ -12,19 +12,19 @@ import ReactMarkdown from "react-markdown";
 import { parseThink } from "../../utils/parseThink";
 
 interface Props {
-  text: string;
+  text: unknown;
   color: string;
 }
 
 export function AssistantBubble({ text, color }: Props) {
-  const { answer, think } = parseThink(text);
+  const { visible, think } = parseThink(text);
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
   const gray = useColorModeValue("gray.600", "gray.400");
 
   const onCopy = async () => {
     try {
-      await navigator.clipboard.writeText(answer);
+      await navigator.clipboard.writeText(visible);
       setCopied(true);
       setTimeout(() => setCopied(false), 1000);
     } catch {
@@ -91,7 +91,7 @@ export function AssistantBubble({ text, color }: Props) {
           </Collapse>
         </>
       )}
-      <ReactMarkdown>{answer}</ReactMarkdown>
+      <ReactMarkdown>{visible}</ReactMarkdown>
     </Box>
   );
 }
