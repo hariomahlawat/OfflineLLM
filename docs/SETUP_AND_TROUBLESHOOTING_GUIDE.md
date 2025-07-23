@@ -158,6 +158,13 @@ curl.exe http://localhost:11434/api/ping
 Invoke-RestMethod http://localhost:8000/ping
 ```
 
+List available models (`/models` directly or `/api/models` via Nginx):
+
+```powershell
+curl http://localhost:8000/models
+curl -k https://localhost/api/models
+```
+
 ---
 
 ## Pulling Models in Ollama
@@ -185,11 +192,14 @@ Missing models will lead to empty embeddings and indexing failures during ingest
 | Endpoint        | Method | Description                                  |
 |-----------------|--------|----------------------------------------------|
 | `/ping`         | GET    | Health check                                 |
+| `/models`       | GET    | List available local LLMs                    |
 | `/chat`         | POST   | Stateful chat w/ session memory              |
 | `/doc_qa`       | POST   | RAG over permanent KB (+ optional session)   |
 | `/upload_pdf`   | POST   | Ingest PDF into ephemeral session store      |
 | `/session/{id}` | DELETE | Purge session store                          |
 | `/session_qa`   | POST   | RAG over ephemeral + persistent KB           |
+
+The frontend container proxies these endpoints under `/api`, e.g. `/api/models`.
 
 ---
 
