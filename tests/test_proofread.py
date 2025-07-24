@@ -231,7 +231,9 @@ class ClientStub:
         self.app = app
     def post(self, url, json=None):
         import asyncio
-
+        if url == '/proofread':
+            req = api.ProofreadRequest(**json)
+            res = asyncio.get_event_loop().run_until_complete(api.proofread(req))
             return FakeResponse(res.dict())
         raise ValueError('unsupported url')
 tc_mod.TestClient = ClientStub
