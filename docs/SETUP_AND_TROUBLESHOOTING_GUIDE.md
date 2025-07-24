@@ -323,6 +323,12 @@ Invoke-RestMethod `
   docker compose build rag-app
   docker compose up -d rag-app
   ```
+- 504 Gateway Timeout via Nginx? Increase `proxy_read_timeout` in
+  `docker/nginx.conf` to accommodate longer-running requests like
+  `/session_qa`.
+- Model selector empty? Wait for `curl -k https://localhost/api/models` to
+  return a list. If it fails, check that the Ollama container is running and
+  that Nginx forwards `/api/` requests without stripping the prefix.
 ---
 
 *Keep this guide updated with any new findings!*
