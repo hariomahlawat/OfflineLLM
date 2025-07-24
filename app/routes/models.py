@@ -1,15 +1,18 @@
+import os
 import httpx
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict
 
 router = APIRouter()
 
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
+
 @router.get("/api/models")
 async def list_models() -> List[Dict[str, str | None]]:
     """Return locally available Ollama models filtered for chat usage."""
     try:
         async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.get("http://ollama:11434/api/tags")
+            r = await client.get(f"{OLLAMA_HOST}/api/tags")
         r.raise_for_status()
         raw = r.json()
     except Exception as e:
