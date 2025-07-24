@@ -172,9 +172,11 @@ By default the cross-encoder runs on the CPU. Set `CROSS_ENCODER_DEVICE` to
 
 ## 🤝 Contributing
 
+Run `./codex/setup.sh` to install dependencies before running tests.
+
 ```bash
 git checkout -b feature/my-feature
-pip install -r requirements.lock
+./codex/setup.sh  # install dependencies
 pytest -q
 # commit, push, open PR
 ```
