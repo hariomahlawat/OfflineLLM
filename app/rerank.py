@@ -15,9 +15,21 @@ DEFAULT_TOP_K = int(os.getenv("RERANK_TOP_K", "3"))
 @lru_cache(maxsize=1)
 def _cross() -> CrossEncoder:
     """Return a cached cross-encoder instance."""
+    if not os.path.exists(MODEL_DIR):
+        raise RuntimeError(f"cross-encoder model not found in {MODEL_DIR}")
+
     try:
         logging.info("Loading cross-encoder from %s on %s", MODEL_DIR, DEVICE)
-        return CrossEncoder(MODEL_DIR, device=DEVICE, local_files_only=True)
+        try:
+            return CrossEncoder(MODEL_DIR, device=DEVICE, local_files_only=True)
+        except TypeError:
+            # older sentence-transformers versions do not support local_files_only
+            logging.debug(
+                "CrossEncoder does not accept 'local_files_only'; retrying without"
+            )
+            os.environ.setdefault("HF_HUB_OFFLINE", "1")
+            os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+            return CrossEncoder(MODEL_DIR, device=DEVICE)
     except OSError as exc:
         logging.warning("Cross-encoder model missing at %s: %s", MODEL_DIR, exc)
         raise RuntimeError(f"cross-encoder model not found in {MODEL_DIR}") from exc
