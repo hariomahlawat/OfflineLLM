@@ -542,3 +542,65 @@ async def speech_to_text(file: UploadFile = File(...)):
         tmp_path.unlink(missing_ok=True)
     return SpeechResponse(text=text)
 
+
+# ───────────────────────── /api aliases ─────────────────────────
+# Provide compatibility for setups where the frontend expects all
+# endpoints under /api/ but the backend is served directly without
+# an API prefix. Each route above is mirrored with a /api prefix.
+
+@app.get("/api/models", response_model=List[ModelInfo])
+async def list_models_api():
+    return await list_models()
+
+@app.get("/api/ping", response_model=PingResponse)
+async def ping_api():
+    return await ping()
+
+@app.post("/api/doc_qa", response_model=QAResponse)
+async def doc_qa_api(req: QARequest):
+    return await doc_qa(req)
+
+@app.post("/api/chat", response_model=ChatResponse)
+async def chat_api(req: ChatRequest):
+    return await chat(req)
+
+@app.post("/api/upload_pdf", response_model=UploadPDFResponse)
+async def upload_pdf_api(session_id: str = Query(..., description="Session ID to attach to"), file: UploadFile = File(..., description="PDF")):
+    return await upload_pdf(session_id=session_id, file=file)
+
+@app.delete("/api/session/{session_id}")
+async def end_session_api(session_id: str):
+    return await end_session(session_id)
+
+@app.post("/api/session_qa", response_model=SessionQAResponse)
+async def session_qa_api(req: SessionQARequest):
+    return await session_qa(req)
+
+@app.post("/api/admin/upload_pdf", response_model=AdminUploadResponse)
+async def admin_upload_pdf_api(file: UploadFile = File(..., description="PDF"), _: None = Depends(_verify_admin)):
+    return await admin_upload_pdf(file, _)
+
+@app.get("/api/admin/files", response_model=AdminFilesResponse)
+async def admin_list_files_api(_: None = Depends(_verify_admin)):
+    return await admin_list_files(_)
+
+@app.delete("/api/admin/file/{filename}", response_model=DeleteFileResponse)
+async def admin_delete_file_api(filename: str, _: None = Depends(_verify_admin)):
+    return await admin_delete_file(filename, _)
+
+@app.post("/api/proofread", response_model=ProofreadResponse)
+async def proofread_api(req: ProofreadRequest):
+    return await proofread(req)
+
+@app.post("/api/grammar_check", response_model=ProofreadResponse)
+async def grammar_check_api(req: ProofreadRequest):
+    return await grammar_check(req)
+
+@app.post("/api/redraft", response_model=RedraftResponse)
+async def redraft_api(req: RedraftRequest):
+    return await redraft(req)
+
+@app.post("/api/speech_to_text", response_model=SpeechResponse)
+async def speech_to_text_api(file: UploadFile = File(...)):
+    return await speech_to_text(file)
+
