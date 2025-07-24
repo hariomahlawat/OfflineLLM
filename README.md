@@ -179,6 +179,7 @@ By default the cross-encoder runs on the CPU. Set `CROSS_ENCODER_DEVICE` to
 
 * **docs/DEV_SETUP.md** – full developer setup
 * **docs/OFFLINE_DEPLOY.md** – deploy in an offline environment
+* **docs/VENDOR_DEPENDENCIES.md** – cache packages for offline installs
 * API usage examples coming soon
 
 ---
@@ -190,6 +191,8 @@ Run `./codex/setup.sh` to install dependencies before running tests.
 ```bash
 git checkout -b feature/my-feature
 ./codex/setup.sh  # install dependencies
+# optionally pre-download packages for offline use
+./codex/vendor.sh
 pytest -q
 # commit, push, open PR
 ```

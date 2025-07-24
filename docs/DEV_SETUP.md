@@ -49,6 +49,19 @@ setup of all dependencies, run:
 > **Activation blocked?**
 > `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force`
 
+### 2.2 Vendoring dependencies for offline use
+
+To run the setup completely offline, first generate cached packages while you
+have internet access:
+
+```bash
+./codex/vendor.sh
+```
+
+Commit or copy the created `vendor/` directory. When present, `./codex/setup.sh`
+will install Python wheels and npm packages from these cached files instead of
+fetching them from the network.
+
 ---
 
 ## 3 Dependency locking (pip‑tools)
