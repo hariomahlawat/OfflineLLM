@@ -55,7 +55,7 @@ git clone https://github.com/hariomahlawat/OfflineLLM.git
 cd OfflineLLM
 ./setup_dev.sh
 source .venv/bin/activate
-cd frontend && npm run dev   # for HTTPS dev, use npm run dev -- --https or see certs/
+cd offline-llm-ui && npm run dev   # for HTTPS dev, use npm run dev -- --https or see certs/
 
 
 

@@ -3,29 +3,29 @@ set -euo pipefail
 
 echo "📦 Setting up OfflineLLM development environment…"
 
-# 1) Python (rag-app)
+# 1) Python
 if [ ! -d ".venv" ]; then
   echo "🔧 Creating Python venv…"
   python3 -m venv .venv
 fi
-echo "⚡ Activating venv and installing Python deps…"
 # shellcheck disable=SC1091
 source .venv/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r requirements.lock
 
-# 2) Node (frontend)
-echo "🔧 Installing Node.js deps in ./frontend…"
-cd frontend
+# 2) Node (React frontend)
+echo "🔧 Installing Node.js deps in ./offline-llm-ui…"
+pushd offline-llm-ui >/dev/null
 npm ci
+popd >/dev/null
 
 # 3) Optional: create HTTPS certs for Vite
-if command -v mkcert &>/dev/null; then
+if command -v mkcert >/dev/null 2>&1; then
   echo "🔐 Generating local certs with mkcert…"
-  mkdir -p certs
+  mkdir -p offline-llm-ui/certs
   mkcert -install
-  mkcert -cert-file certs/localhost.pem -key-file certs/localhost-key.pem localhost 127.0.0.1 ::1
-  echo "✅ Certs in frontend/certs/"
+  mkcert -cert-file offline-llm-ui/certs/localhost.pem -key-file offline-llm-ui/certs/localhost-key.pem localhost 127.0.0.1 ::1
+  echo "✅ Certs in offline-llm-ui/certs/"
 else
   echo "⚠️  mkcert not found; skipping HTTPS cert generation"
 fi
