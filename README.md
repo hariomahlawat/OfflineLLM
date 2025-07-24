@@ -19,6 +19,7 @@
 - **Session‑based uploads + QA** – Upload a PDF via `/upload_pdf`, then query it with `/session_qa`.
 - **Dynamic retrieval** – Number of retrieved chunks scales with question length (token based).
 - **Offline speech-to-text** – Upload audio to `/speech_to_text` using OpenAI Whisper.
+- **Grammar & rewrite tools** – `/proofread` fixes grammar, `/redraft` rewrites text.
 
 ---
 

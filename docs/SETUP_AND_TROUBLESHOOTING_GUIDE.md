@@ -203,6 +203,10 @@ Missing models will lead to empty embeddings and indexing failures during ingest
 | `/upload_pdf`   | POST   | Ingest PDF into ephemeral session store      |
 | `/session/{id}` | DELETE | Purge session store                          |
 | `/session_qa`   | POST   | RAG over ephemeral + persistent KB           |
+| `/proofread`    | POST   | Grammar correction                           |
+| `/redraft`      | POST   | Proofread + rewrite                          |
+| `/speech_to_text` | POST | Transcribe audio to text                     |
+| `/grammar_check` | POST  | Alias for `/proofread`                       |
 
 The frontend container proxies these endpoints under `/api`, e.g. `/api/models`.
 
@@ -303,11 +307,19 @@ Invoke-RestMethod `
   ```bash
   docker network inspect offlinellm_rag-net
   ```
- "Connection refused" on `curl http://localhost:8000/...` usually means the
+"Connection refused" on `curl http://localhost:8000/...` usually means the
   backend is still waiting for Ollama. Check container status:
   ```bash
   docker compose ps
   docker logs rag-app
+  ```
+- "404 Not Found" when calling an endpoint? Ensure you're using the `/api`
+  prefix when accessing the app through Nginx (`https://localhost/api/...`). If
+  you recently pulled new code, rebuild the backend image so new routes are
+  available:
+  ```bash
+  docker compose build rag-app
+  docker compose up -d rag-app
   ```
 ---
 
