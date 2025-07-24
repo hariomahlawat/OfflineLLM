@@ -27,8 +27,7 @@ def _cross() -> CrossEncoder:
             logging.debug(
                 "CrossEncoder does not accept 'local_files_only'; retrying without"
             )
-            os.environ.setdefault("HF_HUB_OFFLINE", "1")
-            os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+
             return CrossEncoder(MODEL_DIR, device=DEVICE)
     except OSError as exc:
         logging.warning("Cross-encoder model missing at %s: %s", MODEL_DIR, exc)
