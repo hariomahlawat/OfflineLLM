@@ -17,7 +17,14 @@ def _cross() -> CrossEncoder:
     """Return a cached cross-encoder instance."""
     try:
         logging.info("Loading cross-encoder from %s on %s", MODEL_DIR, DEVICE)
-        return CrossEncoder(MODEL_DIR, device=DEVICE, local_files_only=True)
+        try:
+            return CrossEncoder(MODEL_DIR, device=DEVICE, local_files_only=True)
+        except TypeError:
+            # older sentence-transformers versions do not support local_files_only
+            logging.debug(
+                "CrossEncoder does not accept 'local_files_only'; retrying without"
+            )
+            return CrossEncoder(MODEL_DIR, device=DEVICE)
     except OSError as exc:
         logging.warning("Cross-encoder model missing at %s: %s", MODEL_DIR, exc)
         raise RuntimeError(f"cross-encoder model not found in {MODEL_DIR}") from exc
