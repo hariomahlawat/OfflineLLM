@@ -8,10 +8,28 @@ export function ModelSelector() {
   const { model, setModel } = useChat()
 
   useEffect(() => {
-    listModels().then((ms) => {
-      setModels(ms)
-      if (ms.length) setModel(ms[0].name)
-    })
+    let cancelled = false
+
+    async function load(attempt = 0): Promise<void> {
+      try {
+        const ms = await listModels()
+        if (cancelled) return
+        setModels(ms)
+        if (ms.length) setModel(ms[0].name)
+      } catch (err) {
+        if (attempt < 3) {
+          setTimeout(() => load(attempt + 1), (attempt + 1) * 1000)
+        } else if (!cancelled) {
+          console.error('listModels failed', err)
+          setModels([])
+        }
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [setModel])
 
   if (models === null) {

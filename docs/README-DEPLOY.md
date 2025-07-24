@@ -80,11 +80,15 @@ http {
 
     # Proxy API calls to backend
     location /api/ {
-      proxy_pass http://rag-app:8000/;
+      # forward /api/* requests as-is
+      proxy_pass http://rag-app:8000;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
+      # increase timeouts for long QA calls
+      proxy_read_timeout 300;
+      proxy_send_timeout 300;
     }
 
     # SPA fallback
@@ -203,6 +207,11 @@ If you built the images on another machine, simply copy `offline_stack.tar` and
 - **Blank page / MIME errors**: Confirm `nginx.conf` has correct `root` and `index` directives.
 - **API 404s**: Ensure `/api/` proxy in Nginx matches the frontend `VITE_API_URL`.
 - **Mixed Content**: Frontend must use `https://` and call `/api` (relative URL).
+- **Model dropdown empty**: Check `/api/models` from the browser dev tools. If it
+  returns 502/503, the Ollama service may still be starting; refresh once
+  `curl -k https://localhost/api/models` succeeds.
+- **Gateway Timeout**: Increase `proxy_read_timeout` in `nginx.conf` if long-running
+  requests like `/session_qa` fail with 504 errors.
 
 ---
 
