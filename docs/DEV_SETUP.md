@@ -37,7 +37,16 @@ python -m venv .venv
 python -m pip install --upgrade pip
 ```
 
-> **Activation blocked?**  
+### 2.1 Codex setup script (optional)
+
+If you are running inside the **Codex** environment or want a one-line
+setup of all dependencies, run:
+
+```bash
+./codex/setup.sh
+```
+
+> **Activation blocked?**
 > `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force`
 
 ---
