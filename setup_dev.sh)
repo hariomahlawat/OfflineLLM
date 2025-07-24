@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "📦 Setting up OfflineLLM development environment…"
+
+# 1) Python (rag-app)
+if [ ! -d ".venv" ]; then
+  echo "🔧 Creating Python venv…"
+  python3 -m venv .venv
+fi
+echo "⚡ Activating venv and installing Python deps…"
+# shellcheck disable=SC1091
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# 2) Node (frontend)
+echo "🔧 Installing Node.js deps in ./frontend…"
+cd frontend
+npm ci
+
+# 3) Optional: create HTTPS certs for Vite
+if command -v mkcert &>/dev/null; then
+  echo "🔐 Generating local certs with mkcert…"
+  mkdir -p certs
+  mkcert -install
+  mkcert -cert-file certs/localhost.pem -key-file certs/localhost-key.pem localhost 127.0.0.1 ::1
+  echo "✅ Certs in frontend/certs/"
+else
+  echo "⚠️  mkcert not found; skipping HTTPS cert generation"
+fi
+
+echo "🎉 Setup complete! Run 'source .venv/bin/activate' and then your usual npm / Docker commands."

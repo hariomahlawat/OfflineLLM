@@ -46,6 +46,19 @@ OfflineLLM/
 
 ---
 
+## Quickstart (Dev)
+
+### Linux / macOS
+
+```bash
+git clone https://github.com/hariomahlawat/OfflineLLM.git
+cd OfflineLLM
+./setup_dev.sh
+source .venv/bin/activate
+cd frontend && npm run dev   # for HTTPS dev, use npm run dev -- --https or see certs/
+
+
+
 ## 🚀 Quick‑start (local dev)
 
 See **docs/DEV_SETUP.md** for the step‑by‑step guide.
