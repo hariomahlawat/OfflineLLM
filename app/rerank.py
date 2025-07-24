@@ -15,6 +15,9 @@ DEFAULT_TOP_K = int(os.getenv("RERANK_TOP_K", "3"))
 @lru_cache(maxsize=1)
 def _cross() -> CrossEncoder:
     """Return a cached cross-encoder instance."""
+    if not os.path.exists(MODEL_DIR):
+        raise RuntimeError(f"cross-encoder model not found in {MODEL_DIR}")
+
     try:
         logging.info("Loading cross-encoder from %s on %s", MODEL_DIR, DEVICE)
         try:
@@ -24,6 +27,7 @@ def _cross() -> CrossEncoder:
             logging.debug(
                 "CrossEncoder does not accept 'local_files_only'; retrying without"
             )
+
             return CrossEncoder(MODEL_DIR, device=DEVICE)
     except OSError as exc:
         logging.warning("Cross-encoder model missing at %s: %s", MODEL_DIR, exc)
