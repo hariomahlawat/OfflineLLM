@@ -168,6 +168,8 @@ List available models (`/models` directly or `/api/models` via Nginx):
 curl http://localhost:8000/models
 curl -k https://localhost/api/models
 ```
+If you run the backend outside Docker, export `OLLAMA_HOST=http://localhost:11434`
+so that `/api/models` can reach the local Ollama service.
 
 ---
 
